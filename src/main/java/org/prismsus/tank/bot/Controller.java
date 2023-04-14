@@ -1,11 +1,15 @@
 package org.prismsus.tank.bot;
 
 import org.prismsus.tank.block.Block;
+import org.prismsus.tank.block.Map;
 import org.prismsus.tank.utils.DoubleVec2;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
-public interface Controller {
+public class Controller {
+    FutureController controller;
+
     /**
      * Get the position of this bot's tank.
      * The function returns a double vector for its position. Vector (0, 0) is the top left corner of the
@@ -14,14 +18,18 @@ public interface Controller {
      * a block.
      * @return Position of this bot's tank as a double vector.
      */
-    DoubleVec2 getPos();
+    DoubleVec2 getPos() throws ExecutionException, InterruptedException {
+        return controller.getPos().get();
+    }
 
     /**
      * Get all bot's visible blocks excluding empty blocks. The function returns a list of `Block` objects.
      * Bot's vision may be blocked by other opaque blocks.
      * @return List of all visible blocks.
      */
-    List<Block> getVisibleBlocks();
+    List<Block> getVisibleBlocks() throws ExecutionException, InterruptedException {
+        return controller.getVisibleBlocks().get();
+    }
 
     /**
      * Get all bot's visited blocks. The function returns a list of `Block` objects.
@@ -30,11 +38,15 @@ public interface Controller {
      * these blocks enter the bot's vision again.
      * @return List of all visited blocks.
      */
-    List<Block> getVisitedBlocks();
+    List<Block> getVisitedBlocks() throws ExecutionException, InterruptedException {
+        return controller.getVisitedBlocks().get();
+    }
 
     /**
      * Perform some action.
      * @param action Action to perform.
      */
-    void act(ControllerAction action);
+    boolean act(ControllerAction action) throws ExecutionException, InterruptedException {
+        return controller.act(action).get();
+    }
 }
