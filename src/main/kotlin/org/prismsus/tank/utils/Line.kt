@@ -42,4 +42,14 @@ class Line (startP : Dvec2, endP: Dvec2): Intersectable {
         return Line(toStartP + center, toEndP + center)
     }
 
+    override fun rotateAssign(center: Dvec2, rad: Double): Intersectable {
+        var toStartP = startP - center
+        var toEndP = endP - center
+        toStartP = toStartP.rotate(rad)
+        toEndP = toEndP.rotate(rad)
+        startP = toStartP + center
+        endP = toEndP + center
+        return this
+    }
+
 }
