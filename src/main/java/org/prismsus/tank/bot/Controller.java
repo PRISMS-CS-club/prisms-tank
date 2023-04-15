@@ -1,7 +1,7 @@
 package org.prismsus.tank.bot;
 
-import org.prismsus.tank.gameEles.block.Blk;
-import org.prismsus.tank.utils.Dvec2;
+import org.prismsus.tank.element.block.Block;
+import org.prismsus.tank.utils.DVec2;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -17,7 +17,7 @@ public class Controller {
      * a block.
      * @return Position of this bot's tank as a double vector.
      */
-    Dvec2 getPos() throws ExecutionException, InterruptedException {
+    DVec2 getPos() throws ExecutionException, InterruptedException {
         return controller.getPos().get();
     }
 
@@ -26,7 +26,7 @@ public class Controller {
      * Bot's vision may be blocked by other opaque blocks.
      * @return List of all visible blocks.
      */
-    List<Blk> getVisibleBlocks() throws ExecutionException, InterruptedException {
+    List<Block> getVisibleBlocks() throws ExecutionException, InterruptedException {
         return controller.getVisibleBlocks().get();
     }
 
@@ -37,7 +37,7 @@ public class Controller {
      * these blocks enter the bot's vision again.
      * @return List of all visited blocks.
      */
-    List<Blk> getVisitedBlocks() throws ExecutionException, InterruptedException {
+    List<Block> getVisitedBlocks() throws ExecutionException, InterruptedException {
         return controller.getVisitedBlocks().get();
     }
 

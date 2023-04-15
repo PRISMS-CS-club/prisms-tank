@@ -1,15 +1,15 @@
 package org.prismsus.tank.utils
 
-class Line (startP : Dvec2, endP: Dvec2): Intersectable {
+class Line (startP : DVec2, endP: DVec2): Intersectable {
     var slope : Double = (endP.y - startP.y) / (endP.x - startP.x)
     var inter : Double = startP.y - slope * startP.x
-    var startP : Dvec2 = startP
+    var startP : DVec2 = startP
         set(new){
             field = new
             slope = (endP.y - startP.y) / (endP.x - startP.x)
             inter = startP.y - slope * startP.x
         }
-    var endP : Dvec2 = endP
+    var endP : DVec2 = endP
         set(new){
             field = new
             slope = (endP.y - startP.y) / (endP.x - startP.x)
@@ -26,15 +26,15 @@ class Line (startP : Dvec2, endP: Dvec2): Intersectable {
         return inThisRange && inOtherRange
     }
 
-    override fun plus(shift : Dvec2) : Intersectable {
+    override fun plus(shift : DVec2) : Intersectable {
         return Line(startP + shift, endP + shift)
     }
 
-    override fun minus(shift : Dvec2) : Intersectable {
+    override fun minus(shift : DVec2) : Intersectable {
         return plus(-shift)
     }
 
-    override fun rotate(center : Dvec2, rad : Double) : Intersectable {
+    override fun rotate(center : DVec2, rad : Double) : Intersectable {
         var toStartP = startP - center
         var toEndP = endP - center
         toStartP = toStartP.rotate(rad)

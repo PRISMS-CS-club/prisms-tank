@@ -1,6 +1,10 @@
 package org.prismsus.tank.utils
 
-class ColBox(var pts : Array<Dvec2>): Intersectable {
+/**
+ * Defines a polygonal collision box of a game object.
+ * @property pts The points of the collision box.
+ */
+class ColBox(var pts : Array<DVec2>): Intersectable {
     var lines : Array<Line>
     init{
         if(pts.size != 4){
@@ -12,14 +16,14 @@ class ColBox(var pts : Array<Dvec2>): Intersectable {
     /**
      * Construct a box that is in rectangle shape.
      */
-    constructor(pos : Dvec2, size : Dvec2) : this(arrayOf(
+    constructor(pos : DVec2, size : DVec2) : this(arrayOf(
             pos,
-            pos + Dvec2(size.x, 0.0),
+            pos + DVec2(size.x, 0.0),
             pos + size,
-            pos + Dvec2(0.0, size.y)
+            pos + DVec2(0.0, size.y)
     )){}
 
-    override fun rotate(center: Dvec2, rad: Double): Intersectable {
+    override fun rotate(center: DVec2, rad: Double): Intersectable {
         var newPts = pts.copyOf()
         for (i in pts.indices){
             var toPt = pts[i] - center
@@ -29,7 +33,7 @@ class ColBox(var pts : Array<Dvec2>): Intersectable {
         return ColBox(newPts)
     }
 
-    override fun rotateAssign(center: Dvec2, rad: Double): Intersectable {
+    override fun rotateAssign(center: DVec2, rad: Double): Intersectable {
         for (i in pts.indices){
             var toPt = pts[i] - center
             toPt = toPt.rotate(rad)
@@ -38,7 +42,7 @@ class ColBox(var pts : Array<Dvec2>): Intersectable {
         return this
     }
 
-    override fun plus(shift: Dvec2): Intersectable {
+    override fun plus(shift: DVec2): Intersectable {
         var newPts = pts.copyOf()
         for (i in pts.indices){
             newPts[i] = pts[i] + shift
@@ -47,7 +51,7 @@ class ColBox(var pts : Array<Dvec2>): Intersectable {
     }
 
 
-    override fun minus(shift : Dvec2) : Intersectable{
+    override fun minus(shift : DVec2) : Intersectable{
         return plus(-shift)
     }
 

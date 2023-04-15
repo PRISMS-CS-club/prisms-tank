@@ -7,8 +7,8 @@ interface Intersectable {
      * @return True if intersects, false otherwise.
      */
     fun intersect(other : Intersectable) : Boolean
-    operator fun plus(shift : Dvec2) : Intersectable
-    operator fun minus(shift : Dvec2) : Intersectable
-    fun rotate(center : Dvec2, rad : Double) : Intersectable
-    fun rotateAssign(center : Dvec2, rad : Double) : Intersectable
+    operator fun plus(shift : DVec2) : Intersectable
+    operator fun minus(shift : DVec2) : Intersectable
+    fun rotate(center : DVec2, rad : Double) : Intersectable
+    fun rotateAssign(center : DVec2, rad : Double) : Intersectable
 }

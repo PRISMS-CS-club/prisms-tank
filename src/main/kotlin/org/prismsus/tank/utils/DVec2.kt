@@ -2,19 +2,24 @@ package org.prismsus.tank.utils
 
 import kotlin.math.*
 
-class Dvec2(var x: Double, var y: Double) {
+/**
+ * A 2D vector with double coordinates.
+ * @property x The x coordinate.
+ * @property y The y coordinate.
+ */
+class DVec2(var x: Double, var y: Double) {
     constructor(): this(0.0, 0.0)
-    constructor(vec: Ivec2): this(vec.x.toDouble(), vec.y.toDouble())
+    constructor(vec: IVec2): this(vec.x.toDouble(), vec.y.toDouble())
 
     /**
      * Add this double vector and another double vector. Returns a new object.
      * @param other The other double vector.
      * @return The sum vector.
      */
-    operator fun plus(other: Dvec2): Dvec2 {
-        return Dvec2(x + other.x, y + other.y)
+    operator fun plus(other: DVec2): DVec2 {
+        return DVec2(x + other.x, y + other.y)
     }
-    operator fun plusAssign(other: Dvec2) {
+    operator fun plusAssign(other: DVec2) {
         x += other.x
         y += other.y
     }
@@ -24,21 +29,21 @@ class Dvec2(var x: Double, var y: Double) {
      * @param other The other double vector.
      * @return The subtracted vector.
      */
-    operator fun minus(other: Dvec2): Dvec2 {
-        return Dvec2(x - other.x, y - other.y)
+    operator fun minus(other: DVec2): DVec2 {
+        return DVec2(x - other.x, y - other.y)
     }
 
-    operator fun minusAssign(other: Dvec2) {
+    operator fun minusAssign(other: DVec2) {
         x -= other.x
         y -= other.y
     }
 
-    operator fun unaryMinus(): Dvec2 {
-        return Dvec2(-x, -y)
+    operator fun unaryMinus(): DVec2 {
+        return DVec2(-x, -y)
     }
 
-    operator fun unaryPlus(): Dvec2 {
-        return Dvec2(x, y)
+    operator fun unaryPlus(): DVec2 {
+        return DVec2(x, y)
     }
 
     /**
@@ -46,8 +51,8 @@ class Dvec2(var x: Double, var y: Double) {
      * @param other The scalar.
      * @return The product vector.
      */
-    operator fun times(other: Double): Dvec2 {
-        return Dvec2(x * other, y * other)
+    operator fun times(other: Double): DVec2 {
+        return DVec2(x * other, y * other)
     }
     operator fun timesAssign(other: Double) {
         x *= other
@@ -58,8 +63,8 @@ class Dvec2(var x: Double, var y: Double) {
      * @param other The scalar.
      * @return The divided vector.
      */
-    operator fun div(other: Double): Dvec2 {
-        return Dvec2(x / other, y / other)
+    operator fun div(other: Double): DVec2 {
+        return DVec2(x / other, y / other)
     }
     operator fun divAssign(other: Double) {
         x /= other
@@ -78,7 +83,7 @@ class Dvec2(var x: Double, var y: Double) {
      * Get the normalized vector.
      * @return The normalized vector.
      */
-    fun norm(): Dvec2 {
+    fun norm(): DVec2 {
         return this / length()
     }
 
@@ -87,7 +92,7 @@ class Dvec2(var x: Double, var y: Double) {
      * @param other The other vector.
      * @return The dot product.
      */
-    fun dot(other: Dvec2): Double {
+    fun dot(other: DVec2): Double {
         return x * other.x + y * other.y
     }
 
@@ -96,7 +101,7 @@ class Dvec2(var x: Double, var y: Double) {
      * @param other The other vector.
      * @return The cross product.
      */
-    fun cross(other: Dvec2): Double {
+    fun cross(other: DVec2): Double {
         return x * other.y - y * other.x
     }
 
@@ -104,8 +109,8 @@ class Dvec2(var x: Double, var y: Double) {
      * Round the vector to the nearest integer vector.
      * @return The rounded vector.
      */
-    fun round(): Ivec2 {
-        return Ivec2(x.roundToInt(), y.roundToInt())
+    fun round(): IVec2 {
+        return IVec2(x.roundToInt(), y.roundToInt())
     }
 
     /**
@@ -114,11 +119,11 @@ class Dvec2(var x: Double, var y: Double) {
      * @return The rotated vector.
      */
 
-    fun rotateTo(rad : Double): Dvec2 {
+    fun rotateTo(rad : Double): DVec2 {
         val len = length()
         val nx = len * cos(rad)
         val ny = len * sin(rad)
-        return Dvec2(nx, ny)
+        return DVec2(nx, ny)
     }
 
     /**
@@ -135,7 +140,7 @@ class Dvec2(var x: Double, var y: Double) {
      * @param radOffset The angle in radian to turn
      * @return The turned vector.
      */
-    fun rotate(radOffset : Double) : Dvec2{
+    fun rotate(radOffset : Double) : DVec2{
         val curAngle = angle()
         val newAngle = curAngle + radOffset
         return rotateTo(newAngle)
@@ -168,8 +173,8 @@ class Dvec2(var x: Double, var y: Double) {
         * @param length the length of the vector
         * @return the vector created
         */
-        fun byPolarCoord(len : Double, rad : Double) : Dvec2 {
-            return Dvec2(len * cos(rad), len * sin(rad))
+        fun byPolarCoord(len : Double, rad : Double) : DVec2 {
+            return DVec2(len * cos(rad), len * sin(rad))
         }
     }
 }
