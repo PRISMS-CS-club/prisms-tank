@@ -1,8 +1,7 @@
 package org.prismsus.tank.bot;
 
-import org.prismsus.tank.block.Block;
-import org.prismsus.tank.block.Map;
-import org.prismsus.tank.utils.DoubleVec2;
+import org.prismsus.tank.gameEles.block.Block;
+import org.prismsus.tank.utils.Dvec2;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -18,7 +17,7 @@ public class Controller {
      * a block.
      * @return Position of this bot's tank as a double vector.
      */
-    DoubleVec2 getPos() throws ExecutionException, InterruptedException {
+    Dvec2 getPos() throws ExecutionException, InterruptedException {
         return controller.getPos().get();
     }
 

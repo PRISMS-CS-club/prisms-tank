@@ -1,4 +1,4 @@
-package org.prismsus.tank.block
+package org.prismsus.tank.gameEles.block
 
 /**
  * The game map containing all blocks.

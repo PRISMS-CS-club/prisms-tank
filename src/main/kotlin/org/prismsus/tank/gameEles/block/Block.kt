@@ -1,6 +1,6 @@
-package org.prismsus.tank.block
+package org.prismsus.tank.gameEles.block
 
-import org.prismsus.tank.utils.IntVec2
+import org.prismsus.tank.utils.Ivec2
 
 /**
  * Gives all relevant data of a block in the game map.
@@ -9,8 +9,8 @@ import org.prismsus.tank.utils.IntVec2
  * game performance, the actual blocks should be stored as an integer array in the game map.
  */
 abstract class Block(val x: Int, val y: Int) {
-    val pos: IntVec2
-        get() = IntVec2(x, y)
+    val pos: Ivec2
+        get() = Ivec2(x, y)
 
     /**
      * Whether the player can pass through this block.

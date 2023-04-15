@@ -1,4 +1,4 @@
-package org.prismsus.tank.block
+package org.prismsus.tank.gameEles.block
 
 class EmptyBlock(x: Int, y: Int): Block(x, y) {
     override fun canPass() = true
