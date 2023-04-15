@@ -4,7 +4,7 @@ import kotlin.collections.ArrayList
 
 abstract class GameElement(val uid : Long, var hp : Int = -1, var colBox : ColBox) {
     var noCollisionElementIds = ArrayList<Long>()  // game elements that will not collide with this game element
-                                        // e.g. bullet shot by one player will not collide with itself
+                                                   // e.g. bullet shot by one player will not collide with itself
     enum class RemoveStat {
         REMOVED, TO_REMOVE, NOT_REMOVE
     }
