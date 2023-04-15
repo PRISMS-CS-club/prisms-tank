@@ -10,4 +10,5 @@ interface Intersectable {
     operator fun plus(shift : Dvec2) : Intersectable
     operator fun minus(shift : Dvec2) : Intersectable
     fun rotate(center : Dvec2, rad : Double) : Intersectable
+    fun rotateAssign(center : Dvec2, rad : Double) : Intersectable
 }

@@ -1,6 +1,6 @@
 package org.prismsus.tank.bot;
 
-import org.prismsus.tank.gameEles.block.Block;
+import org.prismsus.tank.gameEles.block.Blk;
 import org.prismsus.tank.utils.Dvec2;
 
 import java.util.List;
@@ -26,7 +26,7 @@ public class Controller {
      * Bot's vision may be blocked by other opaque blocks.
      * @return List of all visible blocks.
      */
-    List<Block> getVisibleBlocks() throws ExecutionException, InterruptedException {
+    List<Blk> getVisibleBlocks() throws ExecutionException, InterruptedException {
         return controller.getVisibleBlocks().get();
     }
 
@@ -37,7 +37,7 @@ public class Controller {
      * these blocks enter the bot's vision again.
      * @return List of all visited blocks.
      */
-    List<Block> getVisitedBlocks() throws ExecutionException, InterruptedException {
+    List<Blk> getVisitedBlocks() throws ExecutionException, InterruptedException {
         return controller.getVisitedBlocks().get();
     }
 

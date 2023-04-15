@@ -3,7 +3,7 @@ import org.prismsus.tank.utils.ColBox
 import java.util.*
 import kotlin.collections.ArrayList
 
-abstract class GameEle(val uid : Long, var colBox : ColBox, var hp : Int = -1) {
+abstract class GameEle(val uid : Long, var hp : Int = -1, var colBox : ColBox) {
     var noColEleIds = ArrayList<Long>()  // game elements that will not collide with this game element
                                         // e.g. bullet shot by one player will not collide with itself
     enum class REM_STAT{

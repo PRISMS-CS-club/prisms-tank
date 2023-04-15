@@ -14,6 +14,10 @@ class Dvec2(var x: Double, var y: Double) {
     operator fun plus(other: Dvec2): Dvec2 {
         return Dvec2(x + other.x, y + other.y)
     }
+    operator fun plusAssign(other: Dvec2) {
+        x += other.x
+        y += other.y
+    }
 
     /**
      * Subtract this double vector and another double vector. Returns a new object.
@@ -22,6 +26,11 @@ class Dvec2(var x: Double, var y: Double) {
      */
     operator fun minus(other: Dvec2): Dvec2 {
         return Dvec2(x - other.x, y - other.y)
+    }
+
+    operator fun minusAssign(other: Dvec2) {
+        x -= other.x
+        y -= other.y
     }
 
     operator fun unaryMinus(): Dvec2 {
@@ -40,7 +49,10 @@ class Dvec2(var x: Double, var y: Double) {
     operator fun times(other: Double): Dvec2 {
         return Dvec2(x * other, y * other)
     }
-
+    operator fun timesAssign(other: Double) {
+        x *= other
+        y *= other
+    }
     /**
      * Divide this double vector and a scalar. Returns a new object.
      * @param other The scalar.
@@ -48,6 +60,10 @@ class Dvec2(var x: Double, var y: Double) {
      */
     operator fun div(other: Double): Dvec2 {
         return Dvec2(x / other, y / other)
+    }
+    operator fun divAssign(other: Double) {
+        x /= other
+        y /= other
     }
 
     /**
@@ -62,7 +78,7 @@ class Dvec2(var x: Double, var y: Double) {
      * Get the normalized vector.
      * @return The normalized vector.
      */
-    fun normalized(): Dvec2 {
+    fun norm(): Dvec2 {
         return this / length()
     }
 

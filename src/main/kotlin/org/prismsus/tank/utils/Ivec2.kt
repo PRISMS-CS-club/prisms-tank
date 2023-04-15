@@ -12,6 +12,10 @@ class Ivec2(var x: Int, var y: Int) {
     operator fun plus(other: Ivec2): Ivec2 {
         return Ivec2(x + other.x, y + other.y)
     }
+    operator fun plusAssign(other: Ivec2) {
+        x += other.x
+        y += other.y
+    }
 
     /**
      * Subtract this int vector and another int vector. Returns a new object.
@@ -20,6 +24,11 @@ class Ivec2(var x: Int, var y: Int) {
      */
     operator fun minus(other: Ivec2): Ivec2 {
         return Ivec2(x - other.x, y - other.y)
+    }
+
+    operator fun minusAssign(other: Ivec2) {
+        x -= other.x
+        y -= other.y
     }
 
     /**
@@ -31,12 +40,21 @@ class Ivec2(var x: Int, var y: Int) {
         return Ivec2(x * other, y * other)
     }
 
+    operator fun timesAssign(other: Int) {
+        x *= other
+        y *= other
+    }
+
     /**
      * Multiply this int vector and a double scalar. Returns a new object.
      * @param other The scalar.
      */
     operator fun times(other: Double): Dvec2 {
         return Dvec2(x * other, y * other)
+    }
+    operator fun timesAssign(other: Double) {
+        x *= other.toInt()
+        y *= other.toInt()
     }
 
     /**
@@ -48,6 +66,11 @@ class Ivec2(var x: Int, var y: Int) {
         return Ivec2(x / other, y / other)
     }
 
+    operator fun divAssign(other: Int) {
+        x /= other
+        y /= other
+    }
+
     /**
      * Divide this int vector and a double scalar. Returns a new object.
      * @param other The scalar.
@@ -55,6 +78,11 @@ class Ivec2(var x: Int, var y: Int) {
      */
     operator fun div(other: Double): Dvec2 {
         return Dvec2(x / other, y / other)
+    }
+
+    operator fun divAssign(other: Double) {
+        x /= other.toInt()
+        y /= other.toInt()
     }
 
     /**
@@ -73,5 +101,9 @@ class Ivec2(var x: Int, var y: Int) {
      */
     fun cross(other: Ivec2): Int {
         return x * other.y - y * other.x
+    }
+
+    fun toDvec2(): Dvec2 {
+        return Dvec2(x.toDouble(), y.toDouble())
     }
 }

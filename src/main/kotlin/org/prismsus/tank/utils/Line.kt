@@ -21,8 +21,8 @@ class Line (startP : Dvec2, endP: Dvec2): Intersectable {
         val intersectX = otherLine.inter - inter / (slope - otherLine.slope)
         // calculate the point where intersection happens
         // then check if this point is in the range of both lines
-        val inThisRange : Boolean = intersectX >= startP.x && intersectX <= endP.x
-        val inOtherRange : Boolean = intersectX >= otherLine.startP.x && intersectX <= otherLine.endP.x
+        val inThisRange : Boolean = intersectX > startP.x && intersectX < endP.x
+        val inOtherRange : Boolean = intersectX > otherLine.startP.x && intersectX < otherLine.endP.x
         return inThisRange && inOtherRange
     }
 
