@@ -1,4 +1,6 @@
 package org.prismsus.tank.event
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
 
 /**
  * Base class for all events.
@@ -7,4 +9,6 @@ package org.prismsus.tank.event
  */
 abstract class Event(val timestamp: Long) {
     abstract fun serialize(): ByteArray
+    abstract val timeStamp : Long
+    abstract val serialName : String
 }

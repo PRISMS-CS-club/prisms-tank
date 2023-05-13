@@ -9,6 +9,9 @@ interface Intersectable {
     fun intersect(other : Intersectable) : Boolean
     operator fun plus(shift : DVec2) : Intersectable
     operator fun minus(shift : DVec2) : Intersectable
-    fun rotate(center : DVec2, rad : Double) : Intersectable
+    fun rotate(center : DPos2, rad : Double) : Intersectable
+    fun rotateDeg(center : DPos2, deg : Double) : Intersectable {
+        return rotate(center, deg / 180.0 * Math.PI)
+    }
     fun rotateAssign(center : DVec2, rad : Double) : Intersectable
 }

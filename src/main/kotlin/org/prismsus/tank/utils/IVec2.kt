@@ -111,4 +111,14 @@ class IVec2(var x: Int, var y: Int) {
     fun toDvec2(): DVec2 {
         return DVec2(x.toDouble(), y.toDouble())
     }
+
+    companion object {
+        val ORIGIN = IVec2(0, 0)
+        val UP = IVec2(0, 1)
+        val DN = IVec2(0, -1)
+        val LF = IVec2(-1, 0)
+        val RT = IVec2(1, 0)
+    }
 }
+typealias IPos2 = IVec2
+typealias IDim2 = IVec2

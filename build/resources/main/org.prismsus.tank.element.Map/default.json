@@ -1,0 +1,14 @@
+{
+  "x" : 8,
+  "y" : 8,
+  "map" :
+  [ "Tk", "", "", "SldBlk", "", "BrkBlk", "BrkBlk", "BrkBlk",
+    "", "", "",   "SldBlk", "", "BrkBlk", "BrkBlk", "BrkBlk",
+    "", "", "",   "SldBlk", "", "BrkBlk", "BrkBlk", "BrkBlk",
+    "", "", "",   "SldBlk", "", "BrkBlk", "BrkBlk", "BrkBlk",
+    "", "", "",   "SldBlk", "", "",       "",       "",
+    "", "", "",   "",       "", "BrkBlk", "BrkBlk", "BrkBlk",
+    "", "", "",   "SldBlk", "", "BrkBlk", "BrkBlk", "BrkBlk",
+    "", "", "",   "SldBlk", "", "Tk", "BrkBlk", "BrkBlk"
+  ]
+}

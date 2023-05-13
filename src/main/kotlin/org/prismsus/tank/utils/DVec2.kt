@@ -71,6 +71,11 @@ class DVec2(var x: Double, var y: Double) {
         y /= other
     }
 
+    override fun equals (other: Any?): Boolean {
+        if (other !is DVec2) return false
+        return abs(x - other.x) < DOUBLE_PRECISION && abs(y - other.y) < DOUBLE_PRECISION
+    }
+
     /**
      * Get the length of the vector.
      * @return The length of the vector.
@@ -146,6 +151,14 @@ class DVec2(var x: Double, var y: Double) {
         return rotateTo(newAngle)
     }
 
+    fun rotateDeg(degOffset : Double) : DVec2 {
+        return rotate(toRad(degOffset))
+    }
+
+    override fun toString(): String {
+        return "($x, $y)"
+    }
+
     companion object {
 
         /**
@@ -176,5 +189,14 @@ class DVec2(var x: Double, var y: Double) {
         fun byPolarCoord(len : Double, rad : Double) : DVec2 {
             return DVec2(len * cos(rad), len * sin(rad))
         }
+
+        val ORIGIN : DVec2 = DVec2(0.0, 0.0)
+        val UP : DVec2 = DVec2(1.0, 0.0)
+        val RT : DVec2 = DVec2(0.0, 1.0)
+        val LF : DVec2 = DVec2(-1.0, 0.0)
+        val DN : DVec2 = DVec2(0.0, -1.0)
     }
+
 }
+typealias DPos2 = DVec2
+typealias DDim2 = DVec2
