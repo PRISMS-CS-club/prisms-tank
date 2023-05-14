@@ -1,20 +1,21 @@
 package org.prismsus.tank.utils.tests
 
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
 import org.prismsus.tank.utils.DPos2
 import org.prismsus.tank.utils.DVec2
 import org.prismsus.tank.utils.Line
 import kotlin.math.*
 class LineTest {
 
-    @org.junit.jupiter.api.Test
+    @Test
     fun intersect() {
         // test if two same lines can intersect
         var line1 = Line(DVec2.ORIGIN, DPos2(1.0, 1.0))
         assertTrue(line1.inter == 0.0)
         assertTrue(line1.slope == 1.0)
         var line2 = Line(DVec2.ORIGIN, DPos2(1.0, 1.0))
-        assertTrue(line1.intersect(line2))
+        assertTrue(line1 intersect line2)
         assertTrue(line2.intersect(line1))
         // test the case where two lines are parallel, but not intersect within their range
         line1 = Line(DVec2.ORIGIN, DPos2(1.0, 1.0))
@@ -48,7 +49,7 @@ class LineTest {
         assertTrue(line2.intersect(line1))
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     fun rotate() {
         // rotate a line by 90 degree, from flat line to vertical
         var line = Line(DVec2.ORIGIN, DPos2(1.0, 0.0))

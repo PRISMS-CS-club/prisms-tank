@@ -108,8 +108,20 @@ class IVec2(var x: Int, var y: Int) {
         return x * other.y - y * other.x
     }
 
-    fun toDvec2(): DVec2 {
+    fun toDVec2(): DVec2 {
         return DVec2(x.toDouble(), y.toDouble())
+    }
+
+    override fun toString(): String {
+        return "($x, $y)"
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (other is IVec2)
+            return x == other.x && y == other.y
+        else if (other is DVec2)
+            return other.equals(this)
+        return false
     }
 
     companion object {

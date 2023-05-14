@@ -1,6 +1,6 @@
 package org.prismsus.tank.bot;
 
-import org.prismsus.tank.element.block.Block;
+import org.prismsus.tank.element.Block;
 import org.prismsus.tank.utils.DVec2;
 
 import java.util.List;

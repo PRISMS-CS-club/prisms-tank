@@ -1,5 +1,5 @@
 package org.prismsus.tank.event
-import org.prismsus.tank.element.block.*
+import org.prismsus.tank.element.Block
 class MapCreateEvent (timeStamp : Long) : Event(timeStamp){
     override fun serialize() : ByteArray {
         // TODO: implement, now just return empty array

@@ -84,8 +84,11 @@ class DVec2(var x: Double, var y: Double) : Intersectable, Comparable<DVec2> {
     }
 
     override fun equals (other: Any?): Boolean {
-        if (other !is DVec2) return false
-        return abs(x - other.x) < DOUBLE_PRECISION && abs(y - other.y) < DOUBLE_PRECISION
+        if (other is DVec2)
+            return abs(x - other.x) < DOUBLE_PRECISION && abs(y - other.y) < DOUBLE_PRECISION
+        if (other is IVec2)
+            return abs(x - other.x) < DOUBLE_PRECISION && abs(y - other.y) < DOUBLE_PRECISION
+        return false
     }
 
     /**

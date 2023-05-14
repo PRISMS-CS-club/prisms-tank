@@ -144,7 +144,7 @@ class ColBox(@JvmField var pts : Array<DPos2>): Intersectable{
      * @return True if equal, false otherwise.
      * @see equals
      * */
-    fun equalPtSet(other : Intersectable) : Boolean {
+    infix fun equalPtSet(other : Intersectable) : Boolean {
         if (other !is ColBox) return false
         val thisSorted = pts.copyOf()
         val otherSorted = other.pts.copyOf()

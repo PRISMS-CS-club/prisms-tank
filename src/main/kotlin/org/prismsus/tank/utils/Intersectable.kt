@@ -6,7 +6,7 @@ interface Intersectable {
      * @param other The other object.
      * @return True if intersects, false otherwise.
      */
-    fun intersect(other : Intersectable) : Boolean
+    infix fun intersect(other : Intersectable) : Boolean
     /**
      * shifting the intersectable object by a vector
      * @param shift The vector to shift.
