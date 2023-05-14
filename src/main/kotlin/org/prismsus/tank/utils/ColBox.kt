@@ -9,7 +9,7 @@ import kotlin.math.atan2
  * @param pts The points that defines the box. The polygon will be constructed by connecting adjacent points to lines.
  * So that the points should be ordered in a way that the lines will not intersect with each other.
  */
-class ColBox(@JvmField var pts : Array<DPos2>): Intersectable {
+class ColBox(@JvmField var pts : Array<DPos2>): Intersectable{
     // here use the JvmField to restrict the auto generation of getter and setter
     // because we want to override the getter and setter
 
@@ -21,8 +21,8 @@ class ColBox(@JvmField var pts : Array<DPos2>): Intersectable {
     constructor(pos : DVec2, size : DDim2) : this(arrayOf(
             pos,
             pos + DVec2(size.x, 0.0),
-            pos + size,
-            pos + DVec2(0.0, size.y)
+            pos + DVec2(size.x, -size.y),
+            pos -DVec2(0.0, size.y)
     )){}
 
     /**
@@ -124,13 +124,33 @@ class ColBox(@JvmField var pts : Array<DPos2>): Intersectable {
 
     /**
      * Check if two ColBox are equal.
+     * Notice that two ColBox with different order of points are not considered equal. Since they can form different polygons.
+     * To check if two ColBox are having same point set, use [equalPtSet] instead.
      * @param other The other ColBox.
      * @return True if equal, false otherwise.
+     * @see equalPtSet
      * */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is ColBox) return false
         return pts.equals(other.pts)
+    }
+
+    /**
+     * Check if two intersectable objects are having same point set.
+     * Notice that with same point set, the polygon can be different.
+     * To check if two ColBox are equal, use [equals] instead.
+     * @param other The other ColBox.
+     * @return True if equal, false otherwise.
+     * @see equals
+     * */
+    fun equalPtSet(other : Intersectable) : Boolean {
+        if (other !is ColBox) return false
+        val thisSorted = pts.copyOf()
+        val otherSorted = other.pts.copyOf()
+        thisSorted.sort()
+        otherSorted.sort()
+        return thisSorted.contentEquals(otherSorted)
     }
 
     companion object{

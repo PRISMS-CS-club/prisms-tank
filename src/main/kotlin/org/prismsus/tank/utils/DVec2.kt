@@ -7,7 +7,7 @@ import kotlin.random.*
  * @property x The x coordinate.
  * @property y The y coordinate.
  */
-class DVec2(var x: Double, var y: Double) : Intersectable {
+class DVec2(var x: Double, var y: Double) : Intersectable, Comparable<DVec2> {
     constructor(): this(0.0, 0.0)
     constructor(vec: IVec2): this(vec.x.toDouble(), vec.y.toDouble())
 
@@ -19,6 +19,7 @@ class DVec2(var x: Double, var y: Double) : Intersectable {
     override operator fun plus(other: DVec2): DVec2 {
         return DVec2(x + other.x, y + other.y)
     }
+
     operator fun plusAssign(other: DVec2) {
         x += other.x
         y += other.y
@@ -44,6 +45,17 @@ class DVec2(var x: Double, var y: Double) : Intersectable {
 
     operator fun unaryPlus(): DVec2 {
         return DVec2(x, y)
+    }
+
+    override operator fun compareTo(other: DVec2): Int {
+        // compare x first, then y
+        if (abs(x - other.x) > DOUBLE_PRECISION){
+            return x.compareTo(other.x)
+        }
+        if (abs(y - other.y) < DOUBLE_PRECISION) {
+            return 0
+        }
+        return y.compareTo(other.y)
     }
 
     /**

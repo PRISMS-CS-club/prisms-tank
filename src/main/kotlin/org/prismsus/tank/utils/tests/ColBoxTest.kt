@@ -10,6 +10,36 @@ class ColBoxTest {
 
     @Test
     fun rotate() {
+        var testNum = 0
+        // create a square box, rotate it by 90 degree, it should have the same point set as the original
+        println("t${++testNum}")
+        var box1 = ColBox(Pos(0.0, 1.0), DDim2(1.0, 1.0))
+        var box2 = ColBox(Pos.ORIGIN, DDim2(1.0, 1.0)).rotateDeg(Pos.ORIGIN, 90.0) as ColBox
+        assertTrue(box2.equalPtSet(box1))
+        println("passed")
+
+        // create a square box, rotate it by 180 degree from the center, it should have the same point set as the original
+        println("t${++testNum}")
+        box1 = ColBox(Pos.ORIGIN, DDim2(1.0, 1.0))
+        box2 = ColBox(Pos.ORIGIN, DDim2(1.0, 1.0)).rotateDeg(Pos(.5, -.5), 180.0) as ColBox
+        assertTrue(box2.equalPtSet(box1))
+        println("passed")
+
+        // create a rectangle box with longer side on x axis, rotate it by 90 degree, it should have the same point set
+        // with a rectangle box with longer side on y axis
+        println("t${++testNum}")
+        box1 = ColBox(Pos(0.0, 1.0), DDim2(2.0, 1.0)).rotateDeg(Pos.ORIGIN, 90.0) as ColBox
+        box2 = ColBox(Pos(-1.0, 2.0), DDim2(1.0, 2.0))
+        assertTrue(box2.equalPtSet(box1))
+        println("passed")
+
+        // create a rectangle box with longer side on x axis, rotate it by -90 degree, it should have the same point set
+        // with a rectangle box with longer side on y axis
+        println("t${++testNum}")
+        box1 = ColBox(Pos(0.0, 1.0), DDim2(2.0, 1.0)).rotateDeg(Pos.ORIGIN, -90.0) as ColBox
+        box2 = ColBox(Pos(0.0, 0.0), DDim2(1.0, 2.0))
+        assertTrue(box2.equalPtSet(box1))
+        println("passed")
     }
 
     @Test
