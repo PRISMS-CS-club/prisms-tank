@@ -178,7 +178,9 @@ class Line(startP: DPos2, endP: DPos2) : Intersectable {
     }
 
     /**
+     * Return the point when travel a certain distance from the start point of the line
      * @param t the parameter of the line, t = 0 means the start point, t = 1 means the end point
+     * @return the point when travel a certain distance from the start point of the line
      * */
     fun at(t : Double) : DPos2 {
         return startP + (endP - startP) * t
