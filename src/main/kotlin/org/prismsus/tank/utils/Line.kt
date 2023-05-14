@@ -1,6 +1,12 @@
 package org.prismsus.tank.utils
 import kotlin.math.*
 
+
+/**
+ * @param startP The starting point of the line.
+ * @param endP The ending point of the line.
+ * @constructor Create a line with two points.
+ * */
 class Line(startP: DPos2, endP: DPos2) : Intersectable {
     var slope: Double = (endP.y - startP.y) / (endP.x - startP.x)
     var inter: Double = startP.y - slope * startP.x
@@ -17,7 +23,12 @@ class Line(startP: DPos2, endP: DPos2) : Intersectable {
             inter = startP.y - slope * startP.x
         }
 
-
+    /**
+     * Check if two intersectable objects intersect.
+     * @param other The other object.
+     * @return True if intersects, false otherwise.
+     * @see Intersectable.intersect
+     * */
     override fun intersect(other: Intersectable): Boolean {
         if (other is DPos2) {
             // calculate y position of the line given x is other.x
@@ -86,14 +97,24 @@ class Line(startP: DPos2, endP: DPos2) : Intersectable {
         return inThisRange && inOtherRange
     }
 
+    /**
+     * @see Intersectable.plus
+     * */
     override fun plus(shift: DVec2): Line {
         return Line(startP + shift, endP + shift)
     }
 
+    /**
+     * @see Intersectable.minus
+     * */
     override fun minus(shift: DVec2): Line {
         return plus(-shift)
     }
 
+
+    /**
+     * @see Intersectable.plusAssign
+     * */
     override fun rotate(center: DPos2, rad: Double): Line {
         var toStartP = startP - center
         var toEndP = endP - center
@@ -102,6 +123,10 @@ class Line(startP: DPos2, endP: DPos2) : Intersectable {
         return Line(toStartP + center, toEndP + center)
     }
 
+
+    /**
+     * @see Intersectable.plusAssign
+     * */
     override fun rotateAssign(center: DPos2, rad: Double): Line {
         var toStartP = startP - center
         var toEndP = endP - center
@@ -112,6 +137,15 @@ class Line(startP: DPos2, endP: DPos2) : Intersectable {
         return this
     }
 
+
+    /**
+     * Check if two lines are equal, which means they have the same starting point and ending point.
+     * Notice that when the difference between two double values is less than [DOUBLE_PRECISION], they are considered equal.
+     * @param other the other line to compare with
+     * @return true if two lines are equal, false otherwise
+     * @see DOUBLE_PRECISION
+     * @see DPos2.equals
+     * */
     override fun equals(other: Any?): Boolean {
         if (other !is Line) {
             return false
@@ -127,10 +161,18 @@ class Line(startP: DPos2, endP: DPos2) : Intersectable {
         return arrayOf(startP, endP)
     }
 
+
+    /**
+     * @return the length of the line
+     * */
     fun len(): Double {
         return startP.dis(endP)
     }
 
+    /**
+     * @return the square of the length of the line
+     * @see len
+     * */
     fun sqLen(): Double {
         return startP.sqDis(endP)
     }
@@ -142,6 +184,12 @@ class Line(startP: DPos2, endP: DPos2) : Intersectable {
         return startP + (endP - startP) * t
     }
 
+
+    /**
+     * Calculate the shortest distance from the line to the point
+     * @param pt the point to calculate the distance to
+     * @return the shortest distance from the line to the point
+     * */
     fun disToPt(pt: DPos2): Double {
         // shortest distance from the line to the point
         if (len() < DOUBLE_PRECISION) return startP.dis(pt)
@@ -154,13 +202,30 @@ class Line(startP: DPos2, endP: DPos2) : Intersectable {
         return at(clampedT).dis(pt)
     }
 
+    /**
+     * Convert the line to a vector points from the starting point to the ending point
+     * @return the vector representation of the line
+     * */
     fun toVec(): DVec2 {
         return endP - startP
     }
 
+    /**
+     * Check if an x value is between the starting point and the ending point of the line, inclusively
+     * @param x the x value to check
+     * @return true if the x value is between the starting point and the ending point of the line, false otherwise
+     * @see inYrg
+     * */
     fun inXrg(x: Double): Boolean {
         return x >= startP.x && x <= endP.x
     }
+
+    /**
+     * Check if a y value is between the starting point and the ending point of the line, inclusively
+     * @param y the y value to check
+     * @return true if the y value is between the starting point and the ending point of the line, false otherwise
+     * @see inXrg
+     * */
     fun inYrg(y: Double): Boolean {
         return y >= startP.y && y <= endP.y
     }

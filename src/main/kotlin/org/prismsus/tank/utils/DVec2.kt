@@ -77,19 +77,24 @@ class DVec2(var x: Double, var y: Double) : Intersectable {
     }
 
     /**
-     * Get the length of the vector.
+     * Get the length of the vector. Consider it is a line extending from the origin.
      * @return The length of the vector.
      */
     fun len(): Double {
         return sqrt(x * x + y * y)
     }
 
+    /**
+     * Get the square of the length of the vector. Consider it is a line extending from the origin.
+     * @return The square of the length of the vector.
+     * @see len
+     * */
     fun sqLen() : Double{
         return x * x + y * y
     }
 
     /**
-     * Get the normalized vector.
+     * Get the normalized vector. (meaning the length of the vector is 1, but the direction is the same)
      * @return The normalized vector.
      */
     fun norm(): DVec2 {
@@ -105,9 +110,22 @@ class DVec2(var x: Double, var y: Double) : Intersectable {
         return x * other.x + y * other.y
     }
 
+    /**
+     * Calculate the cosine of the angle between this vector and another vector. The angle is always the smaller one.
+     * @param other The other vector.
+     * @return The cosine of the angle.
+     * @see angleWith
+     * */
     fun cosWith(other: DVec2): Double {
         return dot(other) / (len() * other.len())
     }
+
+    /**
+     * Calculate the angle between this vector and another vector. The angle is always the smaller one.
+     * @param other The other vector.
+     * @return The angle in radian.
+     * @see cosWith
+     * */
 
     fun angleWith(other: DVec2): Double {
         return acos(cosWith(other))
@@ -156,7 +174,7 @@ class DVec2(var x: Double, var y: Double) : Intersectable {
 
 
     /**
-     * Make the vector turn in counter-clockwise direction for certain angle.
+     * Rotate the vector using center = (0, 0), in radians.
      * @param radOffset The angle in radian to turn
      * @return The turned vector.
      */
@@ -165,7 +183,13 @@ class DVec2(var x: Double, var y: Double) : Intersectable {
         val newAngle = curAngle + radOffset
         return rotateTo(newAngle)
     }
-
+    /**
+     * Rotate the vector according to certain center or pivot, in radians.
+     * @param center The center or pivot to rotate around.
+     * @param radOffset The angle in radian to turn, in radian.
+     * @return The turned vector.
+     *
+    * */
     override fun rotate(center : DVec2, radOffset : Double) : DVec2 {
         val curAngle = angle()
         val newAngle = curAngle + radOffset
@@ -173,10 +197,23 @@ class DVec2(var x: Double, var y: Double) : Intersectable {
         val rotated = toThis.rotateTo(newAngle)
         return rotated + center
     }
-
+    /**
+     * Rotate the vector according to certain center or pivot, in degrees.
+     * @param center The center or pivot to rotate around.
+     * @param degOffset The angle in degrees to turn, in degrees.
+     * @return The turned vector.
+     * @see rotate
+    * */
     fun rotateDeg(degOffset : Double) : DVec2 {
         return rotate(toRad(degOffset))
     }
+
+    /**
+    * Call rotate, then assign the result to this vector, angle represented in radians. Using center = (0, 0).
+    * @param radOffset The angle in radian to turn, in radian.
+    * @return This vector.
+    * @see rotate
+    * */
     fun rotateAssign(radOffset : Double) : DVec2{
         val curAngle = angle()
         val newAngle = curAngle + radOffset
@@ -186,7 +223,12 @@ class DVec2(var x: Double, var y: Double) : Intersectable {
         return this
     }
 
-
+    /**
+     * Call rotate, then assign the result to this vector, angle represented in radians. Need to specify the center or pivot.
+     * @param center The center or pivot to rotate around
+     * @param radOffset The angle in radian to turn, in radian.
+     * @return This vector.
+     * */
     override fun rotateAssign(center: DVec2, rad: Double): DVec2 {
         val curAngle = angle()
         val newAngle = curAngle + rad
@@ -201,6 +243,10 @@ class DVec2(var x: Double, var y: Double) : Intersectable {
         return arrayOf(this)
     }
 
+    /**
+     * Check if two intersectable objects intersect.
+     * @see [Intersectable.intersect]
+    * */
     override fun intersect(other: Intersectable): Boolean {
         if (other is DVec2)
             return this == other
@@ -212,13 +258,35 @@ class DVec2(var x: Double, var y: Double) : Intersectable {
         return "($x, $y)"
     }
 
+    /**
+     * Represent DVec to some point in 2D space, and calculate the distance between this and other point.
+     * It is recommended to create object using the typealias of DPos2, when using this function.
+     * @param other The other point.
+     * @return The distance between this and other point.
+     * */
     fun dis(other: DVec2): Double {
         return sqrt((x - other.x) * (x - other.x) + (y - other.y) * (y - other.y))
     }
 
+    /**
+     * Represent DVec to some point in 2D space, and calculate the square of the distance between this and other point.
+     * It is recommended to create object using the typealias of DPos2, when using this function.
+     * @param other The other point.
+     * @return The square of the distance between this and other point.
+     * @see dis
+     * */
     fun sqDis(other: DVec2): Double {
         return (x - other.x) * (x - other.x) + (y - other.y) * (y - other.y)
     }
+
+    /**
+     * Represent DVec to some point in 2D space, and calculate the Manhattan distance between this and other point.
+     * Manhattan distance is the sum of the absolute values of the differences of the x and y coordinates.
+     * This distance the distance between two points when limiting the movement to only horizontal and vertical.
+     * It is recommended to create object using the typealias of DPos2, when using this function.
+     * @param other The other point.
+     * @return The Manhattan distance between this and other point.
+     * */
     fun manhatDis(other: DVec2): Double {
         return abs(x - other.x) + abs(y - other.y)
     }
@@ -254,10 +322,15 @@ class DVec2(var x: Double, var y: Double) : Intersectable {
             return DVec2(len * cos(rad), len * sin(rad))
         }
 
-        fun randUnit() : DVec2 {
+        /**
+         * Randomly generate a unit vector.
+         * @return The generated vector.
+        * */
+        fun randUnitVec() : DVec2 {
             val rad = Random.nextDouble() * 2 * PI
             return DVec2(cos(rad), sin(rad))
         }
+
 
         val ORIGIN : DVec2 = DVec2(0.0, 0.0)
         val UP : DVec2 = DVec2(0.0, 1.0)

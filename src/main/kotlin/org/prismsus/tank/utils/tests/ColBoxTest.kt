@@ -3,8 +3,6 @@ package org.prismsus.tank.utils.tests
 import org.junit.jupiter.api.Test
 import org.prismsus.tank.utils.*
 import org.junit.jupiter.api.Assertions.*
-import java.util.Arrays
-import kotlin.math.*
 import kotlin.random.Random
 
 typealias Pos = DPos2
@@ -75,13 +73,13 @@ class ColBoxTest {
         println("t${++testNum}")
         val PT_CNT = 5000
         val samePt = Pos(1.0, 1.0)
-        val pts1 = Array(PT_CNT){Pos.randUnit() * 1e5}
-        val pts2 = Array(PT_CNT){Pos.randUnit() * 1e5}
+        val pts1 = Array(PT_CNT){Pos.randUnitVec() * 1e5}
+        val pts2 = Array(PT_CNT){Pos.randUnitVec() * 1e5}
         pts1[PT_CNT - 1] = samePt
         pts2[PT_CNT - 1] = samePt
         var startTm = System.currentTimeMillis()
-        box1 = genRandPolygon(pts1)
-        box2 = genRandPolygon(pts2)
+        box1 = ColBox.byUnorderedPtSet(pts1)
+        box2 = ColBox.byUnorderedPtSet(pts2)
         println("time to construct two boxes: ${System.currentTimeMillis() - startTm} ms")
         startTm = System.currentTimeMillis()
         assertTrue(box1.intersect(box2))
@@ -89,33 +87,12 @@ class ColBoxTest {
         println("pass")
     }
 
-    /**
-     * @param pts the points of the polygon, the first three should properly form a triangle
-     */
-    fun genRandPolygon(pts : Array<DPos2>) : ColBox {
-        // sort the points using angle with horizontal line
-        val sortedPts = pts.copyOf()
-        val avePt : DPos2 = sortedPts.reduce { acc, dPos2 -> acc + dPos2 } / sortedPts.size.toDouble()
-        Arrays.sort(sortedPts, 0, sortedPts.size) { o1, o2 ->
-            var to1 = o1 - avePt
-            var to2 = o2 - avePt
-            val ang1 = atan2(to1.y, to1.x)
-            val ang2 = atan2(to2.y, to2.x)
-            // first sort by angle, then by distance (radius)
-            if (abs(ang1 - ang2) > DOUBLE_PRECISION){
-                if (ang1 < ang2) -1 else 1
-            } else {
-                if (to1.len() < to2.len()) -1 else 1
-            }
-        }
-        return ColBox(sortedPts)
-    }
 
     @Test
     fun testGenRandPolygon(){
         // generate random points, print them in the format of x, y , no parentheses
-        val pts = Array(100){(DPos2.randUnit() * Random.nextDouble() * 100.0)}
-        val box = genRandPolygon(pts)
+        val pts = Array(100){(DPos2.randUnitVec() * Random.nextDouble() * 100.0)}
+        val box = ColBox.byUnorderedPtSet(pts)
         for (pt : DPos2 in box.pts) {
             println("${pt.x}, ${pt.y}")
         }

@@ -1,8 +1,13 @@
 package org.prismsus.tank.utils
 
+import java.util.*
+import kotlin.math.abs
+import kotlin.math.atan2
+
 /**
  * Defines a polygonal collision box of a game object.
- * @property pts The points of the collision box.
+ * @param pts The points that defines the box. The polygon will be constructed by connecting adjacent points to lines.
+ * So that the points should be ordered in a way that the lines will not intersect with each other.
  */
 class ColBox(@JvmField var pts : Array<DPos2>): Intersectable {
     // here use the JvmField to restrict the auto generation of getter and setter
@@ -10,14 +15,19 @@ class ColBox(@JvmField var pts : Array<DPos2>): Intersectable {
 
     /**
      * Construct a box that is in rectangle shape.
+     * @param pos The top-left position of the box.
+     * @param size The size of the box.
      */
-    constructor(pos : DVec2, size : DVec2) : this(arrayOf(
+    constructor(pos : DVec2, size : DDim2) : this(arrayOf(
             pos,
             pos + DVec2(size.x, 0.0),
             pos + size,
             pos + DVec2(0.0, size.y)
     )){}
 
+    /**
+     * @see Intersectable.rotate
+     * */
     override fun rotate(center: DVec2, rad: Double): ColBox {
         var newPts = pts.copyOf()
         for (i in pts.indices){
@@ -28,6 +38,10 @@ class ColBox(@JvmField var pts : Array<DPos2>): Intersectable {
         return ColBox(newPts)
     }
 
+
+    /**
+     * @see Intersectable.rotateAssign
+     * */
     override fun rotateAssign(center: DVec2, rad: Double): ColBox {
         for (i in pts.indices){
             var toPt = pts[i] - center
@@ -37,6 +51,9 @@ class ColBox(@JvmField var pts : Array<DPos2>): Intersectable {
         return this
     }
 
+    /**
+     * @see Intersectable.plus
+     * */
     override fun plus(shift: DVec2): ColBox {
         var newPts = pts.copyOf()
         for (i in pts.indices){
@@ -45,11 +62,20 @@ class ColBox(@JvmField var pts : Array<DPos2>): Intersectable {
         return ColBox(newPts)
     }
 
-
+    /**
+     * @see Intersectable.minus
+     * */
     override fun minus(shift : DVec2) : ColBox{
         return plus(-shift)
     }
 
+
+    /**
+     * Helper function of [intersect], this function DOES NOT check the situation when one ColBox enclose the other.
+     * @param other The other ColBox.
+     * @return True if intersects, false otherwise.
+     * @see intersect
+     * */
     fun intersectNoEnclose(other : Intersectable) : Boolean {
         // does not check the other.intersect(this)
         if (other is DPos2){
@@ -77,6 +103,9 @@ class ColBox(@JvmField var pts : Array<DPos2>): Intersectable {
         return false
     }
 
+    /**
+    * @see Intersectable.intersect
+    * */
     override fun intersect(other : Intersectable) : Boolean {
         if (other !is ColBox) return intersectNoEnclose(other)
         else return intersectNoEnclose(other) || other.intersectNoEnclose(this)
@@ -91,5 +120,42 @@ class ColBox(@JvmField var pts : Array<DPos2>): Intersectable {
 
     override fun toString(): String {
         return "pts=${pts.contentToString()}"
+    }
+
+    /**
+     * Check if two ColBox are equal.
+     * @param other The other ColBox.
+     * @return True if equal, false otherwise.
+     * */
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is ColBox) return false
+        return pts.equals(other.pts)
+    }
+
+    companion object{
+
+        /**
+         * Create a ColBox from a set of points that are not ordered
+         * @see ColBox (the primary constructor)
+         * */
+        fun byUnorderedPtSet(pts : Array<DPos2>) : ColBox{
+            // sort the points using angle with horizontal line
+            val sortedPts = pts.copyOf()
+            val avePt : DPos2 = sortedPts.reduce { acc, dPos2 -> acc + dPos2 } / sortedPts.size.toDouble()
+            Arrays.sort(sortedPts, 0, sortedPts.size) { o1, o2 ->
+                val to1 = o1 - avePt
+                val to2 = o2 - avePt
+                val ang1 = atan2(to1.y, to1.x)
+                val ang2 = atan2(to2.y, to2.x)
+                // first sort by angle, then by distance (radius)
+                if (abs(ang1 - ang2) > DOUBLE_PRECISION){
+                    if (ang1 < ang2) -1 else 1
+                } else {
+                    if (to1.len() < to2.len()) -1 else 1
+                }
+            }
+            return ColBox(sortedPts)
+        }
     }
 }
