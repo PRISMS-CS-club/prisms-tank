@@ -5,7 +5,7 @@ package org.prismsus.tank.utils
  * @property x The x component.
  * @property y The y component.
  */
-class IVec2(var x: Int, var y: Int) {
+data class IVec2(var x: Int, var y: Int) {
     constructor(): this(0, 0)
     constructor(vec: DVec2): this(vec.x.toInt(), vec.y.toInt())
 

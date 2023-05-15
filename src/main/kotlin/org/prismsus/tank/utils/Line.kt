@@ -8,8 +8,37 @@ import kotlin.math.*
  * @constructor Create a line with two points.
  * */
 class Line(startP: DPos2, endP: DPos2) : Intersectable {
-    var slope: Double = (endP.y - startP.y) / (endP.x - startP.x)
-    var inter: Double = startP.y - slope * startP.x
+
+
+    val origStart = DPos2(startP)
+    val origEnd = DPos2(endP)
+
+
+    override val unrotated: Intersectable
+        get() = Line(startP, endP)
+
+    override var pts: Array<DPos2>
+        get() = arrayOf(startP, endP)
+        set(value) {
+            startP = value[0]
+            endP = value[1]
+        }
+
+    constructor (pts : Array<DPos2>) : this(pts[0], pts[1]) {
+        if (pts.size != 2) {
+            throw IllegalArgumentException("Line must be initialized with two points")
+        }
+    }
+    var slope: Double
+        get() {
+            return (endP.y - startP.y) / (endP.x - startP.x)
+        }
+        private set(value) {}
+    var inter: Double
+        get(){
+            return startP.y - slope * startP.x
+        }
+        private set(value) {}
     var startP: DPos2 = if (startP.x <= endP.x) startP else endP
         set(new) {
             field = new
@@ -98,47 +127,6 @@ class Line(startP: DPos2, endP: DPos2) : Intersectable {
     }
 
     /**
-     * @see Intersectable.plus
-     * */
-    override fun plus(shift: DVec2): Line {
-        return Line(startP + shift, endP + shift)
-    }
-
-    /**
-     * @see Intersectable.minus
-     * */
-    override fun minus(shift: DVec2): Line {
-        return plus(-shift)
-    }
-
-
-    /**
-     * @see Intersectable.plusAssign
-     * */
-    override fun rotate(center: DPos2, rad: Double): Line {
-        var toStartP = startP - center
-        var toEndP = endP - center
-        toStartP = toStartP.rotate(rad)
-        toEndP = toEndP.rotate(rad)
-        return Line(toStartP + center, toEndP + center)
-    }
-
-
-    /**
-     * @see Intersectable.plusAssign
-     * */
-    override fun rotateAssign(center: DPos2, rad: Double): Line {
-        var toStartP = startP - center
-        var toEndP = endP - center
-        toStartP = toStartP.rotate(rad)
-        toEndP = toEndP.rotate(rad)
-        startP = toStartP + center
-        endP = toEndP + center
-        return this
-    }
-
-
-    /**
      * Check if two lines are equal, which means they have the same starting point and ending point.
      * Notice that when the difference between two double values is less than [DOUBLE_PRECISION], they are considered equal.
      * @param other the other line to compare with
@@ -155,10 +143,6 @@ class Line(startP: DPos2, endP: DPos2) : Intersectable {
 
     override fun toString(): String {
         return "$startP -> $endP, slope: $slope, intercept: $inter"
-    }
-
-    override fun getPts(): Array<DPos2> {
-        return arrayOf(startP, endP)
     }
 
 
@@ -230,5 +214,9 @@ class Line(startP: DPos2, endP: DPos2) : Intersectable {
      * */
     fun inYrg(y: Double): Boolean {
         return y >= startP.y && y <= endP.y
+    }
+
+    override fun byPts(pts: Array<DPos2>): Intersectable {
+        return Line(pts[0], pts[1])
     }
 }

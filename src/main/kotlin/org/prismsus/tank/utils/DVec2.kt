@@ -7,7 +7,7 @@ import kotlin.random.*
  * @property x The x coordinate.
  * @property y The y coordinate.
  */
-class DVec2(var x: Double, var y: Double) : Intersectable, Comparable<DVec2> {
+data class DVec2(var x: Double, var y: Double)  {
     constructor(): this(0.0, 0.0)
     constructor(vec: IVec2): this(vec.x.toDouble(), vec.y.toDouble())
 
@@ -16,8 +16,12 @@ class DVec2(var x: Double, var y: Double) : Intersectable, Comparable<DVec2> {
      * @param other The other double vector.
      * @return The sum vector.
      */
-    override operator fun plus(other: DVec2): DVec2 {
+    operator fun plus(other: DVec2): DVec2 {
         return DVec2(x + other.x, y + other.y)
+    }
+
+    operator fun plus(other: DPos2): DPos2 {
+        return DPos2(x + other.x, y + other.y)
     }
 
     operator fun plusAssign(other: DVec2) {
@@ -30,8 +34,12 @@ class DVec2(var x: Double, var y: Double) : Intersectable, Comparable<DVec2> {
      * @param other The other double vector.
      * @return The subtracted vector.
      */
-    override operator fun minus(other: DVec2): DVec2 {
+    operator fun minus(other: DVec2): DVec2 {
         return DVec2(x - other.x, y - other.y)
+    }
+
+    operator fun minus(other: DPos2): DPos2 {
+        return DPos2(x - other.x, y - other.y)
     }
 
     operator fun minusAssign(other: DVec2) {
@@ -47,16 +55,6 @@ class DVec2(var x: Double, var y: Double) : Intersectable, Comparable<DVec2> {
         return DVec2(x, y)
     }
 
-    override operator fun compareTo(other: DVec2): Int {
-        // compare x first, then y
-        if (abs(x - other.x) > DOUBLE_PRECISION){
-            return x.compareTo(other.x)
-        }
-        if (abs(y - other.y) < DOUBLE_PRECISION) {
-            return 0
-        }
-        return y.compareTo(other.y)
-    }
 
     /**
      * Multiply this double vector and a scalar. Returns a new object.
@@ -205,7 +203,7 @@ class DVec2(var x: Double, var y: Double) : Intersectable, Comparable<DVec2> {
      * @return The turned vector.
      *
     * */
-    override fun rotate(center : DVec2, radOffset : Double) : DVec2 {
+    fun rotate(radOffset: Double, center: DVec2) : DVec2 {
         val curAngle = angle()
         val newAngle = curAngle + radOffset
         val toThis = this - center // from the center to here
@@ -220,7 +218,7 @@ class DVec2(var x: Double, var y: Double) : Intersectable, Comparable<DVec2> {
      * @see rotate
     * */
     fun rotateDeg(degOffset : Double) : DVec2 {
-        return rotate(toRad(degOffset))
+        return rotate(degOffset.toRad())
     }
 
     /**
@@ -244,9 +242,9 @@ class DVec2(var x: Double, var y: Double) : Intersectable, Comparable<DVec2> {
      * @param radOffset The angle in radian to turn, in radian.
      * @return This vector.
      * */
-    override fun rotateAssign(center: DVec2, rad: Double): DVec2 {
+     fun rotateAssign(radOffset: Double, center: DVec2): DVec2 {
         val curAngle = angle()
-        val newAngle = curAngle + rad
+        val newAngle = curAngle + radOffset
         val toThis = this - center // from the center to here
         val rotated = toThis.rotateTo(newAngle)
         x = rotated.x + center.x
@@ -254,78 +252,48 @@ class DVec2(var x: Double, var y: Double) : Intersectable, Comparable<DVec2> {
         return this
     }
 
-    override fun getPts() : Array<DVec2>{
-        return arrayOf(this)
-    }
-
-    /**
-     * Check if two intersectable objects intersect.
-     * @see [Intersectable.intersect]
-    * */
-    override fun intersect(other: Intersectable): Boolean {
-        if (other is DVec2)
-            return this == other
-        return other.intersect(this)
-        // except ColBox classes, classes only handle intersects with same type
-    }
 
     override fun toString(): String {
         return "($x, $y)"
     }
 
     /**
-     * Represent DVec to some point in 2D space, and calculate the distance between this and other point.
-     * It is recommended to create object using the typealias of DPos2, when using this function.
-     * @param other The other point.
-     * @return The distance between this and other point.
+     *  to get the perpendicular vector of this vector, at its left hand side.
+     *  @return the perpendicular vector of this vector, at its left hand side.
      * */
-    fun dis(other: DVec2): Double {
-        return sqrt((x - other.x) * (x - other.x) + (y - other.y) * (y - other.y))
+    fun leftHandPerp() : DVec2 {
+        return DVec2(-y, x)
+    }
+    /**
+     * to get the perpendicular vector of this vector, at its right hand side.
+     * @return the perpendicular vector of this vector, at its right hand side.
+    * */
+    fun rightHandPerp() : DVec2 {
+        return DVec2(y, -x)
     }
 
-    /**
-     * Represent DVec to some point in 2D space, and calculate the square of the distance between this and other point.
-     * It is recommended to create object using the typealias of DPos2, when using this function.
-     * @param other The other point.
-     * @return The square of the distance between this and other point.
-     * @see dis
-     * */
-    fun sqDis(other: DVec2): Double {
-        return (x - other.x) * (x - other.x) + (y - other.y) * (y - other.y)
+    fun isPtAtLeft(pt : DPos2) : Boolean {
+        return leftHandPerp().dot((pt - this).toVec()) >= 0
     }
 
-    /**
-     * Represent DVec to some point in 2D space, and calculate the Manhattan distance between this and other point.
-     * Manhattan distance is the sum of the absolute values of the differences of the x and y coordinates.
-     * This distance the distance between two points when limiting the movement to only horizontal and vertical.
-     * It is recommended to create object using the typealias of DPos2, when using this function.
-     * @param other The other point.
-     * @return The Manhattan distance between this and other point.
-     * */
-    fun manhatDis(other: DVec2): Double {
-        return abs(x - other.x) + abs(y - other.y)
+    fun isPtAtRight(pt : DPos2) : Boolean {
+        return rightHandPerp().dot((pt - this).toVec()) >= 0
+    }
+
+    fun toPt() : DPos2 {
+        return DPos2(x, y)
+    }
+
+    fun xVec() : DVec2 {
+        return DVec2(x, 0.0)
+    }
+
+    fun yVec() : DVec2 {
+        return DVec2(0.0, y)
     }
 
     companion object {
 
-        /**
-         * convert radian to degree
-         * @param rad The radian.
-         * @return The degree.
-         */
-
-        fun toDeg(rad : Double) : Double {
-            return rad * 180 / PI
-        }
-
-        /**
-         * convert degree to radian
-         * @param deg degree
-         * @return radian
-         */
-        fun toRad(deg : Double) : Double {
-            return deg * PI / 180
-        }
 
         /**
         * create a vector from angle and length
@@ -357,5 +325,4 @@ class DVec2(var x: Double, var y: Double) : Intersectable, Comparable<DVec2> {
     }
 
 }
-typealias DPos2 = DVec2
 typealias DDim2 = DVec2

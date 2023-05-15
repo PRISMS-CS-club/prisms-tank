@@ -27,8 +27,7 @@ abstract class MovableElement(uid: Long, hp: Int = -1, colBox: ColBox, var speed
     fun updateTime(dt : Long){
         colBox = (colBox + curVelo * dt.toDouble()) as ColBox
         // center is the intersection of two diagonals
-        var center = (colBox.pts[0] + colBox.pts[2]) / 2.0
-        colBox.rotateAssign(center, curAngV * dt.toDouble())
+        colBox.rotateAssign(curAngV * dt.toDouble())
     }
 
     }

@@ -9,66 +9,33 @@ import kotlin.math.atan2
  * @param pts The points that defines the box. The polygon will be constructed by connecting adjacent points to lines.
  * So that the points should be ordered in a way that the lines will not intersect with each other.
  */
-class ColBox(@JvmField var pts : Array<DPos2>): Intersectable{
+
+
+class ColBox(override var pts : Array<DPos2>): Intersectable{
     // here use the JvmField to restrict the auto generation of getter and setter
     // because we want to override the getter and setter
+    val origPts = pts.copyOf()
+    var rCenter = (pts.reduce { acc, dPos2 -> (acc + dPos2).toPt()}.toVec() / pts.size.toDouble()).toPt()
+    // since there will usually be more points in ColBox, so we don't calculate the center every time
+    // instead, we keep the center, and update it when the points are updated
+    override var rotationCenter: DPos2
+        get() = rCenter
+        set(value) {}
+    override val unrotated: Intersectable
+        get() = ColBox(origPts)
+
 
     /**
      * Construct a box that is in rectangle shape.
-     * @param pos The top-left position of the box.
+     * @param pos The center position of the box.
      * @param size The size of the box.
      */
-    constructor(pos : DVec2, size : DDim2) : this(arrayOf(
-            pos,
-            pos + DVec2(size.x, 0.0),
-            pos + DVec2(size.x, -size.y),
-            pos -DVec2(0.0, size.y)
+    constructor(pos : DPos2, size : DDim2) : this(arrayOf(
+        pos - size / 2.0,
+        pos + size / 2.0,
+        pos + DVec2(size.x / 2.0, -size.y / 2.0),
+        pos + DVec2(-size.x / 2.0, size.y / 2.0)
     )){}
-
-    /**
-     * @see Intersectable.rotate
-     * */
-    override fun rotate(center: DVec2, rad: Double): ColBox {
-        var newPts = pts.copyOf()
-        for (i in pts.indices){
-            var toPt = pts[i] - center
-            toPt = toPt.rotate(rad)
-            newPts[i] = toPt + center
-        }
-        return ColBox(newPts)
-    }
-
-
-    /**
-     * @see Intersectable.rotateAssign
-     * */
-    override fun rotateAssign(center: DVec2, rad: Double): ColBox {
-        for (i in pts.indices){
-            var toPt = pts[i] - center
-            toPt = toPt.rotate(rad)
-            pts[i] = toPt + center
-        }
-        return this
-    }
-
-    /**
-     * @see Intersectable.plus
-     * */
-    override fun plus(shift: DVec2): ColBox {
-        var newPts = pts.copyOf()
-        for (i in pts.indices){
-            newPts[i] = pts[i] + shift
-        }
-        return ColBox(newPts)
-    }
-
-    /**
-     * @see Intersectable.minus
-     * */
-    override fun minus(shift : DVec2) : ColBox{
-        return plus(-shift)
-    }
-
 
     /**
      * Helper function of [intersect], this function DOES NOT check the situation when one ColBox enclose the other.
@@ -97,7 +64,7 @@ class ColBox(@JvmField var pts : Array<DPos2>): Intersectable{
             return interCnt.any() { it % 2 == 1 }
         }
 
-        for (otherPts : DPos2 in other.getPts()){
+        for (otherPts : DPos2 in other.pts){
             if (intersect(otherPts)) return true
         }
         return false
@@ -109,13 +76,6 @@ class ColBox(@JvmField var pts : Array<DPos2>): Intersectable{
     override fun intersect(other : Intersectable) : Boolean {
         if (other !is ColBox) return intersectNoEnclose(other)
         else return intersectNoEnclose(other) || other.intersectNoEnclose(this)
-    }
-
-    override fun getPts(): Array<DPos2> {
-        return pts
-    }
-    fun setPts(pts : Array<DPos2>){
-        this.pts = pts
     }
 
     override fun toString(): String {
@@ -153,6 +113,15 @@ class ColBox(@JvmField var pts : Array<DPos2>): Intersectable{
         return thisSorted.contentEquals(otherSorted)
     }
 
+    override fun byPts(pts: Array<DPos2>): Intersectable {
+        return ColBox(pts)
+    }
+
+    override fun rotateAssign(radOffset: Double, center: DPos2): Intersectable {
+        rCenter = rCenter.toVec().rotate(radOffset).toPt()
+        return super.rotateAssign(radOffset, center)
+    }
+
     companion object{
 
         /**
@@ -162,7 +131,7 @@ class ColBox(@JvmField var pts : Array<DPos2>): Intersectable{
         fun byUnorderedPtSet(pts : Array<DPos2>) : ColBox{
             // sort the points using angle with horizontal line
             val sortedPts = pts.copyOf()
-            val avePt : DPos2 = sortedPts.reduce { acc, dPos2 -> acc + dPos2 } / sortedPts.size.toDouble()
+            val avePt : DPos2 = (sortedPts.reduce { acc, dPos2 -> (acc + dPos2).toPt()}.toVec() / sortedPts.size.toDouble()).toPt()
             Arrays.sort(sortedPts, 0, sortedPts.size) { o1, o2 ->
                 val to1 = o1 - avePt
                 val to2 = o2 - avePt
@@ -176,6 +145,16 @@ class ColBox(@JvmField var pts : Array<DPos2>): Intersectable{
                 }
             }
             return ColBox(sortedPts)
+        }
+
+        fun byTopLeft(topLeft : DPos2, size : DDim2) : ColBox{
+            val _pts = arrayOf(
+                topLeft,
+                topLeft + size.xVec(),
+                topLeft + size.xVec() - size.yVec(),
+                topLeft - size.yVec()
+            )
+            return ColBox(_pts)
         }
     }
 }
