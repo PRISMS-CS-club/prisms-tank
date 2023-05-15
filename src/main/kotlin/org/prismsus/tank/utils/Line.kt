@@ -29,16 +29,8 @@ class Line(startP: DPos2, endP: DPos2) : Intersectable {
             throw IllegalArgumentException("Line must be initialized with two points")
         }
     }
-    var slope: Double
-        get() {
-            return (endP.y - startP.y) / (endP.x - startP.x)
-        }
-        private set(value) {}
-    var inter: Double
-        get(){
-            return startP.y - slope * startP.x
-        }
-        private set(value) {}
+    var slope = (endP.y - startP.y) / (endP.x - startP.x)
+    var inter = startP.y - slope * startP.x
     var startP: DPos2 = if (startP.x <= endP.x) startP else endP
         set(new) {
             field = new
@@ -214,6 +206,16 @@ class Line(startP: DPos2, endP: DPos2) : Intersectable {
      * */
     fun inYrg(y: Double): Boolean {
         return y >= startP.y && y <= endP.y
+    }
+
+
+    override fun plus(shift: DVec2): Line{
+        return Line(startP + shift, endP + shift)
+    }
+
+
+    override fun minus(shift: DVec2): Line{
+        return Line(startP - shift, endP - shift)
     }
 
     override fun byPts(pts: Array<DPos2>): Intersectable {
