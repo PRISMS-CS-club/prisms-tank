@@ -164,6 +164,10 @@ class Line(override var pts : Array<DPos2>) : Intersectable {
         return startP + (endP - startP) * t
     }
 
+    fun atLen(len : Double) : DPos2 {
+        return startP + (endP - startP).norm() * len
+    }
+
 
     /**
      * Calculate the shortest distance from the line to the point

@@ -11,7 +11,7 @@ import kotlin.math.atan2
  */
 
 
-class ColBox(override var pts : Array<DPos2>): Intersectable{
+open class ColBox(override var pts : Array<DPos2>): Intersectable{
     // here use the JvmField to restrict the auto generation of getter and setter
     // because we want to override the getter and setter
     val origPts = pts.copyOf()
@@ -25,17 +25,6 @@ class ColBox(override var pts : Array<DPos2>): Intersectable{
         get() = ColBox(origPts)
     override var angleRotated = 0.0
 
-    /**
-     * Construct a box that is in rectangle shape.
-     * @param pos The center position of the box.
-     * @param size The size of the box.
-     */
-    constructor(pos : DPos2, size : DDim2) : this(arrayOf(
-        pos - size / 2.0,
-        pos + size / 2.0,
-        pos + DVec2(size.x / 2.0, -size.y / 2.0),
-        pos + DVec2(-size.x / 2.0, size.y / 2.0)
-    )){}
 
     /**
      * Helper function of [intersect], this function DOES NOT check the situation when one ColBox enclose the other.
@@ -154,14 +143,6 @@ class ColBox(override var pts : Array<DPos2>): Intersectable{
             return ColBox(sortedPts)
         }
 
-        fun byTopLeft(topLeft : DPos2, size : DDim2) : ColBox{
-            val _pts = arrayOf(
-                topLeft,
-                topLeft + size.xVec(),
-                topLeft + size.xVec() - size.yVec(),
-                topLeft - size.yVec()
-            )
-            return ColBox(_pts)
-        }
+
     }
 }
