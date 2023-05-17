@@ -23,7 +23,7 @@ class ColBox(override var pts : Array<DPos2>): Intersectable{
         set(value) {}
     override val unrotated: Intersectable
         get() = ColBox(origPts)
-
+    override var angleRotated = 0.0
 
     /**
      * Construct a box that is in rectangle shape.
@@ -85,6 +85,8 @@ class ColBox(override var pts : Array<DPos2>): Intersectable{
     /**
      * Check if two ColBox are equal.
      * Notice that two ColBox with different order of points are not considered equal. Since they can form different polygons.
+     * They are only considered equal if every adjacent points are the same, in a circular way.
+     * Meaning that the polygon still have the same set of lines.
      * To check if two ColBox are having same point set, use [equalPtSet] instead.
      * @param other The other ColBox.
      * @return True if equal, false otherwise.
@@ -93,7 +95,12 @@ class ColBox(override var pts : Array<DPos2>): Intersectable{
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is ColBox) return false
-        return pts.equals(other.pts)
+        val otherStartIdx = other.pts.indexOf(pts[0])
+        if (otherStartIdx == -1) return false
+        for (i in pts.indices){
+            if (pts[i] != other.pts[(otherStartIdx + i) % pts.size]) return false
+        }
+        return true
     }
 
     /**

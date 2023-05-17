@@ -2,9 +2,7 @@ package org.prismsus.tank.utils.tests
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import org.prismsus.tank.utils.DPos2
-import org.prismsus.tank.utils.DVec2
-import org.prismsus.tank.utils.Line
+import org.prismsus.tank.utils.*
 import kotlin.math.*
 class LineTest {
 
@@ -68,5 +66,23 @@ class LineTest {
         val rad = Math.random() * PI / 2
         lineRotated = Line(DPos2.ORIGIN, DPos2(cos(rad), sin(rad)))
         assertTrue(line.rotate(rad, DPos2.ORIGIN) == lineRotated)
+    }
+
+
+    @Test
+    fun angleRotated(){
+        // rotate the line from the left end point of a line
+        // and then test if the angle is correct under the perspective of the middle point
+        // (they should be the same in terms of line)
+        var line = Line(DPos2.ORIGIN, DPos2(1.0, 0.0))
+        var lineRotatedByCenter = line.copy().rotate(90.0.toRad())
+        // default second parameter is by center
+        println(lineRotatedByCenter.angleRotated.toDeg())
+        var lineRotatedByLeft = line.copy().rotate(90.0.toRad(), DPos2.ORIGIN)
+        assertEquals(lineRotatedByCenter.angleRotated, lineRotatedByLeft.angleRotated, DOUBLE_PRECISION)
+
+        // rotate the line from the right end point of a line
+        var lineRotatedByRight = line.copy().rotate(90.0.toRad(), DPos2(1.0, 0.0))
+        assertEquals(lineRotatedByCenter.angleRotated, lineRotatedByRight.angleRotated, DOUBLE_PRECISION)
     }
 }

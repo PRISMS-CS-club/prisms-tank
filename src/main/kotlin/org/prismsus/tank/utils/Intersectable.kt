@@ -1,5 +1,5 @@
 package org.prismsus.tank.utils
-
+import kotlin.math.*
 interface Intersectable {
 
 
@@ -70,7 +70,10 @@ interface Intersectable {
      * @see rotate
     * */
     fun rotateAssign(radOffset: Double, center: DPos2 = rotationCenter) : Intersectable {
-        pts = pts.map{it.rotateAssign(radOffset, center) as DPos2}.toTypedArray()
+        angleRotated += radOffset
+        for (pt in pts){
+            pt.rotateAssign(radOffset, center)
+        }
         return this
     }
 
@@ -85,34 +88,17 @@ interface Intersectable {
         return rotateAssign(degOffset / 180.0 * Math.PI, center)
     }
 
-    /**
-     * Given a center, calculate the angle rotated around this center compared to the
-     * original intersectable object.
-     * */
-    fun angleRotated(center : DPos2) : Double{
-        val curAngVec = (rotationCenter - center)
-        val origAngVec = (unrotated.rotationCenter - center)
-        val vecAng = curAngVec.angleWith(origAngVec)
-        // this is the smaller angle between two vectors
-        // need to check which side is curAngVec to origAngVec
-        var ret = 0.0
-        if (origAngVec.isPtAtLeft(curAngVec.toPt())){
-            ret = vecAng
-        } else {
-            ret = -vecAng
-        }
-        return ret
+
+    fun copy() : Intersectable {
+        val newPts = pts.copyOf().map { it.copy()}.toTypedArray()
+        return byPts(pts)
     }
 
     /*
     * The following variables are used to indicate the position and size of the
     * image for the object. Since images are always rectangles, we can use these
     * */
-    var angleRotated : Double     // the angle offset from the original position (rotate by center), in radian
-        get() {return angleRotated(rotationCenter)}
-        set(x){
-
-        }
+    var angleRotated : Double     // the angle offset from the original position (rotate by center), in radians
     var encSquareSize : DDim2     // the size of the enclosing square, which is the size of the image
         get() {
             // calculate the size of the image using reduce
@@ -127,8 +113,11 @@ interface Intersectable {
     val unrotated : Intersectable // the unrotated version of the object, used for a more accurate rotation
     var rotationCenter : DPos2    // the center of the object, used for rotation
         get() {
-            // calculate the average of the points using reduce
-            return (pts.reduce { acc, dPos2 -> (acc + dPos2).toPt()}.toVec() / pts.size.toDouble()).toPt()
+            val ave = DVec2()
+            for (pt in pts){
+                ave += pt.toVec()
+            }
+            return (ave / pts.size.toDouble()).toPt()
         }
         set(x){
             throw Exception("Cannot set rotation center")

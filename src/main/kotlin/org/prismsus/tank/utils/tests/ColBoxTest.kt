@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test
 import org.prismsus.tank.utils.*
 import org.junit.jupiter.api.Assertions.*
 import kotlin.random.Random
-
+import kotlin.math.*
 typealias Pos = DPos2
 class ColBoxTest {
 
@@ -15,14 +15,14 @@ class ColBoxTest {
         println("t${++testNum}")
         var box1 = ColBox.byTopLeft(Pos(0.0, 1.0), DDim2(1.0, 1.0))
         var box2 = ColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0)).rotateDeg(90.0, Pos.ORIGIN) as ColBox
-        assertTrue(box2.equalPtSet(box1))
+        assertTrue(box2 == box1)
         println("passed")
 
         // create a square box, rotate it by 180 degree from the center, it should have the same point set as the original
         println("t${++testNum}")
         box1 = ColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
         box2 = ColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0)).rotateDeg(180.0, Pos(.5, -.5)) as ColBox
-        assertTrue(box2.equalPtSet(box1))
+        assertTrue(box2 == box1)
         println("passed")
 
         // create a rectangle box with longer side on x axis, rotate it by 90 degree, it should have the same point set
@@ -30,7 +30,7 @@ class ColBoxTest {
         println("t${++testNum}")
         box1 = ColBox.byTopLeft(Pos(0.0, 1.0), DDim2(2.0, 1.0)).rotateDeg(90.0, Pos.ORIGIN) as ColBox
         box2 = ColBox.byTopLeft(Pos(-1.0, 2.0), DDim2(1.0, 2.0))
-        assertTrue(box2.equalPtSet(box1))
+        assertTrue(box2 == box1)
         println("passed")
 
         // create a rectangle box with longer side on x axis, rotate it by -90 degree, it should have the same point set
@@ -38,7 +38,7 @@ class ColBoxTest {
         println("t${++testNum}")
         box1 = ColBox.byTopLeft(Pos(0.0, 1.0), DDim2(2.0, 1.0)).rotateDeg(-90.0, Pos.ORIGIN) as ColBox
         box2 = ColBox.byTopLeft(Pos(0.0, 0.0), DDim2(1.0, 2.0))
-        assertTrue(box2.equalPtSet(box1))
+        assertTrue(box2 == box1)
         println("passed")
     }
 
@@ -133,4 +133,24 @@ class ColBoxTest {
         }
 
     }
+
+
+    @Test
+    fun angleRotated(){
+
+        // rotate 100 times by random center
+        for (i in 0 until 100) {
+            val randObj = Line(DPos2(0.0, .0), DPos2(.0, 1.0))
+            val center = DVec2.randUnitVec()
+            var rot = Random.nextDouble() * 360.0
+            randObj.rotateAssignDeg(rot, center.toPt())
+
+            if (rot < 0)
+                rot += 360.0
+
+            assertEquals(rot, randObj.angleRotated.toDeg(), DOUBLE_PRECISION)
+        }
+
+    }
+
 }

@@ -1,10 +1,10 @@
 package org.prismsus.tank.utils
 import kotlin.math.*
-data class DPos2(var x: Double, var y: Double) : Intersectable, Comparable<DPos2>, Cloneable {
-    init {
-        val origX = x
-        val origY = y
-    }
+class DPos2(var x: Double, var y: Double) : Intersectable, Comparable<DPos2>, Cloneable {
+
+    val origX = x
+    val origY = y
+
     constructor(other : DPos2) : this(other.x, other.y)
     override operator fun plus(other: DVec2): DPos2 {
         return DPos2(x + other.x, y + other.y)
@@ -29,11 +29,11 @@ data class DPos2(var x: Double, var y: Double) : Intersectable, Comparable<DPos2
     operator fun unaryPlus(): DPos2 {
         return DPos2(x, y)
     }
-    override var angleRotated: Double = 0.0
-        get() = field
+    override var angleRotated: Double
+        get() = 0.0
         set(value) {}
     override val unrotated: Intersectable
-        get() = DPos2(x, y)
+        get() = DPos2(origX, origY)
 
     override var pts: Array<DPos2>
         get() = arrayOf(DPos2(x, y))
@@ -129,6 +129,12 @@ data class DPos2(var x: Double, var y: Double) : Intersectable, Comparable<DPos2
         return this
     }
 
+    override fun rotate(rad: Double, center: DPos2): DPos2 {
+        val vec = this - center
+        val rotated = vec.rotate(rad)
+        return DPos2(rotated.x + center.x, rotated.y + center.y)
+    }
+
     override fun toString(): String {
         return "($x, $y)"
     }
@@ -139,7 +145,9 @@ data class DPos2(var x: Double, var y: Double) : Intersectable, Comparable<DPos2
         return abs(x - other.x) < DOUBLE_PRECISION && abs(y - other.y) < DOUBLE_PRECISION
     }
 
-
+    override fun copy(): DPos2 {
+        return DPos2(this)
+    }
 
     companion object{
         val ORIGIN = DPos2(0.0, 0.0)

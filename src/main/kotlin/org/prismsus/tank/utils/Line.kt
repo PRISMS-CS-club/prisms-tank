@@ -7,41 +7,43 @@ import kotlin.math.*
  * @param endP The ending point of the line.
  * @constructor Create a line with two points.
  * */
-class Line(startP: DPos2, endP: DPos2) : Intersectable {
-
-
-    val origStart = DPos2(startP)
-    val origEnd = DPos2(endP)
-
-
-    override val unrotated: Intersectable
-        get() = Line(startP, endP)
-
-    override var pts: Array<DPos2>
-        get() = arrayOf(startP, endP)
-        set(value) {
-            startP = value[0]
-            endP = value[1]
-        }
-
-    constructor (pts : Array<DPos2>) : this(pts[0], pts[1]) {
+class Line(override var pts : Array<DPos2>) : Intersectable {
+    init{
         if (pts.size != 2) {
             throw IllegalArgumentException("Line must be initialized with two points")
         }
     }
-    var slope = (endP.y - startP.y) / (endP.x - startP.x)
-    var inter = startP.y - slope * startP.x
-    var startP: DPos2 = if (startP.x <= endP.x) startP else endP
+
+    override var angleRotated = 0.0
+    val origStart = DPos2(startP)
+    val origEnd = DPos2(endP)
+
+    override var rotationCenter: DPos2
+        get() = ((startP.toVec() + endP.toVec()) / 2.0).toPt()
+        set(value) {}
+
+    override val unrotated: Intersectable
+        get() = Line(origStart, origEnd)
+
+
+    constructor (startP : DPos2, endP : DPos2) : this(arrayOf(startP, endP)){
+
+    }
+    var slope
+        get() = (endP.y - startP.y) / (endP.x - startP.x)
+        set(value) {}
+    var inter
+        get() = startP.y - slope * startP.x
+        set(value) {}
+    var startP: DPos2
+        get() = pts[0]
         set(new) {
-            field = new
-            slope = (endP.y - startP.y) / (endP.x - startP.x)
-            inter = startP.y - slope * startP.x
+            pts[0] = new
         }
-    var endP: DPos2 = if (startP.x <= endP.x) endP else startP
+    var endP: DPos2
+        get() = pts[1]
         set(new) {
-            field = new
-            slope = (endP.y - startP.y) / (endP.x - startP.x)
-            inter = startP.y - slope * startP.x
+            pts[1] = new
         }
 
     /**
@@ -76,8 +78,8 @@ class Line(startP: DPos2, endP: DPos2) : Intersectable {
         }
 
         // check if the slope is infinity
-        val infCnt: Int = if (slope == Double.POSITIVE_INFINITY || slope == Double.NEGATIVE_INFINITY) 1 else 0 +
-                if (otherLine.slope == Double.POSITIVE_INFINITY || otherLine.slope == Double.NEGATIVE_INFINITY) 1 else 0
+        val infCnt: Int = if (isVertical()) 1 else 0 +
+                if (other.isVertical()) 1 else 0
 
         if (infCnt == 2) {
             // both lines are vertical
@@ -98,9 +100,9 @@ class Line(startP: DPos2, endP: DPos2) : Intersectable {
             // if only one of two lines are vertical
             // find the y value of the non-vertical line that meet with the vertical line
             val vLine =
-                if (slope == Double.POSITIVE_INFINITY || slope == Double.NEGATIVE_INFINITY) this else otherLine
+                if (isVertical()) this else otherLine
             val nvLine =
-                if (slope == Double.POSITIVE_INFINITY || slope == Double.NEGATIVE_INFINITY) otherLine else this
+                if (isVertical()) otherLine else this
             if (vLine.startP.x < nvLine.startP.x || vLine.startP.x > nvLine.endP.x) {
                 return false
             }
@@ -208,6 +210,10 @@ class Line(startP: DPos2, endP: DPos2) : Intersectable {
         return y >= startP.y && y <= endP.y
     }
 
+    fun isVertical() : Boolean {
+        return startP.x == endP.x
+    }
+
 
     override fun plus(shift: DVec2): Line{
         return Line(startP + shift, endP + shift)
@@ -218,7 +224,7 @@ class Line(startP: DPos2, endP: DPos2) : Intersectable {
         return Line(startP - shift, endP - shift)
     }
 
-    override fun byPts(pts: Array<DPos2>): Intersectable {
-        return Line(pts[0], pts[1])
+    override fun byPts(_pts: Array<DPos2>): Intersectable {
+        return Line(_pts[0], _pts[1])
     }
 }
