@@ -11,7 +11,7 @@ class RectColBox (val centerPos : DPos2, val size : DDim2) : ColBox(arrayOf(
 )){
     companion object{
         fun byTopLeft(topLeft : DPos2, size : DDim2) : RectColBox {
-            return RectColBox(topLeft - size / 2.0, size)
+            return RectColBox(topLeft + DVec2(size.x / 2, -size.y / 2), size)
         }
     }
 

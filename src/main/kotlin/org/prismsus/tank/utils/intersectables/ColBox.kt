@@ -49,7 +49,6 @@ open class ColBox(override var pts : Array<DPos2>): Intersectable {
             val sz : Int = pts.size
             val baseRay = Line(pt, pt + DVec2.RT * (Double.MAX_VALUE / 100))
             val offsetsInterCnt : IntArray = IntArray(DVec2.RTS_DIR.size) // intersection count for every base ray offsets
-            val offsetsInterPts : Array<ArrayList<DPos2>> = Array(DVec2.RTS_DIR.size) { ArrayList<DPos2>() } // intersection points for every base ray offsets
             for (i in 0 until sz){
                 val curPolygonLine = Line(pts[i], pts[(i + 1) % sz]) // line formed by current polygon
                 for ((i, dir) in DVec2.RTS_DIR.withIndex()){
@@ -58,12 +57,10 @@ open class ColBox(override var pts : Array<DPos2>): Intersectable {
                     val ray = baseRay + (dir * DOUBLE_PRECISION * 100.0)
                     val curInterPts = curPolygonLine.intersectPts(ray)
                     offsetsInterCnt[i] += if (curInterPts.isNotEmpty()) 1 else 0
-                    offsetsInterPts[i] += curInterPts
                 }
             }
-            val ret = offsetsInterPts.filterIndexed { i, _ -> offsetsInterCnt[i] % 2 == 1 }
-            if (ret.isEmpty()) return arrayOf()
-            return ret.first().toTypedArray()
+            if (offsetsInterCnt.any{it % 2 == 1}) return arrayOf(pt)
+            return emptyArray()
         }
 
         val ret = ArrayList<DPos2>()
@@ -80,7 +77,8 @@ open class ColBox(override var pts : Array<DPos2>): Intersectable {
         if (other !is ColBox) return intersectPtsEncloseOther(other)
         val thisRet = intersectPtsEncloseOther(other)
         val otherRet = other.intersectPtsEncloseOther(this)
-        return thisRet + otherRet
+        // delete repeated points
+        return (thisRet + otherRet).distinct().toTypedArray()
     }
 
     override fun toString(): String {
@@ -144,6 +142,10 @@ open class ColBox(override var pts : Array<DPos2>): Intersectable {
         ret.closePath()
         shapeModifier(ret)
         return ret
+    }
+
+    fun unionAssign(other : ColBox){
+
     }
 
 

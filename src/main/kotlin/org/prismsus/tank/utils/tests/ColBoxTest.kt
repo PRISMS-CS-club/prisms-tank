@@ -24,7 +24,7 @@ class ColBoxTest {
         var box2 : ColBox = RectColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0)).rotateDeg(90.0, Pos.ORIGIN) as ColBox
 
 
-        assertTrue(box2 == box1)
+        assertTrue(box2 equalPtSet box1)
         println("passed")
 
         // create a square box, rotate it by 180 degree from the center, it should have the same point set as the original
@@ -84,9 +84,10 @@ class ColBoxTest {
         // test the case when on box enclose the other
         println("t${++testNum}")
         box1 = RectColBox.byTopLeft(Pos.ORIGIN, DDim2(3.0, 3.0))
-        box2 = RectColBox.byTopLeft(Pos(-1.5, -1.5), DDim2(1.0, 1.0))
+        box2 = RectColBox.byTopLeft(Pos(0.0, -1.5), DDim2(1.0, 1.0))
         assertTrue(box1.intersect(box2))
         assertTrue(box2.intersect(box1))
+        print(box1.intersectPts(box2).contentToString())
         println("pass")
 
         // test polygon other than rectangle, first test right triangle
