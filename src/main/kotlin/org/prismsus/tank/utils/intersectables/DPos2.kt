@@ -1,4 +1,10 @@
-package org.prismsus.tank.utils
+package org.prismsus.tank.utils.intersectables
+import org.prismsus.tank.utils.DDim2
+import org.prismsus.tank.utils.DOUBLE_PRECISION
+import org.prismsus.tank.utils.DVec2
+import org.prismsus.tank.utils.IPos2
+import java.awt.Color
+import javax.swing.JPanel
 import kotlin.math.*
 class DPos2(var x: Double, var y: Double) : Intersectable, Comparable<DPos2>, Cloneable {
 
@@ -10,12 +16,22 @@ class DPos2(var x: Double, var y: Double) : Intersectable, Comparable<DPos2>, Cl
         return DPos2(x + other.x, y + other.y)
     }
 
+    override operator fun plusAssign(other: DVec2) {
+        x += other.x
+        y += other.y
+    }
+
     operator fun plus(other: DPos2): DVec2 {
         return DVec2(x + other.x, y + other.y)
     }
 
     override operator fun minus(other: DVec2): DPos2 {
         return DPos2(x - other.x, y - other.y)
+    }
+
+    override fun minusAssign(shift: DVec2) {
+        x -= shift.x
+        y -= shift.y
     }
 
     operator fun minus(other: DPos2): DVec2 {
@@ -72,6 +88,12 @@ class DPos2(var x: Double, var y: Double) : Intersectable, Comparable<DPos2>, Cl
         // except ColBox classes, classes only handle intersects with same type
     }
 
+    override fun intersectPts(other: Intersectable): Array<DPos2> {
+        if (intersect(other))
+            return arrayOf(this)
+        return arrayOf()
+    }
+
     /**
      * Represent DVec to some point in 2D space, and calculate the distance between this and other point.
      * @param other The other point.
@@ -114,7 +136,7 @@ class DPos2(var x: Double, var y: Double) : Intersectable, Comparable<DPos2>, Cl
         return DPos2(x, y)
     }
 
-    fun toVec(): DVec2{
+    fun toVec(): DVec2 {
         return DVec2(x, y)
     }
 
@@ -149,13 +171,24 @@ class DPos2(var x: Double, var y: Double) : Intersectable, Comparable<DPos2>, Cl
         return DPos2(this)
     }
 
+    override fun drawGraphics(panel: JPanel, factor: Double) {
+        val g = panel.graphics
+        g.color = Color.BLACK
+        val screenPt = ptsAsScreenIdx(panel.height, factor)[0]
+        g.drawOval(screenPt.x - 1, screenPt.y - 1, 2, 2)
+    }
+
+    fun toIPos2() : IPos2 {
+        return IPos2(x.roundToInt(), y.roundToInt())
+    }
+
     companion object{
-        val ORIGIN = DPos2(0.0, 0.0)
-        val UP     = DPos2(0.0, 1.0)
-        val DN     = -(UP.toVec()).toPt()
-        val RT     = DPos2(1.0, 0.0)
-        val LF     = -(RT.toVec()).toPt()
-        val RTS_DIR = arrayOf(UP, RT, DN, LF) // directions by turning right
-        val LFS_DIR = arrayOf(UP, LF, DN, RT) // directions by turning left
+        val ORIGIN get() = DPos2(0.0, 0.0)
+        val UP     get() = DPos2(0.0, 1.0)
+        val DN     get() = -(UP.toVec()).toPt()
+        val RT     get() = DPos2(1.0, 0.0)
+        val LF     get() = -(RT.toVec()).toPt()
+        val RTS_DIR get() = arrayOf(UP, RT, DN, LF) // directions by turning right
+        val LFS_DIR get() = arrayOf(UP, LF, DN, RT) // directions by turning left
     }
 }

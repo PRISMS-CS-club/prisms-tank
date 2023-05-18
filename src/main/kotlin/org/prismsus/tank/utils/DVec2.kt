@@ -1,5 +1,6 @@
 package org.prismsus.tank.utils
 
+import org.prismsus.tank.utils.intersectables.DPos2
 import kotlin.math.*
 import kotlin.random.*
 /**
@@ -315,11 +316,11 @@ data class DVec2(var x: Double, var y: Double)  {
         }
 
 
-        val ORIGIN : DVec2 = DVec2(0.0, 0.0)
-        val UP : DVec2 = DVec2(0.0, 1.0)
-        val DN : DVec2 = -UP
-        val RT : DVec2 = DVec2(1.0, 0.0)
-        val LF : DVec2 = -RT
+        val ORIGIN : DVec2 get() = DVec2(0.0, 0.0)
+        val UP : DVec2 get() = DVec2(0.0, 1.0)
+        val DN : DVec2 get() = -UP
+        val RT : DVec2 get() = DVec2(1.0, 0.0)
+        val LF : DVec2 get() = -RT
         val RTS_DIR = arrayOf(UP, RT, DN, LF) // directions by turning right
         val LFS_DIR = arrayOf(UP, LF, DN, RT) // directions by turning left
     }

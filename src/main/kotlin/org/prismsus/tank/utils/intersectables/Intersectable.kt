@@ -1,5 +1,7 @@
-package org.prismsus.tank.utils
-import kotlin.math.*
+package org.prismsus.tank.utils.intersectables
+import org.prismsus.tank.utils.*
+import javax.swing.*
+
 interface Intersectable {
 
 
@@ -13,7 +15,13 @@ interface Intersectable {
      * @param other The other object.
      * @return True if intersects, false otherwise.
      */
-    infix fun intersect(other : Intersectable) : Boolean
+    infix fun intersect(other : Intersectable) : Boolean {
+        return intersectPts(other).isNotEmpty()
+    }
+
+    fun intersectPts(other : Intersectable) : Array<DPos2>
+
+    fun drawGraphics(panel : JPanel, factor : Double = 1.0)
     /**
      * shifting the intersectable object by a vector
      * @param shift The vector to shift.
@@ -24,7 +32,9 @@ interface Intersectable {
     }
 
     operator fun plusAssign(shift : DVec2) {
-        pts = pts.map{it + shift}.toTypedArray()
+        for (pt in pts){
+            pt += shift
+        }
     }
 
     /**
@@ -38,7 +48,9 @@ interface Intersectable {
     }
 
     operator fun minusAssign(shift : DVec2) {
-        pts = pts.map{it - shift}.toTypedArray()
+        for (pt in pts){
+            pt -= shift
+        }
     }
 
     /**
@@ -92,6 +104,22 @@ interface Intersectable {
     fun copy() : Intersectable {
         val newPts = pts.copyOf().map { it.copy()}.toTypedArray()
         return byPts(pts)
+    }
+
+
+    /**
+     * @param ysize The y-coordinate size of the screen.
+     * @return The points of the object as screen indices.
+     * In java swing, the screen index is the position of points from the top left corner of the screen.
+     * Meaning that the y-coordinate is flipped.
+    * */
+    fun ptsAsScreenIdx(ysize : Int, factor : Double = 1.0) : Array<IPos2> {
+        val maxYidx = ysize - 1
+        val copied = pts.copyOf().map{(it.copy().toVec() * factor).toPt()}.toTypedArray()
+        for (pt in copied){
+            pt.y = maxYidx - pt.y
+        }
+        return copied.map{it.toIPos2()}.toTypedArray()
     }
 
     /*

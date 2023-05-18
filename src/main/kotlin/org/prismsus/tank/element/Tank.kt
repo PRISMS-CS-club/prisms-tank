@@ -1,9 +1,11 @@
 package org.prismsus.tank.element
 
 import org.prismsus.tank.utils.*
+import org.prismsus.tank.utils.intersectables.Line
+import org.prismsus.tank.utils.intersectables.RectColBox
 import kotlin.math.*
 
-class Tank(uid : Long, val trackMaxSpeed : Double = DEF_TANK_TRACK_SPEED, hp : Int = DEF_TANK_HP, colBox : RectColBox = DEF_TANK_COLBOX) :
+class Tank(uid : Long, val trackMaxSpeed : Double, hp : Int, colBox : RectColBox) :
     MovableElement(uid, hp, colBox){
         val rectBox = colBox as RectColBox
         var leftTrackVelo : Double = .0
@@ -56,7 +58,7 @@ class Tank(uid : Long, val trackMaxSpeed : Double = DEF_TANK_TRACK_SPEED, hp : I
 
         val pivotBaseLine = if (isInnerCircLeft()) Line(rectBox.rightMidPt, rectBox.leftMidPt)
                             else Line(rectBox.leftMidPt, rectBox.rightMidPt)
-        val pivotPt = pivotBaseLine.at(turningRad)
+        val pivotPt = pivotBaseLine.atT(turningRad)
         val angSign = if (leftTrackVelo - rightTrackVelo > 0) -1 else 1
         val angVelo = abs(inVelo / turningRad)
         val angDisp = angVelo * dt.toDouble()

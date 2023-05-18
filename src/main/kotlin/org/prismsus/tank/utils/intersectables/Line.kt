@@ -1,6 +1,10 @@
-package org.prismsus.tank.utils
+package org.prismsus.tank.utils.intersectables
+import org.prismsus.tank.utils.DOUBLE_PRECISION
+import org.prismsus.tank.utils.DVec2
+import java.awt.Color
 import kotlin.math.*
-
+import javax.swing.*
+import javax.swing.JPanel
 
 /**
  * @param startP The starting point of the line.
@@ -52,29 +56,30 @@ class Line(override var pts : Array<DPos2>) : Intersectable {
      * @return True if intersects, false otherwise.
      * @see Intersectable.intersect
      * */
-    override fun intersect(other: Intersectable): Boolean {
+    override fun intersectPts(other: Intersectable): Array<DPos2> {
         if (other is DPos2) {
             // calculate y position of the line given x is other.x
             val y = slope * other.x + inter
-            return inXrg(other.x) && y == other.y
+            if (inXrg(other.x) && y == other.y)
+                return arrayOf(other)
         }
         if (other !is Line) {
             // in this case, the other object is a colBox
-            return other.intersect(this)
+            return other.intersectPts(this)
         }
         val otherLine = other as Line
         // check if two lines are parallel, in this case, they will never intersect
-        if (slope == otherLine.slope) {
+        if (slope == otherLine.slope && ! isVertical() && !otherLine.isVertical()) {
             if (inter != otherLine.inter) {
-                return false
+                return arrayOf()
             }
-            // slope and intercept are all the same
-            // now check if they overlap within the range
-            val inThisRange: Boolean = inXrg(otherLine.startP.x) || inXrg(otherLine.endP.x)
-            // either starting point or ending point in the range of this line
-            val inOtherRange: Boolean = otherLine.inXrg(startP.x) || otherLine.inXrg(endP.x)
-            return inThisRange || inOtherRange
-            // using or here considering the case where one line is within the other line
+            val newStartX = max(startP.x, otherLine.startP.x)
+            val newEndX = min(endP.x, otherLine.endP.x)
+            if (newStartX > newEndX)
+                return arrayOf()
+            if (abs(newStartX - newEndX) < DOUBLE_PRECISION)
+                return arrayOf(atX(newStartX))
+            return arrayOf(atX(newStartX), atX(newEndX))
         }
 
         // check if the slope is infinity
@@ -84,16 +89,15 @@ class Line(override var pts : Array<DPos2>) : Intersectable {
         if (infCnt == 2) {
             // both lines are vertical
             if (startP.x != otherLine.startP.x) {
-                return false
+                return arrayOf()
             }
-            // now check if they overlap within the range
-            val inThisRange: Boolean = otherLine.startP.y >= startP.y && otherLine.startP.y <= endP.y
-                    || otherLine.endP.y >= startP.y && otherLine.endP.y <= endP.y
-            // either starting point or ending point in the range of this line
-            val inOtherRange: Boolean = startP.y >= otherLine.startP.y && startP.y <= otherLine.endP.y
-                    || endP.y >= otherLine.startP.y && endP.y <= otherLine.endP.y
-            return inThisRange || inOtherRange
-            // using or here considering the case where one line is within the other line
+            val newStartY = max(startP.y, otherLine.startP.y)
+            val newEndY = min(endP.y, otherLine.endP.y)
+            if (newStartY > newEndY)
+                return arrayOf()
+            if (abs(newStartY - newEndY) < DOUBLE_PRECISION)
+                return arrayOf(atY(newStartY))
+            return arrayOf(atY(newStartY), atY(newEndY))
         }
         if (infCnt == 1) {
 
@@ -104,20 +108,22 @@ class Line(override var pts : Array<DPos2>) : Intersectable {
             val nvLine =
                 if (isVertical()) otherLine else this
             if (vLine.startP.x < nvLine.startP.x || vLine.startP.x > nvLine.endP.x) {
-                return false
+                return arrayOf()
             }
-            val y = nvLine.slope * vLine.startP.x + nvLine.inter
-            val inVrange: Boolean = vLine.inYrg(y)
-            val inNVrange: Boolean = nvLine.inYrg(y)
-            return inVrange && inNVrange
+            val y = nvLine.atX(vLine.startP.x).y
+            if (! nvLine.inYrg(y) ||!vLine.inYrg(y)) {
+                return arrayOf()
+            }
+            return arrayOf(DPos2(vLine.startP.x, y))
         }
 
         val intersectX = (otherLine.inter - inter) / (slope - otherLine.slope)
         // calculate the point where intersection happens
         // then check if this point is in the range of both lines
-        val inThisRange: Boolean = inXrg(intersectX)
-        val inOtherRange: Boolean = inXrg(intersectX)
-        return inThisRange && inOtherRange
+        if (! inXrg(intersectX) || ! otherLine.inXrg(intersectX)) {
+            return arrayOf()
+        }
+        return arrayOf(atX(intersectX))
     }
 
     /**
@@ -160,7 +166,7 @@ class Line(override var pts : Array<DPos2>) : Intersectable {
      * @param t the parameter of the line, t = 0 means the start point, t = 1 means the end point
      * @return the point when travel a certain distance from the start point of the line
      * */
-    fun at(t : Double) : DPos2 {
+    fun atT(t : Double) : DPos2 {
         return startP + (endP - startP) * t
     }
 
@@ -168,6 +174,13 @@ class Line(override var pts : Array<DPos2>) : Intersectable {
         return startP + (endP - startP).norm() * len
     }
 
+    fun atX(x : Double) : DPos2 {
+        return DPos2(x, slope * x + inter)
+    }
+
+    fun atY(y : Double) : DPos2 {
+        return DPos2((y - inter) / slope, y)
+    }
 
     /**
      * Calculate the shortest distance from the line to the point
@@ -183,7 +196,7 @@ class Line(override var pts : Array<DPos2>) : Intersectable {
         // divide another Len() to get the parameter t
         // clamp this t to make sure that it falls on the line segment
         val clampedT = t.coerceIn(0.0, 1.0)
-        return at(clampedT).dis(pt)
+        return atT(clampedT).dis(pt)
     }
 
     /**
@@ -201,7 +214,9 @@ class Line(override var pts : Array<DPos2>) : Intersectable {
      * @see inYrg
      * */
     fun inXrg(x: Double): Boolean {
-        return x >= startP.x && x <= endP.x
+        val mn = min(startP.x, endP.x)
+        val mx = max(startP.x, endP.x)
+        return x >= mn && x <= mx
     }
 
     /**
@@ -211,7 +226,9 @@ class Line(override var pts : Array<DPos2>) : Intersectable {
      * @see inXrg
      * */
     fun inYrg(y: Double): Boolean {
-        return y >= startP.y && y <= endP.y
+        val mn = min(startP.y, endP.y)
+        val mx = max(startP.y, endP.y)
+        return y >= mn && y <= mx
     }
 
     fun isVertical() : Boolean {
@@ -219,16 +236,23 @@ class Line(override var pts : Array<DPos2>) : Intersectable {
     }
 
 
-    override fun plus(shift: DVec2): Line{
+    override fun plus(shift: DVec2): Line {
         return Line(startP + shift, endP + shift)
     }
 
 
-    override fun minus(shift: DVec2): Line{
+    override fun minus(shift: DVec2): Line {
         return Line(startP - shift, endP - shift)
     }
 
     override fun byPts(_pts: Array<DPos2>): Intersectable {
         return Line(_pts[0], _pts[1])
+    }
+
+    override fun drawGraphics(panel: JPanel, factor : Double) {
+        val g = panel.graphics
+        g.color = Color.BLACK
+        val screenPts = ptsAsScreenIdx(panel.height, factor)
+        g.drawLine(screenPts[0].x, screenPts[0].y, screenPts[1].x, screenPts[1].y)
     }
 }

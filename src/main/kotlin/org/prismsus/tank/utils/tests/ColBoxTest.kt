@@ -3,9 +3,14 @@ package org.prismsus.tank.utils.tests
 import org.junit.jupiter.api.Test
 import org.prismsus.tank.utils.*
 import org.junit.jupiter.api.Assertions.*
+import org.prismsus.tank.utils.intersectables.ColBox
+import org.prismsus.tank.utils.intersectables.DPos2
+import org.prismsus.tank.utils.intersectables.Line
+import org.prismsus.tank.utils.intersectables.RectColBox
 import kotlin.random.Random
-import kotlin.math.*
+
 typealias Pos = DPos2
+
 class ColBoxTest {
 
     @Test
@@ -13,31 +18,33 @@ class ColBoxTest {
         var testNum = 0
         // create a square box, rotate it by 90 degree, it should have the same point set as the original
         println("t${++testNum}")
-        var box1 = ColBox.byTopLeft(Pos(0.0, 1.0), DDim2(1.0, 1.0))
-        var box2 = ColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0)).rotateDeg(90.0, Pos.ORIGIN) as ColBox
+        var box1 : ColBox = RectColBox.byTopLeft(Pos(0.0, 1.0), DDim2(1.0, 1.0))
+        var box2 : ColBox = RectColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0)).rotateDeg(90.0, Pos.ORIGIN) as ColBox
+
+
         assertTrue(box2 == box1)
         println("passed")
 
         // create a square box, rotate it by 180 degree from the center, it should have the same point set as the original
         println("t${++testNum}")
-        box1 = ColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
-        box2 = ColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0)).rotateDeg(180.0, Pos(.5, -.5)) as ColBox
+        box1 = RectColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
+        box2 = RectColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0)).rotateDeg(180.0, Pos(.5, -.5)) as ColBox
         assertTrue(box2 == box1)
         println("passed")
 
         // create a rectangle box with longer side on x axis, rotate it by 90 degree, it should have the same point set
         // with a rectangle box with longer side on y axis
         println("t${++testNum}")
-        box1 = ColBox.byTopLeft(Pos(0.0, 1.0), DDim2(2.0, 1.0)).rotateDeg(90.0, Pos.ORIGIN) as ColBox
-        box2 = ColBox.byTopLeft(Pos(-1.0, 2.0), DDim2(1.0, 2.0))
+        box1 = RectColBox.byTopLeft(Pos(0.0, 1.0), DDim2(2.0, 1.0)).rotateDeg(90.0, Pos.ORIGIN) as ColBox
+        box2 = RectColBox.byTopLeft(Pos(-1.0, 2.0), DDim2(1.0, 2.0))
         assertTrue(box2 == box1)
         println("passed")
 
         // create a rectangle box with longer side on x axis, rotate it by -90 degree, it should have the same point set
         // with a rectangle box with longer side on y axis
         println("t${++testNum}")
-        box1 = ColBox.byTopLeft(Pos(0.0, 1.0), DDim2(2.0, 1.0)).rotateDeg(-90.0, Pos.ORIGIN) as ColBox
-        box2 = ColBox.byTopLeft(Pos(0.0, 0.0), DDim2(1.0, 2.0))
+        box1 = RectColBox.byTopLeft(Pos(0.0, 1.0), DDim2(2.0, 1.0)).rotateDeg(-90.0, Pos.ORIGIN) as ColBox
+        box2 = RectColBox.byTopLeft(Pos(0.0, 0.0), DDim2(1.0, 2.0))
         assertTrue(box2 == box1)
         println("passed")
     }
@@ -47,22 +54,22 @@ class ColBoxTest {
         var testNum = 0
         // test if two same ColBox.byTopLeftes can intersect
         println("t${++testNum}")
-        var box1 = ColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
-        var box2 = ColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
+        var box1 : ColBox = RectColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
+        var box2 : ColBox = RectColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
         assertTrue(box1.intersect(box2) && box2.intersect(box1))
         println("pass")
 
         // test if two ColBox.byTopLeftes with different size can intersect
         println("t${++testNum}")
-        box1 = ColBox.byTopLeft(Pos.ORIGIN, DDim2(2.0, 2.0))
-        box2 = ColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
+        box1 = RectColBox.byTopLeft(Pos.ORIGIN, DDim2(2.0, 2.0))
+        box2 = RectColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
         assertTrue(box1.intersect(box2) && box2.intersect(box1))
         println("pass")
 
         // test two boxes touching
         println("t${++testNum}")
-        box1 = ColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
-        box2 = ColBox.byTopLeft(Pos.UP, DDim2(1.0, 1.0))
+        box1 = RectColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
+        box2 = RectColBox.byTopLeft(Pos.UP, DDim2(1.0, 1.0))
         assertTrue(box1.intersect(box2) && box2.intersect(box1))
         println("pass")
 
@@ -74,8 +81,8 @@ class ColBoxTest {
 
         // test the case when on box enclose the other
         println("t${++testNum}")
-        box1 = ColBox.byTopLeft(Pos.ORIGIN, DDim2(3.0, 3.0))
-        box2 = ColBox.byTopLeft(Pos(-1.5, -1.5), DDim2(1.0, 1.0))
+        box1 = RectColBox.byTopLeft(Pos.ORIGIN, DDim2(3.0, 3.0))
+        box2 = RectColBox.byTopLeft(Pos(-1.5, -1.5), DDim2(1.0, 1.0))
         assertTrue(box1.intersect(box2))
         assertTrue(box2.intersect(box1))
         println("pass")

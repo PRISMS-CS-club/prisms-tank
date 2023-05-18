@@ -1,5 +1,7 @@
 package org.prismsus.tank.utils
 import  org.prismsus.tank.element.*
+import org.prismsus.tank.utils.intersectables.DPos2
+import org.prismsus.tank.utils.intersectables.RectColBox
 
 // constants for game configuration and default values
 

@@ -1,6 +1,12 @@
-package org.prismsus.tank.utils
+package org.prismsus.tank.utils.intersectables
 
+
+import org.prismsus.tank.utils.DOUBLE_PRECISION
+import org.prismsus.tank.utils.DVec2
+import java.awt.Color
 import java.util.*
+import javax.swing.JPanel
+import kotlin.collections.ArrayList
 import kotlin.math.abs
 import kotlin.math.atan2
 
@@ -11,7 +17,7 @@ import kotlin.math.atan2
  */
 
 
-open class ColBox(override var pts : Array<DPos2>): Intersectable{
+open class ColBox(override var pts : Array<DPos2>): Intersectable {
     // here use the JvmField to restrict the auto generation of getter and setter
     // because we want to override the getter and setter
     val origPts = pts.copyOf()
@@ -27,12 +33,12 @@ open class ColBox(override var pts : Array<DPos2>): Intersectable{
 
 
     /**
-     * Helper function of [intersect], this function DOES NOT check the situation when one ColBox enclose the other.
+     * Helper function of [intersectPts], this function only check the sitution when this box enclose the other box, not the other way around.
      * @param other The other ColBox.
      * @return True if intersects, false otherwise.
-     * @see intersect
+     * @see intersectPts
      * */
-    fun intersectNoEnclose(other : Intersectable) : Boolean {
+    fun intersectPtsEncloseOther(other : Intersectable) : Array<DPos2> {
         // does not check the other.intersect(this)
         if (other is DPos2){
             val pt = other as DPos2
@@ -40,31 +46,39 @@ open class ColBox(override var pts : Array<DPos2>): Intersectable{
             // if the ray intersects with the polygon an odd number of times, then the point is inside the polygon
             val sz : Int = pts.size
             val baseRay = Line(pt, pt + DVec2.RT * (Double.MAX_VALUE / 100))
-            var interCnt : IntArray = IntArray(DVec2.RTS_DIR.size)
+            val offsetsInterCnt : IntArray = IntArray(DVec2.RTS_DIR.size) // intersection count for every base ray offsets
+            val offsetsInterPts : Array<ArrayList<DPos2>> = Array(DVec2.RTS_DIR.size) { ArrayList<DPos2>() } // intersection points for every base ray offsets
             for (i in 0 until sz){
                 val curPolygonLine = Line(pts[i], pts[(i + 1) % sz]) // line formed by current polygon
                 for ((i, dir) in DVec2.RTS_DIR.withIndex()){
                     // to prevent touching cases
                     // touching is considered intersection, but touching will give even number of intersections
                     val ray = baseRay + (dir * DOUBLE_PRECISION * 100.0)
-                    interCnt[i] += if (curPolygonLine.intersect(ray)) 1 else 0
+                    val curInterPts = curPolygonLine.intersectPts(ray)
+                    offsetsInterCnt[i] += if (curInterPts.isNotEmpty()) 1 else 0
+                    offsetsInterPts[i] += curInterPts
                 }
             }
-            return interCnt.any() { it % 2 == 1 }
+            val ret = offsetsInterPts.filterIndexed { i, _ -> offsetsInterCnt[i] % 2 == 1 }
+            if (ret.isEmpty()) return arrayOf()
+            return ret.first().toTypedArray()
         }
 
+        val ret = ArrayList<DPos2>()
         for (otherPts : DPos2 in other.pts){
-            if (intersect(otherPts)) return true
+            ret += intersectPtsEncloseOther(otherPts)
         }
-        return false
+        return ret.toTypedArray()
     }
 
     /**
-    * @see Intersectable.intersect
+    * @see Intersectable.intersectPts
     * */
-    override fun intersect(other : Intersectable) : Boolean {
-        if (other !is ColBox) return intersectNoEnclose(other)
-        else return intersectNoEnclose(other) || other.intersectNoEnclose(this)
+    override fun intersectPts(other : Intersectable) : Array<DPos2> {
+        if (other !is ColBox) return intersectPtsEncloseOther(other)
+        val thisRet = intersectPtsEncloseOther(other)
+        val otherRet = other.intersectPtsEncloseOther(this)
+        return thisRet + otherRet
     }
 
     override fun toString(): String {
@@ -118,13 +132,22 @@ open class ColBox(override var pts : Array<DPos2>): Intersectable{
         return super.rotateAssign(radOffset, center)
     }
 
+    override fun drawGraphics(panel: JPanel, factor: Double) {
+        val g = panel.graphics
+        val screenPts = ptsAsScreenIdx(panel.height, factor)
+        g.color = Color.BLACK
+        val xArr = screenPts.map{it.x.toInt()}.toIntArray()
+        val yArr = screenPts.map{it.y.toInt()}.toIntArray()
+        g.drawPolygon(xArr, yArr, pts.size)
+    }
+
     companion object{
 
         /**
          * Create a ColBox from a set of points that are not ordered
          * @see ColBox (the primary constructor)
          * */
-        fun byUnorderedPtSet(pts : Array<DPos2>) : ColBox{
+        fun byUnorderedPtSet(pts : Array<DPos2>) : ColBox {
             // sort the points using angle with horizontal line
             val sortedPts = pts.copyOf()
             val avePt : DPos2 = (sortedPts.reduce { acc, dPos2 -> (acc + dPos2).toPt()}.toVec() / sortedPts.size.toDouble()).toPt()

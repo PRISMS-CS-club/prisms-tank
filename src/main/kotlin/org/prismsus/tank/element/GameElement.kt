@@ -1,5 +1,5 @@
 package org.prismsus.tank.element;
-import org.prismsus.tank.utils.ColBox
+import org.prismsus.tank.utils.intersectables.ColBox
 import kotlin.collections.ArrayList
 
 abstract class GameElement(val uid : Long, var hp : Int = -1, var colBox : ColBox) {
