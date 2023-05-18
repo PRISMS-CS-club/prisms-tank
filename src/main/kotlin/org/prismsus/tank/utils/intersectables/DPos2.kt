@@ -4,6 +4,9 @@ import org.prismsus.tank.utils.DOUBLE_PRECISION
 import org.prismsus.tank.utils.DVec2
 import org.prismsus.tank.utils.IPos2
 import java.awt.Color
+import java.awt.Shape
+import java.awt.geom.Ellipse2D
+import java.awt.geom.Point2D
 import javax.swing.JPanel
 import kotlin.math.*
 class DPos2(var x: Double, var y: Double) : Intersectable, Comparable<DPos2>, Cloneable {
@@ -12,6 +15,7 @@ class DPos2(var x: Double, var y: Double) : Intersectable, Comparable<DPos2>, Cl
     val origY = y
 
     constructor(other : DPos2) : this(other.x, other.y)
+    constructor(x : Int, y : Int) : this(x.toDouble(), y.toDouble())
     override operator fun plus(other: DVec2): DPos2 {
         return DPos2(x + other.x, y + other.y)
     }
@@ -171,11 +175,11 @@ class DPos2(var x: Double, var y: Double) : Intersectable, Comparable<DPos2>, Cl
         return DPos2(this)
     }
 
-    override fun drawGraphics(panel: JPanel, factor: Double) {
-        val g = panel.graphics
-        g.color = Color.BLACK
-        val screenPt = ptsAsScreenIdx(panel.height, factor)[0]
-        g.drawOval(screenPt.x - 1, screenPt.y - 1, 2, 2)
+    override fun toShape(coordTransform: (DPos2) -> DPos2, shapeModifier : (Shape) -> Unit): Shape {
+        val transformed = coordTransform(this) // since the coordinate is at top left
+        val ret =  Ellipse2D.Double(transformed.x, transformed.y, 2.0, 2.0)
+        shapeModifier(ret)
+        return ret
     }
 
     fun toIPos2() : IPos2 {

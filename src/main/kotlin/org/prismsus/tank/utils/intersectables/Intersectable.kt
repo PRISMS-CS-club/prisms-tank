@@ -1,5 +1,6 @@
 package org.prismsus.tank.utils.intersectables
 import org.prismsus.tank.utils.*
+import java.awt.Shape
 import javax.swing.*
 
 interface Intersectable {
@@ -21,7 +22,6 @@ interface Intersectable {
 
     fun intersectPts(other : Intersectable) : Array<DPos2>
 
-    fun drawGraphics(panel : JPanel, factor : Double = 1.0)
     /**
      * shifting the intersectable object by a vector
      * @param shift The vector to shift.
@@ -106,21 +106,8 @@ interface Intersectable {
         return byPts(pts)
     }
 
+    fun toShape(coordTransform : (DPos2) -> DPos2 = {it}, shapeModifier : (Shape) -> Unit = {it}) : Shape
 
-    /**
-     * @param ysize The y-coordinate size of the screen.
-     * @return The points of the object as screen indices.
-     * In java swing, the screen index is the position of points from the top left corner of the screen.
-     * Meaning that the y-coordinate is flipped.
-    * */
-    fun ptsAsScreenIdx(ysize : Int, factor : Double = 1.0) : Array<IPos2> {
-        val maxYidx = ysize - 1
-        val copied = pts.copyOf().map{(it.copy().toVec() * factor).toPt()}.toTypedArray()
-        for (pt in copied){
-            pt.y = maxYidx - pt.y
-        }
-        return copied.map{it.toIPos2()}.toTypedArray()
-    }
 
     /*
     * The following variables are used to indicate the position and size of the

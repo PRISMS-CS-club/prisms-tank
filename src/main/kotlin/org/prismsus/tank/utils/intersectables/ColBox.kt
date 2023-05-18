@@ -4,6 +4,8 @@ package org.prismsus.tank.utils.intersectables
 import org.prismsus.tank.utils.DOUBLE_PRECISION
 import org.prismsus.tank.utils.DVec2
 import java.awt.Color
+import java.awt.Shape
+import java.awt.geom.Path2D
 import java.util.*
 import javax.swing.JPanel
 import kotlin.collections.ArrayList
@@ -132,16 +134,20 @@ open class ColBox(override var pts : Array<DPos2>): Intersectable {
         return super.rotateAssign(radOffset, center)
     }
 
-    override fun drawGraphics(panel: JPanel, factor: Double) {
-        val g = panel.graphics
-        val screenPts = ptsAsScreenIdx(panel.height, factor)
-        g.color = Color.BLACK
-        val xArr = screenPts.map{it.x.toInt()}.toIntArray()
-        val yArr = screenPts.map{it.y.toInt()}.toIntArray()
-        g.drawPolygon(xArr, yArr, pts.size)
+    override fun toShape(coordTransform: (DPos2) -> DPos2, shapeModifier : (Shape) -> Unit): Shape {
+        val transformed = pts.map { coordTransform(it) }
+        val ret = Path2D.Double(Path2D.WIND_EVEN_ODD)
+        ret.moveTo(transformed[0].x, transformed[0].y)
+        for (i in 1 until transformed.size){
+            ret.lineTo(transformed[i].x, transformed[i].y)
+        }
+        ret.closePath()
+        shapeModifier(ret)
+        return ret
     }
 
-    companion object{
+
+        companion object{
 
         /**
          * Create a ColBox from a set of points that are not ordered

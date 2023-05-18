@@ -11,6 +11,7 @@ import kotlin.random.*
 data class DVec2(var x: Double, var y: Double)  {
     constructor(): this(0.0, 0.0)
     constructor(vec: IVec2): this(vec.x.toDouble(), vec.y.toDouble())
+    constructor(x : Int, y : Int) : this(x.toDouble(), y.toDouble())
 
     /**
      * Add this double vector and another double vector. Returns a new object.

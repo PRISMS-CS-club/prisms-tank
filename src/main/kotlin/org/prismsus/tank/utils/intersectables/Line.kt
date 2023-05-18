@@ -2,6 +2,8 @@ package org.prismsus.tank.utils.intersectables
 import org.prismsus.tank.utils.DOUBLE_PRECISION
 import org.prismsus.tank.utils.DVec2
 import java.awt.Color
+import java.awt.Shape
+import java.awt.geom.Line2D
 import kotlin.math.*
 import javax.swing.*
 import javax.swing.JPanel
@@ -249,10 +251,11 @@ class Line(override var pts : Array<DPos2>) : Intersectable {
         return Line(_pts[0], _pts[1])
     }
 
-    override fun drawGraphics(panel: JPanel, factor : Double) {
-        val g = panel.graphics
-        g.color = Color.BLACK
-        val screenPts = ptsAsScreenIdx(panel.height, factor)
-        g.drawLine(screenPts[0].x, screenPts[0].y, screenPts[1].x, screenPts[1].y)
+    override fun toShape(coordTransform: (DPos2) -> DPos2, shapeModifier : (Shape) -> Unit): Shape {
+        val tStartP = coordTransform(startP)
+        val tEndP = coordTransform(endP)
+        val ret = Line2D.Double(tStartP.x, tStartP.y, tEndP.x, tEndP.y)
+        shapeModifier(ret)
+        return ret
     }
 }

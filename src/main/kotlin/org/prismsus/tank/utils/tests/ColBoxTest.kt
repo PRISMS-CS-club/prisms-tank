@@ -7,6 +7,8 @@ import org.prismsus.tank.utils.intersectables.ColBox
 import org.prismsus.tank.utils.intersectables.DPos2
 import org.prismsus.tank.utils.intersectables.Line
 import org.prismsus.tank.utils.intersectables.RectColBox
+import java.awt.Color
+import java.awt.Graphics2D
 import kotlin.random.Random
 
 typealias Pos = DPos2
@@ -108,10 +110,10 @@ class ColBoxTest {
 
         // generate two polygons with PT_CNT points randomly, they share one point, so they should intersect
         println("t${++testNum}")
-        val PT_CNT = 5000
+        val PT_CNT = 200
         val samePt = Pos(1.0, 1.0)
-        val pts1 = Array(PT_CNT){(DVec2.randUnitVec() * 1e5).toPt()}
-        val pts2 = Array(PT_CNT){(DVec2.randUnitVec() * 1e5).toPt()}
+        val pts1 = Array(PT_CNT){(DVec2.randUnitVec() * Random.nextDouble(1.0, 15.0)).toPt()}
+        val pts2 = Array(PT_CNT){(DVec2.randUnitVec() * Random.nextDouble(1.0, 15.0)).toPt()}
         pts1[PT_CNT - 1] = samePt
         pts2[PT_CNT - 1] = samePt
         var startTm = System.currentTimeMillis()
@@ -122,6 +124,14 @@ class ColBoxTest {
         assertTrue(box1.intersect(box2))
         println("time to test intersection: ${System.currentTimeMillis() - startTm} ms")
         println("pass")
+        val panel = CoordPanel(IDim2(1, 1), IDim2(15, 15))
+        panel.drawIntersectable(box1)
+        panel.graphicsModifier = { g : Graphics2D ->
+            g.color = Color.RED
+        }
+        panel.drawIntersectable(box2)
+        panel.showFrame()
+        while(true){}
     }
 
 
