@@ -158,19 +158,57 @@ class ColBoxTest {
         // create a rectangle and a triangle
         // one vertex of the triangle is inside the rectangle
         // the other two vertices are outside the rectangle
-        val rect = RectColBox.byTopLeft(DPos2(-.5, .5), DDim2(1.0, 1.0))
-        val tri = ColBox(arrayOf(DPos2(0.0, 0.0), DPos2(2.0, 0.0), DPos2(1.0, 1.0)))
-        val panel = CoordPanel(IDim2(1, 1), IDim2(50, 50))
-        panel.drawCollidable(rect, tri)
-        panel.showFrame()
+        run {
+            val rect = RectColBox.byTopLeft(DPos2(-.5, .5), DDim2(1.0, 1.0))
+            val tri = ColBox(arrayOf(DPos2(0.0, 0.0), DPos2(2.0, 0.0), DPos2(1.0, 1.0)))
+            val panel = CoordPanel(IDim2(1, 1), IDim2(80, 80))
+            panel.drawCollidable(rect, tri)
+            panel.showFrame()
 
 
-        val panel2 = CoordPanel(IDim2(1, 1), IDim2(50, 50))
+            val panel2 = CoordPanel(IDim2(1, 1), IDim2(80, 80))
 
-        print((rect collidePts tri).contentToString())
-        val union = rect.union(tri)!!
-        panel2.drawCollidable(union)
-        panel2.showFrame()
+            print((rect collidePts tri).contentToString())
+            val union = rect.union(tri)!!
+            panel2.drawCollidable(union)
+            panel2.showFrame()
+        }
+
+        run{
+            // create a large triangle in the center, and a rectangle that pass through the center
+            val tri = ColBox(arrayOf(DPos2(-1.0, -1.0), DPos2(1.0, -1.0), DPos2(0.0, 1.0)))
+            val rect = RectColBox(DPos2.ORIGIN, DDim2(4.0, .5))
+            val sepP = CoordPanel(IDim2(1, 1), IDim2(80, 80))
+            sepP.drawCollidable(tri)
+            sepP.graphicsModifier = { g : Graphics2D ->
+                g.color = Color.RED
+            }
+            sepP.drawCollidable(rect)
+            sepP.showFrame()
+            val union = rect.union(tri)!!
+            val unionP = CoordPanel(IDim2(1, 1), IDim2(80, 80))
+            unionP.drawCollidable(union)
+            unionP.showFrame()
+        }
+
+        run{
+            val separateP = CoordPanel(IDim2(1, 1), IDim2(150, 150))
+            // create one random polygon at the center and one rectangle that pass through the center
+            val poly = ColBox.byUnorderedPtSet(Array(20) { (DVec2.randUnitVec() * Random.nextDouble() * 3.0).toPt() })
+            val rect = RectColBox(DPos2.ORIGIN, DDim2(4.0, 2.0))
+            print(poly)
+            separateP.drawCollidable(poly)
+            separateP.graphicsModifier = { g : Graphics2D ->
+                g.color = Color.RED
+            }
+            separateP.drawCollidable(rect)
+            separateP.showFrame()
+            val union = poly.union(rect)!!
+            val unionP = CoordPanel(IDim2(1, 1), IDim2(150, 150))
+            unionP.drawCollidable(union)
+            unionP.showFrame()
+        }
+
         while(true){}
     }
 

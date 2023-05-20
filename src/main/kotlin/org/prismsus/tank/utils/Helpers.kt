@@ -15,9 +15,9 @@ fun Double.toRad() : Double {
 fun Double.toModPosAngle() : Double{
     var angle = this
     while (angle < 0){
-        angle += 360
+        angle += 2 * PI
     }
-    return angle % 360
+    return angle % (2 * PI)
 }
 
 public fun <T> Iterable<T>.treeDistinct() : List<T> {

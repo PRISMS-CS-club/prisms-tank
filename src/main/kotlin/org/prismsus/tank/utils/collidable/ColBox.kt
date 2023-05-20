@@ -245,9 +245,7 @@ open class ColBox(override var pts: Array<DPos2>) : Collidable {
      * Note that if the actual union forms a shape with empty space, the empty space will not be included.
      * */
     infix fun union(other: ColBox): ColBox? {
-        val thisEncOther = enclosedPts(other)
-        val otherEncThis = other.enclosedPts(this)
-        if (thisEncOther.size + otherEncThis.size == 0) return null
+        if (!collide(other)) return null
         if (enclose(other)) return ColBox(pts.copyOf().map { it.copy() }
             .toTypedArray())
         if (other.enclose(this)) return ColBox(other.pts.copyOf().map { it.copy() }
@@ -256,26 +254,29 @@ open class ColBox(override var pts: Array<DPos2>) : Collidable {
         val (graph, _) = contourGraph(other)
         // for each point, travel to the next point where minimum angle is formed
         // start by the point with minimum x, then y
-        val startPt = arrayOf(pts.min(), other.pts.min()).min()
-        val q = LinkedList<DPos2>()
-        q.add(startPt)
+        var curPt = arrayOf(pts.min(), other.pts.min()).min()
         val vised = TreeSet<DPos2>()
         val ret = ArrayList<DPos2>()
         lateinit var lastVec: DVec2
-        var lastPt = (startPt - DPos2(1.0, 0.0)).toPt()
-        while (q.isNotEmpty()) {
-            val curPt = q.poll()
+        var lastPt = (curPt - DPos2(1.0, 0.0)).toPt()
+        while (true) {
             lastVec = curPt.toVec() - lastPt.toVec()
             if (vised.contains(curPt)) continue
             vised.add(curPt)
             ret.add(curPt)
-
-            val nextPt = graph[curPt]!!.filter { !vised.contains(it) } .minByOrNull {
-                (it - curPt).angle().toModPosAngle() - lastVec.angle().toModPosAngle()
+            val unvised = graph[curPt]!!.filter { !vised.contains(it) }
+            // when at the right side of the last vector, try to make the angle smaller
+            var nextPt = unvised.filter { lastVec.isPtAtRight((it - curPt).toPt()) }.minByOrNull {
+                lastVec dot (it - curPt)
             }
-            if (nextPt != null)
-                q.add(nextPt)
+            if (nextPt == null)
+                nextPt = unvised.maxByOrNull { lastVec dot (it - curPt) }
+            // when at the left side of the last vector, try to make the angle larger
             lastPt = curPt
+            if (nextPt == null)
+                break
+            else
+                curPt = nextPt
         }
         return ColBox(ret.toTypedArray())
     }

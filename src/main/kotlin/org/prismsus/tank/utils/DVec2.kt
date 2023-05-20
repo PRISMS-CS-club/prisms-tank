@@ -121,7 +121,7 @@ data class DVec2(var x: Double, var y: Double)  {
      * @param other The other vector.
      * @return The dot product.
      */
-    fun dot(other: DVec2): Double {
+    infix fun dot(other: DVec2): Double {
         return x * other.x + y * other.y
     }
 
@@ -131,7 +131,7 @@ data class DVec2(var x: Double, var y: Double)  {
      * @return The cosine of the angle.
      * @see angleWith
      * */
-    fun cosWith(other: DVec2): Double {
+    infix fun cosWith(other: DVec2): Double {
         return dot(other) / (len() * other.len())
     }
 
@@ -142,7 +142,7 @@ data class DVec2(var x: Double, var y: Double)  {
      * @see cosWith
      * */
 
-    fun angleWith(other: DVec2): Double {
+    infix fun angleWith(other: DVec2): Double {
         return acos(cosWith(other))
     }
 
