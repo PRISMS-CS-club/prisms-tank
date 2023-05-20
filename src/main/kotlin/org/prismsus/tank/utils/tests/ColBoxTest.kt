@@ -78,7 +78,7 @@ class ColBoxTest {
 
         // move the second box up, they should not touch this time
         println("t${++testNum}")
-        box2 += DVec2.UP
+        box2 = box2 + DVec2.UP
         assertFalse(box1.collide(box2) && box2.collide(box1))
         println("pass")
 
@@ -100,13 +100,13 @@ class ColBoxTest {
 
         // move the second box a little bit, they should touch this time
         println("t${++testNum}")
-        box2 += DVec2.UP * 0.5
+        box2 = box2 + DVec2.UP * 0.5
         assertTrue(box1.collide(box2) && box2.collide(box1))
         println("pass")
 
         // move it further, they should not touch this time
         println("t${++testNum}")
-        box2 += DVec2.UP
+        box2 = box2 + DVec2.UP
         assertFalse(box1.collide(box2) && box2.collide(box1))
         println("pass")
 
@@ -218,7 +218,7 @@ class ColBoxTest {
         }
 
         run{
-
+            return@run
             val separateP = CoordPanel(IDim2(1, 1), IDim2(150, 150))
             // create one random polygon at the center and one rectangle that pass through the center
             // poly=pts=[(-1.4303593576413736, -0.6660861740378866), (-0.927681268874418, -0.5210836385154236), (0.6451508438052175, -1.9505910001882056), (-0.037410982015603104, -0.016354731672313102), (0.1641716240187499, 0.19371063626176493), (0.608525867996999, 0.70937170825132), (0.26603689809620157, 2.35340069805903), (-0.8669666772386945, 0.9582756873894713), (-1.1489041684482149, 1.0988962689665125), (-1.3610651218633572, 0.6199913535366662)]
@@ -235,7 +235,7 @@ class ColBoxTest {
                 DPos2(-1.1489041684482149, 1.0988962689665125),
                 DPos2(-1.3610651218633572, 0.6199913535366662)
             )
-            val randArr = Array(100) { (DVec2.randUnitVec() * Random.nextDouble() * 3.0).toPt() }
+            val randArr = Array(150) { (DVec2.randUnitVec() * Random.nextDouble() * 3.0).toPt() }
             val poly = ColBox.byUnorderedPtSet(randArr)
 //            val poly = ColBox(polyArr)
             val rect = RectColBox(DPos2.ORIGIN, DDim2(4.0, 2.0))
@@ -253,7 +253,26 @@ class ColBoxTest {
             unionP.showFrame()
         }
 
-        while(true){}
+        run{
+            // create two random polygons
+            val poly1 = ColBox.byUnorderedPtSet(Array(20) { (DVec2.randUnitVec() * Random.nextDouble() * 3.0).toPt() })
+            val poly2 = ColBox.byUnorderedPtSet(Array(20) { (DVec2.randUnitVec() * Random.nextDouble() * 3.0).toPt() })
+            val sepP = CoordPanel(IDim2(1, 1), IDim2(150, 150))
+            sepP.drawCollidable(poly1)
+            sepP.graphicsModifier = { g : Graphics2D ->
+                g.color = Color.RED
+            }
+            sepP.drawCollidable(poly2)
+            sepP.showFrame()
+            val union = poly1.union(poly2)!!
+            val unionP = CoordPanel(IDim2(1, 1), IDim2(150, 150))
+            unionP.drawCollidable(union)
+            unionP.showFrame()
+        }
+
+
+        while(true){
+        }
     }
 
     @Test

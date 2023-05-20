@@ -9,6 +9,5 @@ import kotlinx.serialization.json.*
  */
 abstract class Event(val timestamp: Long) {
     abstract fun serialize(): ByteArray
-    abstract val timeStamp : Long
     abstract val serialName : String
 }

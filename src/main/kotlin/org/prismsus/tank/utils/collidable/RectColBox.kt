@@ -17,36 +17,58 @@ class RectColBox (val centerPos : DPos2, val size : DDim2) : ColBox(arrayOf(
 
     var topLeftPt : DPos2
         get() = pts[0]
-        set(value){}
+        set(value){
+            val vec = value.toVec() - topLeftPt.toVec()
+            pts.forEach { it += vec }
+        }
     var topRightPt : DPos2
         get() = pts[1]
-        set(value){}
+        set(value){
+            val vec = value.toVec() - topRightPt.toVec()
+            pts.forEach { it += vec }
+        }
     var bottomRightPt : DPos2
         get() = pts[2]
-        set(value){}
+        set(value){
+            val vec = value.toVec() - bottomRightPt.toVec()
+            pts.forEach { it += vec }
+        }
     var bottomLeftPt : DPos2
         get() = pts[3]
-        set(value){}
+        set(value){
+            val vec = value.toVec() - bottomLeftPt.toVec()
+            pts.forEach { it += vec }
+        }
     var leftMidPt : DPos2
         get() = ((topLeftPt.toVec() + bottomLeftPt.toVec()) / 2.0).toPt()
-        set(value){}
+        set(value){
+            val vec = value.toVec() - leftMidPt.toVec()
+            pts.forEach { it += vec }
+        }
     var rightMidPt : DPos2
         get() = ((topRightPt.toVec() + bottomRightPt.toVec()) / 2.0).toPt()
-        set(value){}
+        set(value){
+            val vec = value.toVec() - rightMidPt.toVec()
+            pts.forEach { it += vec }
+        }
     var topMidPt : DPos2
         get() = ((topLeftPt.toVec() + topRightPt.toVec()) / 2.0).toPt()
-        set(value){}
+        set(value){
+            val vec = value.toVec() - topMidPt.toVec()
+            pts.forEach { it += vec }
+        }
     var bottomMidPt : DPos2
         get() = ((bottomLeftPt.toVec() + bottomRightPt.toVec()) / 2.0).toPt()
-        set(value){}
-    var height : Double
+        set(value){
+            val vec = value.toVec() - bottomMidPt.toVec()
+            pts.forEach { it += vec }
+        }
+    override val height : Double
         get() {
             return size.y
         }
-        set(value){}
-    var width : Double
+    override val width : Double
         get() {
             return size.x
         }
-        set(value){}
 }

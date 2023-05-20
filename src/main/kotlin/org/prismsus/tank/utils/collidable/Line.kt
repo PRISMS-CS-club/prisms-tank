@@ -78,7 +78,7 @@ class Line(override var pts : Array<DPos2>) : Collidable, Comparable<Line> {
         val otherLine = other as Line
         // check if two lines are parallel, in this case, they will never intersect
         if (slope errEquals otherLine.slope && ! isVerti() && !otherLine.isVerti()) {
-            if (inter != otherLine.inter) {
+            if (inter errNotEquals otherLine.inter) {
                 return arrayOf()
             }
             val newStartX = max(startP.x, otherLine.startP.x)

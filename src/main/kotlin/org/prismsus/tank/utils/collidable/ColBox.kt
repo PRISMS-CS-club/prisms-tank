@@ -32,7 +32,23 @@ open class ColBox(override var pts: Array<DPos2>) : Collidable {
     override val unrotated: Collidable
         get() = ColBox(origPts)
     override var angleRotated = 0.0
+    override fun plus(shift: DVec2): ColBox {
+        return super.plus(shift) as ColBox
+    }
 
+    override fun minus(shift: DVec2): ColBox {
+        return super.minus(shift) as ColBox
+    }
+
+    open val height : Double
+        get() = pts.maxBy { it.y }!!.y - pts.minBy { it.y }!!.y
+    open val width : Double
+        get() = pts.maxBy { it.x }!!.x - pts.minBy { it.x }!!.x
+
+    constructor(vararg pts: DPos2) : this(arrayOf(*pts)) {
+    }
+    constructor(vararg xys: Double) : this(xys.mapIndexed { index, d -> if (index % 2 == 0) DPos2(d, xys[index + 1]) else null }.filterNotNull().toTypedArray()) {
+    }
 
     /**
      * Helper function of [collidePts], this function only check the sitution when this box enclose the other box, not the other way around.

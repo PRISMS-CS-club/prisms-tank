@@ -74,8 +74,13 @@ interface Collidable {
      * @return The rotated object.
      * */
     fun rotate(rad: Double, center: DPos2 = rotationCenter) : Collidable {
-        var newPts = pts.copyOf().map { it.copy()}.toTypedArray()
+        val newPts = pts.copyOf().map { it.copy()}.toTypedArray()
         return byPts(newPts).rotateAssign(rad, center)
+    }
+
+    fun rotateTo(rad: Double, center: DPos2 = rotationCenter) : Collidable {
+        val rotAng = rad - angleRotated
+        return rotate(rotAng, center)
     }
 
     /**
@@ -88,6 +93,12 @@ interface Collidable {
     fun rotateDeg(degOffset: Double, center: DPos2 = rotationCenter) : Collidable {
         return rotate(degOffset.toRad(), center)
     }
+
+    fun rotateToDeg(degOffset: Double, center: DPos2 = rotationCenter) : Collidable {
+        val rotAng = degOffset.toRad() - angleRotated
+        return rotate(rotAng, center)
+    }
+
     /*
      * rotate this collidable object by a radian, and assign the result to this object
      * @param center The center, or pivot of rotation.
@@ -103,6 +114,11 @@ interface Collidable {
         return this
     }
 
+    fun rotateAssignTo(radOffset: Double, center: DPos2 = rotationCenter) : Collidable {
+        val rotAng = radOffset - angleRotated
+        return rotateAssign(rotAng, center)
+    }
+
     /**
      * rotate this collidable object by a degree, and assign the result to this object
      * @param center The center, or pivot of rotation.
@@ -112,6 +128,11 @@ interface Collidable {
     * */
     fun rotateAssignDeg(degOffset: Double, center: DPos2 = rotationCenter) : Collidable {
         return rotateAssign(degOffset / 180.0 * Math.PI, center)
+    }
+
+    fun rotateAssignToDeg(degOffset: Double, center: DPos2 = rotationCenter) : Collidable {
+        val rotAng = degOffset / 180.0 * Math.PI - angleRotated
+        return rotateAssign(rotAng, center)
     }
 
 
@@ -149,7 +170,10 @@ interface Collidable {
             return (ave / pts.size.toDouble()).toPt()
         }
         set(x){
-            throw Exception("Cannot set rotation center")
+            val vec = x - rotationCenter
+            for (pt in pts){
+                pt += vec
+            }
         }
     var pts : Array<DPos2>        // the points of the object, used for intersection
 }
