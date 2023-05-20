@@ -303,7 +303,7 @@ data class DVec2(var x: Double, var y: Double)  {
         * @param length the length of the vector
         * @return the vector created
         */
-        fun byPolarCoord(len : Double, rad : Double) : DVec2 {
+        fun byPolar(len : Double, rad : Double) : DVec2 {
             return DVec2(len * cos(rad), len * sin(rad))
         }
 

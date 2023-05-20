@@ -45,7 +45,7 @@ class Tank(uid : Long, val trackMaxSpeed : Double, hp : Int, colBox : RectColBox
     override fun updatePosByTime(dt: Long) {
         if (abs(leftTrackVelo - rightTrackVelo) < DOUBLE_PRECISION){
             // the tank is moving straight
-            colBox += DVec2.byPolarCoord(1.0, colBox.angleRotated) * leftTrackVelo * dt.toDouble()
+            colBox += DVec2.byPolar(1.0, colBox.angleRotated) * leftTrackVelo * dt.toDouble()
             return
         }
         if (abs(leftTrackVelo) - abs(rightTrackVelo) < DOUBLE_PRECISION){

@@ -20,6 +20,14 @@ fun Double.toModPosAngle() : Double{
     return angle % (2 * PI)
 }
 
+infix fun Double.errEquals(other : Double) : Boolean {
+    return Math.abs(this - other) < DOUBLE_PRECISION
+}
+
+infix fun Double.errNotEquals(other : Double) : Boolean {
+    return Math.abs(this - other) >= DOUBLE_PRECISION
+}
+
 public fun <T> Iterable<T>.treeDistinct() : List<T> {
     val trSet = TreeSet<T>()
     for (it in this){

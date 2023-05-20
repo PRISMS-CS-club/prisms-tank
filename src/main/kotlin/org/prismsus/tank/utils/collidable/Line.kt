@@ -1,6 +1,8 @@
 package org.prismsus.tank.utils.collidable
 import org.prismsus.tank.utils.DOUBLE_PRECISION
 import org.prismsus.tank.utils.DVec2
+import org.prismsus.tank.utils.errEquals
+import org.prismsus.tank.utils.errNotEquals
 import java.awt.Shape
 import java.awt.geom.Line2D
 import kotlin.math.*
@@ -58,14 +60,14 @@ class Line(override var pts : Array<DPos2>) : Collidable, Comparable<Line> {
      * */
     override fun intersectPts(other: Collidable): Array<DPos2> {
         if (other is DPos2) {
-            if (isVertical()){
-                if (other.x == startP.x && inYrg(other.y))
+            if (isVerti()){
+                if (other.x errEquals startP.x && inYrg(other.y))
                     return arrayOf(other)
                 return arrayOf()
             }
             // calculate y position of the line given x is other.x
             val y = slope * other.x + inter
-            if (inXrg(other.x) && y == other.y)
+            if (inXrg(other.x) && y errEquals other.y)
                 return arrayOf(other)
             return emptyArray()
         }
@@ -75,7 +77,7 @@ class Line(override var pts : Array<DPos2>) : Collidable, Comparable<Line> {
         }
         val otherLine = other as Line
         // check if two lines are parallel, in this case, they will never intersect
-        if (slope == otherLine.slope && ! isVertical() && !otherLine.isVertical()) {
+        if (slope errEquals otherLine.slope && ! isVerti() && !otherLine.isVerti()) {
             if (inter != otherLine.inter) {
                 return arrayOf()
             }
@@ -83,25 +85,25 @@ class Line(override var pts : Array<DPos2>) : Collidable, Comparable<Line> {
             val newEndX = min(endP.x, otherLine.endP.x)
             if (newStartX > newEndX)
                 return arrayOf()
-            if (abs(newStartX - newEndX) < DOUBLE_PRECISION)
+            if (newStartX errEquals newEndX)
                 return arrayOf(atX(newStartX))
             return arrayOf(atX(newStartX), atX(newEndX))
         }
 
         // check if the slope is infinity
-        val infCnt: Int = if (isVertical()) 1 else 0 +
-                if (other.isVertical()) 1 else 0
+        val infCnt: Int = if (isVerti()) 1 else 0 +
+                if (other.isVerti()) 1 else 0
 
         if (infCnt == 2) {
             // both lines are vertical
-            if (startP.x != otherLine.startP.x) {
+            if (startP.x errNotEquals otherLine.startP.x) {
                 return arrayOf()
             }
             val newStartY = max(startP.y, otherLine.startP.y)
             val newEndY = min(endP.y, otherLine.endP.y)
             if (newStartY > newEndY)
                 return arrayOf()
-            if (abs(newStartY - newEndY) < DOUBLE_PRECISION)
+            if (newStartY errEquals newEndY)
                 return arrayOf(atY(newStartY))
             return arrayOf(atY(newStartY), atY(newEndY))
         }
@@ -110,10 +112,10 @@ class Line(override var pts : Array<DPos2>) : Collidable, Comparable<Line> {
             // if only one of two lines are vertical
             // find the y value of the non-vertical line that meet with the vertical line
             val vLine =
-                if (isVertical()) this else otherLine
+                if (isVerti()) this else otherLine
             val nvLine =
-                if (isVertical()) otherLine else this
-            if (vLine.startP.x < nvLine.startP.x || vLine.startP.x > nvLine.endP.x) {
+                if (isVerti()) otherLine else this
+            if (! nvLine.inXrg(vLine.startP.x)){
                 return arrayOf()
             }
             val y = nvLine.atX(vLine.startP.x).y
@@ -253,9 +255,44 @@ class Line(override var pts : Array<DPos2>) : Collidable, Comparable<Line> {
         return y >= mn && y <= mx
     }
 
-    fun isVertical() : Boolean {
-        return startP.x == endP.x
+    fun isVerti() : Boolean {
+        return startP.x errEquals endP.x
     }
+
+    fun isHori() : Boolean {
+        return startP.y errEquals endP.y
+    }
+
+    fun minXpt() : DPos2 {
+        return if (startP.x < endP.x) startP else endP
+    }
+    fun maxXpt() : DPos2 {
+        return if (startP.x > endP.x) startP else endP
+    }
+    fun minYpt() : DPos2 {
+        return if (startP.y < endP.y) startP else endP
+    }
+
+    fun maxYpt() : DPos2 {
+        return if (startP.y > endP.y) startP else endP
+    }
+
+    fun minX() : Double{
+        return minXpt().x
+    }
+
+    fun maxX() : Double{
+        return maxXpt().x
+    }
+
+    fun minY() : Double{
+        return minYpt().y
+    }
+
+    fun maxY() : Double{
+        return maxYpt().y
+    }
+
 
 
     override fun plus(shift: DVec2): Line {

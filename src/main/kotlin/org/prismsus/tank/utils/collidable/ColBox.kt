@@ -267,10 +267,10 @@ open class ColBox(override var pts: Array<DPos2>) : Collidable {
             val unvised = graph[curPt]!!.filter { !vised.contains(it) }
             // when at the right side of the last vector, try to make the angle smaller
             var nextPt = unvised.filter { lastVec.isPtAtRight((it - curPt).toPt()) }.minByOrNull {
-                lastVec dot (it - curPt)
+                lastVec.norm() dot (it - curPt).norm()
             }
             if (nextPt == null)
-                nextPt = unvised.maxByOrNull { lastVec dot (it - curPt) }
+                nextPt = unvised.maxByOrNull { lastVec.norm() dot (it - curPt).norm() }
             // when at the left side of the last vector, try to make the angle larger
             lastPt = curPt
             if (nextPt == null)

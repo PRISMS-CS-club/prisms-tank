@@ -9,6 +9,7 @@ import org.prismsus.tank.utils.collidable.Line
 import org.prismsus.tank.utils.collidable.RectColBox
 import java.awt.Color
 import java.awt.Graphics2D
+import kotlin.math.PI
 import kotlin.random.Random
 
 typealias Pos = DPos2
@@ -159,6 +160,7 @@ class ColBoxTest {
         // one vertex of the triangle is inside the rectangle
         // the other two vertices are outside the rectangle
         run {
+            return@run
             val rect = RectColBox.byTopLeft(DPos2(-.5, .5), DDim2(1.0, 1.0))
             val tri = ColBox(arrayOf(DPos2(0.0, 0.0), DPos2(2.0, 0.0), DPos2(1.0, 1.0)))
             val panel = CoordPanel(IDim2(1, 1), IDim2(80, 80))
@@ -175,6 +177,7 @@ class ColBoxTest {
         }
 
         run{
+            return@run
             // create a large triangle in the center, and a rectangle that pass through the center
             val tri = ColBox(arrayOf(DPos2(-1.0, -1.0), DPos2(1.0, -1.0), DPos2(0.0, 1.0)))
             val rect = RectColBox(DPos2.ORIGIN, DDim2(4.0, .5))
@@ -192,11 +195,51 @@ class ColBoxTest {
         }
 
         run{
+            return@run
+            val tri = ColBox(arrayOf(
+                DPos2(.0, 1.0),
+                DPos2(3.0, 0.0),
+                DPos2(0.0, -1.0)
+            ))
+
+            val rect = RectColBox(DPos2.ORIGIN, DDim2(4.0, .5))
+            val sepP = CoordPanel(IDim2(1, 1), IDim2(150, 150))
+            sepP.drawCollidable(tri)
+            sepP.graphicsModifier = { g : Graphics2D ->
+                g.color = Color.RED
+            }
+            sepP.drawCollidable(rect)
+            sepP.showFrame()
+            val union = rect.union(tri)!!
+            val unionP = CoordPanel(IDim2(1, 1), IDim2(150, 150))
+            unionP.drawCollidable(union)
+            unionP.showFrame()
+            println(union)
+        }
+
+        run{
+
             val separateP = CoordPanel(IDim2(1, 1), IDim2(150, 150))
             // create one random polygon at the center and one rectangle that pass through the center
-            val poly = ColBox.byUnorderedPtSet(Array(20) { (DVec2.randUnitVec() * Random.nextDouble() * 3.0).toPt() })
+            // poly=pts=[(-1.4303593576413736, -0.6660861740378866), (-0.927681268874418, -0.5210836385154236), (0.6451508438052175, -1.9505910001882056), (-0.037410982015603104, -0.016354731672313102), (0.1641716240187499, 0.19371063626176493), (0.608525867996999, 0.70937170825132), (0.26603689809620157, 2.35340069805903), (-0.8669666772386945, 0.9582756873894713), (-1.1489041684482149, 1.0988962689665125), (-1.3610651218633572, 0.6199913535366662)]
+            // create poly arr from the above string, full precision
+            val polyArr = arrayOf(
+                DPos2(-1.4303593576413736, -0.6660861740378866),
+                DPos2(-0.927681268874418, -0.5210836385154236),
+                DPos2(0.6451508438052175, -1.9505910001882056),
+                DPos2(-0.037410982015603104, -0.016354731672313102),
+                DPos2(0.1641716240187499, 0.19371063626176493),
+                DPos2(0.608525867996999, 0.70937170825132),
+                DPos2(0.26603689809620157, 2.35340069805903),
+                DPos2(-0.8669666772386945, 0.9582756873894713),
+                DPos2(-1.1489041684482149, 1.0988962689665125),
+                DPos2(-1.3610651218633572, 0.6199913535366662)
+            )
+            val randArr = Array(100) { (DVec2.randUnitVec() * Random.nextDouble() * 3.0).toPt() }
+            val poly = ColBox.byUnorderedPtSet(randArr)
+//            val poly = ColBox(polyArr)
             val rect = RectColBox(DPos2.ORIGIN, DDim2(4.0, 2.0))
-            print(poly)
+            println("poly=$poly")
             separateP.drawCollidable(poly)
             separateP.graphicsModifier = { g : Graphics2D ->
                 g.color = Color.RED
@@ -204,6 +247,7 @@ class ColBoxTest {
             separateP.drawCollidable(rect)
             separateP.showFrame()
             val union = poly.union(rect)!!
+            println("union=$union")
             val unionP = CoordPanel(IDim2(1, 1), IDim2(150, 150))
             unionP.drawCollidable(union)
             unionP.showFrame()
