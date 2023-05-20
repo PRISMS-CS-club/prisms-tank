@@ -1,19 +1,17 @@
-package org.prismsus.tank.utils.intersectables
+package org.prismsus.tank.utils.collidable
 import org.prismsus.tank.utils.DOUBLE_PRECISION
 import org.prismsus.tank.utils.DVec2
-import java.awt.Color
 import java.awt.Shape
 import java.awt.geom.Line2D
 import kotlin.math.*
 import javax.swing.*
-import javax.swing.JPanel
 
 /**
  * @param startP The starting point of the line.
  * @param endP The ending point of the line.
  * @constructor Create a line with two points.
  * */
-class Line(override var pts : Array<DPos2>) : Intersectable {
+class Line(override var pts : Array<DPos2>) : Collidable, Comparable<Line> {
     init{
         if (pts.size != 2) {
             throw IllegalArgumentException("Line must be initialized with two points")
@@ -28,7 +26,7 @@ class Line(override var pts : Array<DPos2>) : Intersectable {
         get() = ((startP.toVec() + endP.toVec()) / 2.0).toPt()
         set(value) {}
 
-    override val unrotated: Intersectable
+    override val unrotated: Collidable
         get() = Line(origStart, origEnd)
 
 
@@ -56,18 +54,24 @@ class Line(override var pts : Array<DPos2>) : Intersectable {
      * Check if two intersectable objects intersect.
      * @param other The other object.
      * @return True if intersects, false otherwise.
-     * @see Intersectable.intersect
+     * @see Collidable.collide
      * */
-    override fun intersectPts(other: Intersectable): Array<DPos2> {
+    override fun intersectPts(other: Collidable): Array<DPos2> {
         if (other is DPos2) {
+            if (isVertical()){
+                if (other.x == startP.x && inYrg(other.y))
+                    return arrayOf(other)
+                return arrayOf()
+            }
             // calculate y position of the line given x is other.x
             val y = slope * other.x + inter
             if (inXrg(other.x) && y == other.y)
                 return arrayOf(other)
+            return emptyArray()
         }
         if (other !is Line) {
             // in this case, the other object is a colBox
-            return other.intersectPts(this)
+            return other.collidePts(this)
         }
         val otherLine = other as Line
         // check if two lines are parallel, in this case, they will never intersect
@@ -128,6 +132,15 @@ class Line(override var pts : Array<DPos2>) : Intersectable {
         return arrayOf(atX(intersectX))
     }
 
+    override infix fun collidePts(other : Collidable) : Array<DPos2> {
+        return intersectPts(other)
+    }
+
+    override infix fun enclosedPts(other: Collidable): Array<DPos2> {
+        return emptyArray()
+    }
+
+
     /**
      * Check if two lines are equal, which means they have the same starting point and ending point.
      * Notice that when the difference between two double values is less than [DOUBLE_PRECISION], they are considered equal.
@@ -170,6 +183,13 @@ class Line(override var pts : Array<DPos2>) : Intersectable {
      * */
     fun atT(t : Double) : DPos2 {
         return startP + (endP - startP) * t
+    }
+
+    /**
+    * inverse of atT
+    * */
+    fun tOf(pt : DPos2) : Double {
+        return (pt - startP).dot(endP - startP) / sqLen()
     }
 
     fun atLen(len : Double) : DPos2 {
@@ -247,8 +267,15 @@ class Line(override var pts : Array<DPos2>) : Intersectable {
         return Line(startP - shift, endP - shift)
     }
 
-    override fun byPts(_pts: Array<DPos2>): Intersectable {
+    override fun byPts(_pts: Array<DPos2>): Collidable {
         return Line(_pts[0], _pts[1])
+    }
+
+    override fun compareTo(other: Line): Int {
+        // first compare the starting point, then ending point
+        val startCmp = startP.compareTo(other.startP)
+        if (startCmp != 0) return startCmp
+        return endP.compareTo(other.endP)
     }
 
     override fun toShape(coordTransform: (DPos2) -> DPos2, shapeModifier : (Shape) -> Unit): Shape {

@@ -1,8 +1,8 @@
 package org.prismsus.tank.element
 
 import org.prismsus.tank.utils.*
-import org.prismsus.tank.utils.intersectables.Line
-import org.prismsus.tank.utils.intersectables.RectColBox
+import org.prismsus.tank.utils.collidable.Line
+import org.prismsus.tank.utils.collidable.RectColBox
 import kotlin.math.*
 
 class Tank(uid : Long, val trackMaxSpeed : Double, hp : Int, colBox : RectColBox) :

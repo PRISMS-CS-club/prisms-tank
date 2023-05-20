@@ -1,6 +1,6 @@
 package org.prismsus.tank.utils
 
-import org.prismsus.tank.utils.intersectables.DPos2
+import org.prismsus.tank.utils.collidable.DPos2
 import kotlin.math.*
 import kotlin.random.*
 /**

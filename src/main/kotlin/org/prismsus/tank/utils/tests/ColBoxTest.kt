@@ -3,10 +3,10 @@ package org.prismsus.tank.utils.tests
 import org.junit.jupiter.api.Test
 import org.prismsus.tank.utils.*
 import org.junit.jupiter.api.Assertions.*
-import org.prismsus.tank.utils.intersectables.ColBox
-import org.prismsus.tank.utils.intersectables.DPos2
-import org.prismsus.tank.utils.intersectables.Line
-import org.prismsus.tank.utils.intersectables.RectColBox
+import org.prismsus.tank.utils.collidable.ColBox
+import org.prismsus.tank.utils.collidable.DPos2
+import org.prismsus.tank.utils.collidable.Line
+import org.prismsus.tank.utils.collidable.RectColBox
 import java.awt.Color
 import java.awt.Graphics2D
 import kotlin.random.Random
@@ -58,60 +58,60 @@ class ColBoxTest {
         println("t${++testNum}")
         var box1 : ColBox = RectColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
         var box2 : ColBox = RectColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
-        assertTrue(box1.intersect(box2) && box2.intersect(box1))
+        assertTrue(box1.collide(box2) && box2.collide(box1))
         println("pass")
 
         // test if two ColBox.byTopLeftes with different size can intersect
         println("t${++testNum}")
         box1 = RectColBox.byTopLeft(Pos.ORIGIN, DDim2(2.0, 2.0))
         box2 = RectColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
-        assertTrue(box1.intersect(box2) && box2.intersect(box1))
+        assertTrue(box1.collide(box2) && box2.collide(box1))
         println("pass")
 
         // test two boxes touching
         println("t${++testNum}")
         box1 = RectColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
         box2 = RectColBox.byTopLeft(Pos.UP, DDim2(1.0, 1.0))
-        assertTrue(box1.intersect(box2) && box2.intersect(box1))
+        assertTrue(box1.collide(box2) && box2.collide(box1))
         println("pass")
 
         // move the second box up, they should not touch this time
         println("t${++testNum}")
         box2 += DVec2.UP
-        assertFalse(box1.intersect(box2) && box2.intersect(box1))
+        assertFalse(box1.collide(box2) && box2.collide(box1))
         println("pass")
 
         // test the case when on box enclose the other
         println("t${++testNum}")
         box1 = RectColBox.byTopLeft(Pos.ORIGIN, DDim2(3.0, 3.0))
         box2 = RectColBox.byTopLeft(Pos(0.0, -1.5), DDim2(1.0, 1.0))
-        assertTrue(box1.intersect(box2))
-        assertTrue(box2.intersect(box1))
-        print(box1.intersectPts(box2).contentToString())
+        assertTrue(box1.collide(box2))
+        assertTrue(box2.collide(box1))
+        print(box1.collidePts(box2).contentToString())
         println("pass")
 
         // test polygon other than rectangle, first test right triangle
         println("t${++testNum}")
         box1 = ColBox(arrayOf(Pos.ORIGIN, Pos.RT, Pos.UP))
         box2 = ColBox(arrayOf(Pos.ORIGIN, Pos.RT, Pos.UP))
-        assertTrue(box1.intersect(box2) && box2.intersect(box1))
+        assertTrue(box1.collide(box2) && box2.collide(box1))
         println("pass")
 
         // move the second box a little bit, they should touch this time
         println("t${++testNum}")
         box2 += DVec2.UP * 0.5
-        assertTrue(box1.intersect(box2) && box2.intersect(box1))
+        assertTrue(box1.collide(box2) && box2.collide(box1))
         println("pass")
 
         // move it further, they should not touch this time
         println("t${++testNum}")
         box2 += DVec2.UP
-        assertFalse(box1.intersect(box2) && box2.intersect(box1))
+        assertFalse(box1.collide(box2) && box2.collide(box1))
         println("pass")
 
         // generate two polygons with PT_CNT points randomly, they share one point, so they should intersect
         println("t${++testNum}")
-        val PT_CNT = 200
+        val PT_CNT = 5000
         val samePt = Pos(1.0, 1.0)
         val pts1 = Array(PT_CNT){(DVec2.randUnitVec() * Random.nextDouble(1.0, 15.0)).toPt()}
         val pts2 = Array(PT_CNT){(DVec2.randUnitVec() * Random.nextDouble(1.0, 15.0)).toPt()}
@@ -122,15 +122,15 @@ class ColBoxTest {
         box2 = ColBox.byUnorderedPtSet(pts2)
         println("time to construct two boxes: ${System.currentTimeMillis() - startTm} ms")
         startTm = System.currentTimeMillis()
-        assertTrue(box1.intersect(box2))
+        assertTrue(box1.collide(box2))
         println("time to test intersection: ${System.currentTimeMillis() - startTm} ms")
         println("pass")
         val panel = CoordPanel(IDim2(1, 1), IDim2(15, 15))
-        panel.drawIntersectable(box1)
+        panel.drawCollidable(box1)
         panel.graphicsModifier = { g : Graphics2D ->
             g.color = Color.RED
         }
-        panel.drawIntersectable(box2)
+        panel.drawCollidable(box2)
         panel.showFrame()
         while(true){}
     }
@@ -152,6 +152,27 @@ class ColBoxTest {
 
     }
 
+
+    @Test
+    fun union(){
+        // create a rectangle and a triangle
+        // one vertex of the triangle is inside the rectangle
+        // the other two vertices are outside the rectangle
+        val rect = RectColBox.byTopLeft(DPos2(-.5, .5), DDim2(1.0, 1.0))
+        val tri = ColBox(arrayOf(DPos2(0.0, 0.0), DPos2(2.0, 0.0), DPos2(1.0, 1.0)))
+        val panel = CoordPanel(IDim2(1, 1), IDim2(50, 50))
+        panel.drawCollidable(rect, tri)
+        panel.showFrame()
+
+
+        val panel2 = CoordPanel(IDim2(1, 1), IDim2(50, 50))
+
+        print((rect collidePts tri).contentToString())
+        val union = rect.union(tri)!!
+        panel2.drawCollidable(union)
+        panel2.showFrame()
+        while(true){}
+    }
 
     @Test
     fun angleRotated(){

@@ -3,8 +3,8 @@ package org.prismsus.tank.utils.tests
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.prismsus.tank.utils.*
-import org.prismsus.tank.utils.intersectables.DPos2
-import org.prismsus.tank.utils.intersectables.Line
+import org.prismsus.tank.utils.collidable.DPos2
+import org.prismsus.tank.utils.collidable.Line
 import kotlin.math.*
 class LineTest {
 
@@ -15,24 +15,24 @@ class LineTest {
         assertTrue(line1.inter == 0.0)
         assertTrue(line1.slope == 1.0)
         var line2 = Line(DPos2.ORIGIN, DPos2(1.0, 1.0))
-        assertTrue(line1 intersect line2)
-        assertTrue(line2.intersect(line1))
+        assertTrue(line1 collide line2)
+        assertTrue(line2.collide(line1))
         // test the case where two lines are parallel, but not intersect within their range
         line1 = Line(DPos2.ORIGIN, DPos2(1.0, 1.0))
         line2 = Line(DPos2(0.0, 1.0), DPos2(1.0, 2.0))
-        assertFalse(line1.intersect(line2))
-        assertFalse(line2.intersect(line1))
+        assertFalse(line1.collide(line2))
+        assertFalse(line2.collide(line1))
         // test the case where there are two lines with different slope, and should intersect
         line1 = Line(DPos2.ORIGIN, DPos2(1.0, 1.0))
         line2 = Line(DPos2(0.0, 1.0), DPos2(1.0, 0.0))
-        assertTrue(line1.intersect(line2))
-        assertTrue(line2.intersect(line1))
+        assertTrue(line1.collide(line2))
+        assertTrue(line2.collide(line1))
         // test the case where there are two lines with different slope
         // and will intersect, but outside the endpoints
         line1 = Line(DPos2.ORIGIN, DPos2(1.0, 1.0))
         line2 = Line(DPos2(0.0, 2.0), DPos2(1.0, 1.1))
-        assertFalse(line1.intersect(line2))
-        assertFalse(line2.intersect(line1))
+        assertFalse(line1.collide(line2))
+        assertFalse(line2.collide(line1))
         // case where the line are touching
         line1 = Line(DPos2.ORIGIN, DPos2(1.0, 1.0))
         line2 = Line(DPos2(0.0, 2.0), DPos2(1.0, 1.0))
@@ -40,13 +40,13 @@ class LineTest {
         assertTrue(line2.slope == -1.0)
         assertTrue(line1.inter == 0.0)
         assertTrue(line1.slope == 1.0)
-        assertTrue(line1.intersect(line2))
-        assertTrue(line2.intersect(line1))
+        assertTrue(line1.collide(line2))
+        assertTrue(line2.collide(line1))
         // cases when the lines are vertical
         line1 = Line(DPos2.ORIGIN, DPos2.UP)
         line2 = Line((DVec2.ORIGIN + DVec2.LF * .1).toPt(), DPos2.RT + DVec2.UP * .1)
-        assertTrue(line1.intersect(line2))
-        assertTrue(line2.intersect(line1))
+        assertTrue(line1.collide(line2))
+        assertTrue(line2.collide(line1))
     }
 
     @Test
@@ -56,36 +56,36 @@ class LineTest {
             val line1 = Line(DPos2.ORIGIN, DPos2(1.0, 0.0))
             val line2 = Line(DPos2.ORIGIN, DPos2(0.0, 1.0))
             // test if the intersection point is correct
-            assertTrue(line1.intersectPts(line2).size == 1)
-            assertEquals(line1.intersectPts(line2)[0], DPos2.ORIGIN)
+            assertTrue(line1.collidePts(line2).size == 1)
+            assertEquals(line1.collidePts(line2)[0], DPos2.ORIGIN)
 
             line2 -= DVec2(0.0, .5)
-            assertTrue(line1.intersectPts(line2).size == 1)
-            assertEquals(line1.intersectPts(line2)[0], DPos2(0.0, 0.0))
+            assertTrue(line1.collidePts(line2).size == 1)
+            assertEquals(line1.collidePts(line2)[0], DPos2(0.0, 0.0))
 
             line2 += DVec2(.5, .0)
-            assertTrue(line1.intersectPts(line2).size == 1)
-            assertEquals(line1.intersectPts(line2)[0], DPos2(.5, 0.0))
+            assertTrue(line1.collidePts(line2).size == 1)
+            assertEquals(line1.collidePts(line2)[0], DPos2(.5, 0.0))
         }
 
         run{
             // test the case when two lines are parallel
             val line1 = Line(DPos2.ORIGIN, DPos2(1.0, 1.0))
             val line2 = Line(DPos2.ORIGIN, DPos2(1.0, 1.0))
-            assertEquals(line1.intersectPts(line2).size, 2)
-            assertTrue(line1.intersectPts(line2).contentEquals(arrayOf(DPos2.ORIGIN, DPos2(1.0, 1.0))))
+            assertEquals(line1.collidePts(line2).size, 2)
+            assertTrue(line1.collidePts(line2).contentEquals(arrayOf(DPos2.ORIGIN, DPos2(1.0, 1.0))))
 
             line2 -= DVec2(.5, .5)
-            assertEquals(line1.intersectPts(line2).size, 2)
-            assertTrue(line1.intersectPts(line2).contentEquals(arrayOf(DPos2.ORIGIN, DPos2(.5, .5))))
+            assertEquals(line1.collidePts(line2).size, 2)
+            assertTrue(line1.collidePts(line2).contentEquals(arrayOf(DPos2.ORIGIN, DPos2(.5, .5))))
         }
 
         run{
             // two lines forms a cross at the center
             val line1 = Line(DPos2(-.5, -.5), DPos2(.5, .5))
             val line2 = Line(DPos2(-.5, .5), DPos2(.5, -.5))
-            assertEquals(line1.intersectPts(line2).size, 1)
-            assertEquals(line1.intersectPts(line2)[0], DPos2.ORIGIN)
+            assertEquals(line1.collidePts(line2).size, 1)
+            assertEquals(line1.collidePts(line2)[0], DPos2.ORIGIN)
         }
     }
 

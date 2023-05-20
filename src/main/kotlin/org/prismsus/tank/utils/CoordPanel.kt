@@ -1,12 +1,13 @@
 package org.prismsus.tank.utils
 
-import org.prismsus.tank.utils.intersectables.DPos2
-import org.prismsus.tank.utils.intersectables.Intersectable
-import org.prismsus.tank.utils.intersectables.RectColBox
+import org.prismsus.tank.utils.collidable.DPos2
+import org.prismsus.tank.utils.collidable.Collidable
+import org.prismsus.tank.utils.collidable.RectColBox
 import java.awt.*
 import java.text.DecimalFormat
 import javax.swing.JPanel
 import javax.swing.JFrame
+import javax.swing.SwingUtilities
 import kotlin.math.*
 import kotlin.math.roundToInt
 
@@ -18,9 +19,9 @@ class CoordPanel(
 
     val toDraw : ArrayList<Shape> = ArrayList<Shape>()
 
-    fun drawIntersectable(vararg intersectables : Intersectable) {
-        for (intersectable in intersectables) {
-            val curShape = intersectable.toShape(coordTransformer, shapeModifier)
+    fun drawCollidable(vararg Collidables : Collidable) {
+        for (collidable in Collidables) {
+            val curShape = collidable.toShape(coordTransformer, shapeModifier)
             toDraw.add(curShape)
             gmodifiers.add(graphicsModifier)
         }
@@ -133,12 +134,14 @@ class CoordPanel(
     }
 
     fun showFrame(framModifier : (JFrame) -> JFrame = {it}){
-        val frame = JFrame("Coordinate System")
-        frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
-        frame.setSize(CoordPanel.DEFAULT_WIDTH, CoordPanel.DEFAULT_HEIGHT)
-        frame.contentPane.add(this)
-        framModifier(frame)
-        frame.isVisible = true
+        SwingUtilities.invokeLater{
+            val frame = JFrame("Coordinate System")
+            frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
+            frame.setSize(CoordPanel.DEFAULT_WIDTH, CoordPanel.DEFAULT_HEIGHT)
+            frame.contentPane.add(this)
+            framModifier(frame)
+            frame.isVisible = true
+        }
     }
 }
 
@@ -147,7 +150,7 @@ class CoordPanel(
         val panel : CoordPanel = CoordPanel(IDim2(1, 1), IDim2(15, 15))
         val box = RectColBox(DPos2(0.0, 0.0), DDim2(10, 10))
         val pt = DPos2(4.0, 4.0)
-        panel.drawIntersectable(box, pt)
+        panel.drawCollidable(box, pt)
         panel.showFrame()
     }
 

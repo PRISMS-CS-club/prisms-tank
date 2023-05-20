@@ -1,33 +1,47 @@
-package org.prismsus.tank.utils.intersectables
+package org.prismsus.tank.utils.collidable
 import org.prismsus.tank.utils.*
 import java.awt.Shape
-import javax.swing.*
 
-interface Intersectable {
+interface Collidable {
 
 
     /**
      * This is intended to be a static method, but Kotlin does not support static methods in interfaces.
-     * Create an intersectable object from a list of points.
+     * Create an collidable object from a list of points.
      *  */
-    fun byPts(pts: Array<DPos2>): Intersectable
+    fun byPts(pts: Array<DPos2>): Collidable
     /**
-     * Check if this object intersects with another object.
+     * Check if this object collides with another object.
+     * Intersections and enclosure will all be considered as collision
      * @param other The other object.
-     * @return True if intersects, false otherwise.
+     * @return True if collides, false otherwise.
      */
-    infix fun intersect(other : Intersectable) : Boolean {
+    infix fun collide(other : Collidable) : Boolean {
+        return enclosedPts(other).isNotEmpty() || intersect(other)
+    }
+
+    infix fun collidePts(other : Collidable) : Array<DPos2> {
+        return intersectPts(other) + enclosedPts(other)
+    }
+
+    infix fun intersectPts(other : Collidable) : Array<DPos2>
+
+    infix fun enclosedPts(other : Collidable) : Array<DPos2>
+
+    infix fun enclose (other : Collidable) : Boolean {
+        return enclosedPts(other).size == other.pts.size
+    }
+
+    infix fun intersect(other : Collidable) : Boolean {
         return intersectPts(other).isNotEmpty()
     }
 
-    fun intersectPts(other : Intersectable) : Array<DPos2>
-
     /**
-     * shifting the intersectable object by a vector
+     * shifting the collidable object by a vector
      * @param shift The vector to shift.
      * @return The shifted object.
      * */
-    operator fun plus(shift : DVec2) : Intersectable {
+    operator fun plus(shift : DVec2) : Collidable {
         return byPts(pts.map{it + shift}.toTypedArray())
     }
 
@@ -38,12 +52,12 @@ interface Intersectable {
     }
 
     /**
-     * shifting the intersectable object by a vector in the reverse direction, equivlant to plus(-shift)
+     * shifting the collidable object by a vector in the reverse direction, equivlant to plus(-shift)
      * @param shift The vector to shift.
      * @return The shifted object.
      * @see plus
      * */
-    operator fun minus(shift : DVec2) : Intersectable {
+    operator fun minus(shift : DVec2) : Collidable {
         return byPts(pts.map{it - shift}.toTypedArray())
     }
 
@@ -54,34 +68,34 @@ interface Intersectable {
     }
 
     /**
-     * rotate the intersectable object by a radian
+     * rotate the collidable object by a radian
      * @param center The center, or pivot of rotation.
      * @param rad The radian to rotate.
      * @return The rotated object.
      * */
-    fun rotate(rad: Double, center: DPos2 = rotationCenter) : Intersectable {
+    fun rotate(rad: Double, center: DPos2 = rotationCenter) : Collidable {
         var newPts = pts.copyOf().map { it.copy()}.toTypedArray()
         return byPts(newPts).rotateAssign(rad, center)
     }
 
     /**
-     * rotate the intersectable object by a degree
+     * rotate the collidable object by a degree
      * @param center The center, or pivot of rotation.
      * @param degOffset The degree to rotate.
      * @return The rotated object.
      * @see rotate
     * */
-    fun rotateDeg(degOffset: Double, center: DPos2 = rotationCenter) : Intersectable {
+    fun rotateDeg(degOffset: Double, center: DPos2 = rotationCenter) : Collidable {
         return rotate(degOffset.toRad(), center)
     }
     /*
-     * rotate this intersectable object by a radian, and assign the result to this object
+     * rotate this collidable object by a radian, and assign the result to this object
      * @param center The center, or pivot of rotation.
      * @param rad The radian to rotate.
      * @return The rotated object.
      * @see rotate
     * */
-    fun rotateAssign(radOffset: Double, center: DPos2 = rotationCenter) : Intersectable {
+    fun rotateAssign(radOffset: Double, center: DPos2 = rotationCenter) : Collidable {
         angleRotated += radOffset
         for (pt in pts){
             pt.rotateAssign(radOffset, center)
@@ -90,18 +104,18 @@ interface Intersectable {
     }
 
     /**
-     * rotate this intersectable object by a degree, and assign the result to this object
+     * rotate this collidable object by a degree, and assign the result to this object
      * @param center The center, or pivot of rotation.
      * @param degOffset The degree to rotate.
      * @return The rotated object.
      * @see rotate
     * */
-    fun rotateAssignDeg(degOffset: Double, center: DPos2 = rotationCenter) : Intersectable {
+    fun rotateAssignDeg(degOffset: Double, center: DPos2 = rotationCenter) : Collidable {
         return rotateAssign(degOffset / 180.0 * Math.PI, center)
     }
 
 
-    fun copy() : Intersectable {
+    fun copy() : Collidable {
         val newPts = pts.copyOf().map { it.copy()}.toTypedArray()
         return byPts(pts)
     }
@@ -125,7 +139,7 @@ interface Intersectable {
             throw Exception("Cannot set size of the image")
         }
 
-    val unrotated : Intersectable // the unrotated version of the object, used for a more accurate rotation
+    val unrotated : Collidable // the unrotated version of the object, used for a more accurate rotation
     var rotationCenter : DPos2    // the center of the object, used for rotation
         get() {
             val ave = DVec2()

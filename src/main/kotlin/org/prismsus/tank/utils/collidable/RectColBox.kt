@@ -1,4 +1,4 @@
-package org.prismsus.tank.utils.intersectables
+package org.prismsus.tank.utils.collidable
 
 import org.prismsus.tank.utils.DDim2
 import org.prismsus.tank.utils.DVec2

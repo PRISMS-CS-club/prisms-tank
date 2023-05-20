@@ -1,8 +1,8 @@
 package org.prismsus.tank.element
 
 import org.prismsus.tank.utils.*
-import org.prismsus.tank.utils.intersectables.ColBox
-import org.prismsus.tank.utils.intersectables.RectColBox
+import org.prismsus.tank.utils.collidable.ColBox
+import org.prismsus.tank.utils.collidable.RectColBox
 
 /**
  * @param uid unique id of the block

@@ -1,15 +1,12 @@
-package org.prismsus.tank.utils.intersectables
+package org.prismsus.tank.utils.collidable
 import org.prismsus.tank.utils.DDim2
 import org.prismsus.tank.utils.DOUBLE_PRECISION
 import org.prismsus.tank.utils.DVec2
 import org.prismsus.tank.utils.IPos2
-import java.awt.Color
 import java.awt.Shape
 import java.awt.geom.Ellipse2D
-import java.awt.geom.Point2D
-import javax.swing.JPanel
 import kotlin.math.*
-class DPos2(var x: Double, var y: Double) : Intersectable, Comparable<DPos2>, Cloneable {
+class DPos2(var x: Double, var y: Double) : Collidable, Comparable<DPos2>, Cloneable {
 
     val origX = x
     val origY = y
@@ -52,7 +49,7 @@ class DPos2(var x: Double, var y: Double) : Intersectable, Comparable<DPos2>, Cl
     override var angleRotated: Double
         get() = 0.0
         set(value) {}
-    override val unrotated: Intersectable
+    override val unrotated: Collidable
         get() = DPos2(origX, origY)
 
     override var pts: Array<DPos2>
@@ -82,20 +79,28 @@ class DPos2(var x: Double, var y: Double) : Intersectable, Comparable<DPos2>, Cl
     }
 
     /**
-     * Check if two intersectable objects intersect.
-     * @see [Intersectable.intersect]
+     * Check if two collidable objects collide.
+     * @see [Collidable.collide]
      * */
-    override fun intersect(other: Intersectable): Boolean {
+    override fun collide(other: Collidable): Boolean {
         if (other is DPos2)
             return this == other
-        return other.intersect(this)
+        return other.collide(this)
         // except ColBox classes, classes only handle intersects with same type
     }
 
-    override fun intersectPts(other: Intersectable): Array<DPos2> {
-        if (intersect(other))
+    override fun collidePts(other: Collidable): Array<DPos2> {
+        if (collide(other))
             return arrayOf(this)
         return arrayOf()
+    }
+
+    override fun enclosedPts(other: Collidable): Array<DPos2> {
+        return emptyArray()
+    }
+
+    override fun intersectPts(other: Collidable): Array<DPos2> {
+        return collidePts(other)
     }
 
     /**
@@ -136,7 +141,7 @@ class DPos2(var x: Double, var y: Double) : Intersectable, Comparable<DPos2>, Cl
         return DPos2(max(x, other.x), max(y, other.y))
     }
 
-    override fun byPts(pts: Array<DPos2>): Intersectable {
+    override fun byPts(pts: Array<DPos2>): Collidable {
         return DPos2(x, y)
     }
 
@@ -145,7 +150,7 @@ class DPos2(var x: Double, var y: Double) : Intersectable, Comparable<DPos2>, Cl
     }
 
 
-    override fun rotateAssign(radOffset: Double, center: DPos2): Intersectable {
+    override fun rotateAssign(radOffset: Double, center: DPos2): Collidable {
         // other intersectables are made of points, and they call the rotateAssign in point class
         // so we need to implement the rotateAssign in point class as base of other intersectables
         val vec = this - center
