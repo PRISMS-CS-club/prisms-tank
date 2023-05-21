@@ -1,8 +1,7 @@
-package org.prismsus.tank.element
+package org.prismsus.tank.elements
 
 import org.prismsus.tank.utils.INIT_BULLET_COLBOX
 import org.prismsus.tank.utils.INIT_BULLET_SPEED
-import org.prismsus.tank.utils.collidable.ColBox
 import org.prismsus.tank.utils.collidable.RectColBox
 
 class Bullet(uid: Long, var speed: Double = INIT_BULLET_SPEED, override val colBox: RectColBox = INIT_BULLET_COLBOX) :

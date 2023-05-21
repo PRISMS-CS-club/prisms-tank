@@ -1,4 +1,4 @@
-package org.prismsus.tank.element
+package org.prismsus.tank.elements
 
 import org.prismsus.tank.utils.*
 import org.prismsus.tank.utils.collidable.ColBox

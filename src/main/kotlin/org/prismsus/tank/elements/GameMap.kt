@@ -1,4 +1,4 @@
-package org.prismsus.tank.element
+package org.prismsus.tank.elements
 import kotlinx.serialization.json.*
 import org.prismsus.tank.utils.ELE_SERIAL_NAME_TO_CLASS
 import org.prismsus.tank.utils.IVec2

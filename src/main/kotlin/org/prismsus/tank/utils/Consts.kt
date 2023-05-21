@@ -1,5 +1,5 @@
 package org.prismsus.tank.utils
-import  org.prismsus.tank.element.*
+import  org.prismsus.tank.elements.*
 import org.prismsus.tank.utils.collidable.DPos2
 import org.prismsus.tank.utils.collidable.RectColBox
 

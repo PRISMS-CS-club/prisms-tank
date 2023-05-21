@@ -1,13 +1,11 @@
-package org.prismsus.tank.element.tests
+package org.prismsus.tank.elements.tests
 
 import org.junit.jupiter.api.Test
-import org.prismsus.tank.element.GameMap
-import org.prismsus.tank.game.Game
+import org.prismsus.tank.elements.GameMap
 import org.junit.jupiter.api.Assertions.*
-import org.prismsus.tank.element.Block
-import org.prismsus.tank.element.Block.*
-import org.prismsus.tank.element.BreakableBlock
-import org.prismsus.tank.element.SolidBlock
+import org.prismsus.tank.elements.Block
+import org.prismsus.tank.elements.BreakableBlock
+import org.prismsus.tank.elements.SolidBlock
 import org.prismsus.tank.utils.IPos2
 
 class GameMapTest{

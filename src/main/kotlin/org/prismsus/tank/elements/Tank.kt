@@ -1,4 +1,4 @@
-package org.prismsus.tank.element
+package org.prismsus.tank.elements
 
 import org.prismsus.tank.utils.*
 import org.prismsus.tank.utils.collidable.ColBox
@@ -57,7 +57,7 @@ abstract class Tank(
         get() = if (isInnerCircLeft()) rightTrackVelo else leftTrackVelo
         set(value) {}
 
-    override fun updatePosByTime(dt: Long) {
+    override fun updateByTime(dt: Long) {
         if (leftTrackVelo errEquals rightTrackVelo) {
             // the tank is moving straight
             colBox += DVec2.byPolar(1.0, colBox.angleRotated) * leftTrackVelo * dt.toDouble()

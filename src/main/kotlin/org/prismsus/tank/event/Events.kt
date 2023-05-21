@@ -1,8 +1,8 @@
 package org.prismsus.tank.event
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import org.prismsus.tank.element.GameElement
-import org.prismsus.tank.element.GameMap
+import org.prismsus.tank.elements.GameElement
+import org.prismsus.tank.elements.GameMap
 import java.lang.System.currentTimeMillis
 /**
  * Base class for all events.
