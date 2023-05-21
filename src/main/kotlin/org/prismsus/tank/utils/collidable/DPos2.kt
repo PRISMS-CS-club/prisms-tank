@@ -5,6 +5,7 @@ import org.prismsus.tank.utils.DVec2
 import org.prismsus.tank.utils.IPos2
 import java.awt.Shape
 import java.awt.geom.Ellipse2D
+import java.awt.geom.Point2D
 import kotlin.math.*
 class DPos2(var x: Double, var y: Double) : Collidable, Comparable<DPos2>, Cloneable {
 
@@ -147,6 +148,10 @@ class DPos2(var x: Double, var y: Double) : Collidable, Comparable<DPos2>, Clone
 
     fun toVec(): DVec2 {
         return DVec2(x, y)
+    }
+
+    fun toPoint2D(): Point2D {
+        return Point2D.Double(x, y)
     }
 
 

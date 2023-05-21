@@ -3,15 +3,16 @@ package org.prismsus.tank.utils
 import org.prismsus.tank.utils.collidable.DPos2
 import kotlin.math.*
 import kotlin.random.*
+
 /**
  * A 2D vector with double coordinates.
  * @property x The x coordinate.
  * @property y The y coordinate.
  */
-data class DVec2(var x: Double, var y: Double)  {
-    constructor(): this(0.0, 0.0)
-    constructor(vec: IVec2): this(vec.x.toDouble(), vec.y.toDouble())
-    constructor(x : Int, y : Int) : this(x.toDouble(), y.toDouble())
+data class DVec2(var x: Double, var y: Double) {
+    constructor() : this(0.0, 0.0)
+    constructor(vec: IVec2) : this(vec.x.toDouble(), vec.y.toDouble())
+    constructor(x: Int, y: Int) : this(x.toDouble(), y.toDouble())
 
     /**
      * Add this double vector and another double vector. Returns a new object.
@@ -66,10 +67,12 @@ data class DVec2(var x: Double, var y: Double)  {
     operator fun times(other: Double): DVec2 {
         return DVec2(x * other, y * other)
     }
+
     operator fun timesAssign(other: Double) {
         x *= other
         y *= other
     }
+
     /**
      * Divide this double vector and a scalar. Returns a new object.
      * @param other The scalar.
@@ -78,12 +81,13 @@ data class DVec2(var x: Double, var y: Double)  {
     operator fun div(other: Double): DVec2 {
         return DVec2(x / other, y / other)
     }
+
     operator fun divAssign(other: Double) {
         x /= other
         y /= other
     }
 
-    override fun equals (other: Any?): Boolean {
+    override fun equals(other: Any?): Boolean {
         if (other is DVec2)
             return abs(x - other.x) < DOUBLE_PRECISION && abs(y - other.y) < DOUBLE_PRECISION
         if (other is IVec2)
@@ -104,7 +108,7 @@ data class DVec2(var x: Double, var y: Double)  {
      * @return The square of the length of the vector.
      * @see len
      * */
-    fun sqLen() : Double{
+    fun sqLen(): Double {
         return x * x + y * y
     }
 
@@ -147,7 +151,6 @@ data class DVec2(var x: Double, var y: Double)  {
     }
 
 
-
     /**
      * Get the cross product of this vector and another vector.
      * @param other The other vector.
@@ -171,7 +174,7 @@ data class DVec2(var x: Double, var y: Double)  {
      * @return The rotated vector.
      */
 
-    fun rotateTo(rad : Double): DVec2 {
+    fun rotateTo(rad: Double): DVec2 {
         val len = len()
         val nx = len * cos(rad)
         val ny = len * sin(rad)
@@ -193,43 +196,45 @@ data class DVec2(var x: Double, var y: Double)  {
      * @param radOffset The angle in radian to turn
      * @return The turned vector.
      */
-    fun rotate(radOffset : Double) : DVec2{
+    fun rotate(radOffset: Double): DVec2 {
         val curAngle = angle()
         val newAngle = curAngle + radOffset
         return rotateTo(newAngle)
     }
+
     /**
      * Rotate the vector according to certain center or pivot, in radians.
      * @param center The center or pivot to rotate around.
      * @param radOffset The angle in radian to turn, in radian.
      * @return The turned vector.
      *
-    * */
-    fun rotate(radOffset: Double, center: DVec2) : DVec2 {
+     * */
+    fun rotate(radOffset: Double, center: DVec2): DVec2 {
         val curAngle = angle()
         val newAngle = curAngle + radOffset
         val toThis = this - center // from the center to here
         val rotated = toThis.rotateTo(newAngle)
         return rotated + center
     }
+
     /**
      * Rotate the vector according to certain center or pivot, in degrees.
      * @param center The center or pivot to rotate around.
      * @param degOffset The angle in degrees to turn, in degrees.
      * @return The turned vector.
      * @see rotate
-    * */
-    fun rotateDeg(degOffset : Double) : DVec2 {
+     * */
+    fun rotateDeg(degOffset: Double): DVec2 {
         return rotate(degOffset.toRad())
     }
 
     /**
-    * Call rotate, then assign the result to this vector, angle represented in radians. Using center = (0, 0).
-    * @param radOffset The angle in radian to turn, in radian.
-    * @return This vector.
-    * @see rotate
-    * */
-    fun rotateAssign(radOffset : Double) : DVec2{
+     * Call rotate, then assign the result to this vector, angle represented in radians. Using center = (0, 0).
+     * @param radOffset The angle in radian to turn, in radian.
+     * @return This vector.
+     * @see rotate
+     * */
+    fun rotateAssign(radOffset: Double): DVec2 {
         val curAngle = angle()
         val newAngle = curAngle + radOffset
         val len = len()
@@ -244,7 +249,7 @@ data class DVec2(var x: Double, var y: Double)  {
      * @param radOffset The angle in radian to turn, in radian.
      * @return This vector.
      * */
-     fun rotateAssign(radOffset: Double, center: DVec2): DVec2 {
+    fun rotateAssign(radOffset: Double, center: DVec2): DVec2 {
         val curAngle = angle()
         val newAngle = curAngle + radOffset
         val toThis = this - center // from the center to here
@@ -263,65 +268,68 @@ data class DVec2(var x: Double, var y: Double)  {
      *  to get the perpendicular vector of this vector, at its left hand side.
      *  @return the perpendicular vector of this vector, at its left hand side.
      * */
-    fun leftHandPerp() : DVec2 {
+    fun leftHandPerp(): DVec2 {
         return DVec2(-y, x)
     }
+
     /**
      * to get the perpendicular vector of this vector, at its right hand side.
      * @return the perpendicular vector of this vector, at its right hand side.
-    * */
-    fun rightHandPerp() : DVec2 {
+     * */
+    fun rightHandPerp(): DVec2 {
         return DVec2(y, -x)
     }
 
-    fun isPtAtLeft(pt : DPos2) : Boolean {
+    fun isPtAtLeft(pt: DPos2): Boolean {
         return leftHandPerp().dot((pt - this).toVec()) >= 0
     }
 
-    fun isPtAtRight(pt : DPos2) : Boolean {
+    fun isPtAtRight(pt: DPos2): Boolean {
         return rightHandPerp().dot((pt - this).toVec()) >= 0
     }
 
-    fun toPt() : DPos2 {
+    fun toPt(): DPos2 {
         return DPos2(x, y)
     }
 
-    fun xVec() : DVec2 {
-        return DVec2(x, 0.0)
-    }
+    val xVec: DVec2
+        get() {
+            return DVec2(x, 0.0)
+        }
 
-    fun yVec() : DVec2 {
-        return DVec2(0.0, y)
-    }
+    val yVec: DVec2
+        get() {
+            return DVec2(0.0, y)
+        }
 
     companion object {
 
 
         /**
-        * create a vector from angle and length
-        * @param angle in rad
-        * @param length the length of the vector
-        * @return the vector created
-        */
-        fun byPolar(len : Double, rad : Double) : DVec2 {
+         * create a vector from angle and length
+         * @param angle in rad
+         * @param length the length of the vector
+         * @return the vector created
+         */
+        fun byPolar(len: Double, rad: Double): DVec2 {
             return DVec2(len * cos(rad), len * sin(rad))
         }
 
         /**
          * Randomly generate a unit vector.
          * @return The generated vector.
-        * */
-        fun randUnitVec() : DVec2 {
+         * */
+        fun randUnitVec(): DVec2 {
             val rad = Random.nextDouble() * 2 * PI
             return DVec2(cos(rad), sin(rad))
         }
 
 
-        val ORIGIN : DVec2 get() = DVec2(0.0, 0.0)
-        val UP : DVec2 get() = DVec2(0.0, 1.0)
-        val DN : DVec2 get() = -UP
-        val RT : DVec2 get() = DVec2(1.0, 0.0)
-        val LF : DVec2 get() = -RT
+        val ORIGIN: DVec2 get() = DVec2(0.0, 0.0)
+        val UP: DVec2 get() = DVec2(0.0, 1.0)
+        val DN: DVec2 get() = -UP
+        val RT: DVec2 get() = DVec2(1.0, 0.0)
+        val LF: DVec2 get() = -RT
         val RTS_DIR = arrayOf(UP, RT, DN, LF) // directions by turning right
         val LFS_DIR = arrayOf(UP, LF, DN, RT) // directions by turning left
     }

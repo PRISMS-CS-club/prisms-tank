@@ -12,14 +12,14 @@ import kotlin.math.*
 import kotlin.math.roundToInt
 
 class CoordPanel(
-    val gridInterv : IDim2,
-    val factor : IDim2,
-    val originPos : IPos2 = IPos2(0, 0)
+    val gridInterv: IDim2,
+    val factor: IDim2,
+    val originPos: IPos2 = IPos2(0, 0)
 ) : JPanel() {
 
-    val toDraw : ArrayList<Shape> = ArrayList<Shape>()
+    val toDraw: ArrayList<Shape> = ArrayList<Shape>()
 
-    fun drawCollidable(vararg Collidables : Collidable) {
+    fun drawCollidable(vararg Collidables: Collidable) {
         for (collidable in Collidables) {
             val curShape = collidable.toShape(coordTransformer, shapeModifier)
             toDraw.add(curShape)
@@ -50,23 +50,22 @@ class CoordPanel(
         val centerY = (height.toDouble() / 2).roundToInt() // used for translating the coordinate system
 
 
-
         val transatedCentX = originPos.x
         val transatedCentY = originPos.y
         val scaledTranX = transatedCentX * xScaleFactor
         val scaledTranY = transatedCentY * yScaleFactor
         val maxAbsX = centerX + abs(scaledTranX)
-        val minX = - maxAbsX
+        val minX = -maxAbsX
         val maxX = maxAbsX
         val maxAbsY = centerY + abs(scaledTranY)
-        val minY = - maxAbsY
+        val minY = -maxAbsY
         val maxY = maxAbsY
 
         g2d.translate(centerX, centerY)
-        g2d.color = Color.BLACK
+
+        g2d.color = Color.LIGHT_GRAY
         g2d.stroke = BasicStroke(2f)
         // Draw x-axis
-        g2d.color = Color.BLACK
         g2d.drawLine(minX, -transatedCentY * yScaleFactor, maxX, -transatedCentY * yScaleFactor)
 
         // Draw y-axis
@@ -79,7 +78,10 @@ class CoordPanel(
         g2d.color = Color.LIGHT_GRAY
         g2d.stroke = BasicStroke(1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0f, floatArrayOf(5f), 0f)
         val format = DecimalFormat("#.##")
-        for (xOff in (xGridInterval * xScaleFactor) until max(abs(maxX), abs(minX)) step (xGridInterval * xScaleFactor)) {
+        for (xOff in (xGridInterval * xScaleFactor) until max(
+            abs(maxX),
+            abs(minX)
+        ) step (xGridInterval * xScaleFactor)) {
             // xOff is the offset from the center vertical line
             val posX = xOff + scaledTranX
             val negX = -xOff + scaledTranX
@@ -95,7 +97,10 @@ class CoordPanel(
             g2d.drawString(negStr, negLabelX, -labelHeight - scaledTranY)
         }
 
-        for (yOff in (yGridInterval * yScaleFactor) until max(abs(maxY), abs(minY)) step (yGridInterval * yScaleFactor)) {
+        for (yOff in (yGridInterval * yScaleFactor) until max(
+            abs(maxY),
+            abs(minY)
+        ) step (yGridInterval * yScaleFactor)) {
             // yOff is the offset from the center horizontal line
             val posY = -(yOff + scaledTranY) // negate because y axis is flipped
             val negY = -(-yOff + scaledTranY)
@@ -107,7 +112,7 @@ class CoordPanel(
             val labelHeight = g2d.fontMetrics.height
             val posLabelY = posY + labelHeight / 2
             val negLabelY = negY + labelHeight / 2
-            g2d.drawString(posStr, -labelWidth - 5 + scaledTranX , posLabelY )
+            g2d.drawString(posStr, -labelWidth - 5 + scaledTranX, posLabelY)
             g2d.drawString(negStr, -labelWidth - 5 + scaledTranX, negLabelY)
             // y axis is flipped
         }
@@ -120,21 +125,23 @@ class CoordPanel(
             gmodifier(g2d)
             g2d.draw(shape)
         }
+
+
     }
 
     val coordTransformer
-        get() = {pos : DPos2 -> DPos2(pos.x * factor.x + originPos.x, -(pos.y * factor.y + originPos.y))}
-    var shapeModifier : (Shape) -> Unit = {it}
-    var graphicsModifier : (Graphics2D) -> Unit = {it}
-    var gmodifiers : ArrayList<(Graphics2D) -> Unit> = ArrayList()
+        get() = { pos: DPos2 -> DPos2(pos.x * factor.x + originPos.x, -(pos.y * factor.y + originPos.y)) }
+    var shapeModifier: (Shape) -> Unit = { it }
+    var graphicsModifier: (Graphics2D) -> Unit = { it }
+    var gmodifiers: ArrayList<(Graphics2D) -> Unit> = ArrayList()
 
     companion object {
         const val DEFAULT_WIDTH = 800
         const val DEFAULT_HEIGHT = 800
     }
 
-    fun showFrame(framModifier : (JFrame) -> JFrame = {it}){
-        SwingUtilities.invokeLater{
+    fun showFrame(framModifier: (JFrame) -> JFrame = { it }) {
+        SwingUtilities.invokeLater {
             val frame = JFrame("Coordinate System")
             frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
             frame.setSize(CoordPanel.DEFAULT_WIDTH, CoordPanel.DEFAULT_HEIGHT)
@@ -146,11 +153,11 @@ class CoordPanel(
 }
 
 
-    fun main() {
-        val panel : CoordPanel = CoordPanel(IDim2(1, 1), IDim2(15, 15))
-        val box = ColRect(DPos2(0.0, 0.0), DDim2(10, 10))
-        val pt = DPos2(4.0, 4.0)
-        panel.drawCollidable(box, pt)
-        panel.showFrame()
-    }
+fun main() {
+    val panel: CoordPanel = CoordPanel(IDim2(1, 1), IDim2(15, 15))
+    val box = ColRect(DPos2(0.0, 0.0), DDim2(10, 10))
+    val pt = DPos2(4.0, 4.0)
+    panel.drawCollidable(box, pt)
+    panel.showFrame()
+}
 

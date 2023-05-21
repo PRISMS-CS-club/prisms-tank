@@ -1,6 +1,7 @@
 package org.prismsus.tank.utils.collidable
 
 import org.prismsus.tank.utils.*
+import java.awt.Shape
 
 /**
  * collection of collidables, implemented by a quad tree
@@ -33,14 +34,33 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
         set(value) {
             subTrees?.set(2, value)
         }
+    val allSubCols: ArrayList<Collidable>
+        get() {
+            val res = ArrayList<Collidable>()
+            subTrees?.forEach { res.addAll(it.allSubCols) }
+            res.addAll(cols)
+            return res
+        }
+    val allSubPartitionLines: ArrayList<Line>
+        get() {
+            val ret = ArrayList<Line>()
+            subTrees?.forEach { ret.addAll(it.allSubPartitionLines) }
+
+            ret.add(Line(bound.topLeftPt, bound.topRightPt))
+            ret.add(Line(bound.topRightPt, bound.bottomRightPt))
+            ret.add(Line(bound.bottomRightPt, bound.bottomLeftPt))
+            ret.add(Line(bound.bottomLeftPt, bound.topLeftPt))
+
+            return ret
+        }
 
     /**
      * delete all the collidables in the tree, including the subtrees
      * */
-    fun clear() {
+    fun clearAll() {
         cols.clear()
         for (i in 0..3) {
-            subTrees!![i].clear()
+            subTrees!![i].clearAll()
         }
         subTrees = null
     }
@@ -52,12 +72,12 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
         // make each of the four subtrees slightly larger than bound.size / 2
         // so that there will be no gap between the four subtrees
         val tlShift = DVec2(DOUBLE_PRECISION, DOUBLE_PRECISION) * 10.0
-        val subDim = bound.size / 2.0 + tlShift
-        val topLeft = bound.topLeftPt - tlShift
+        val subDim = (bound.size / 2.0) + tlShift * 2.0
+        val topLeft = bound.topLeftPt - tlShift.xVec + tlShift.yVec
         val quad2 = ColTreeSet(dep + 1, ColAARect.byTopLeft(topLeft, subDim))
-        val quad1 = ColTreeSet(dep + 1, ColAARect.byTopLeft(topLeft + DVec2(subDim.x, 0.0), subDim))
-        val quad4 = ColTreeSet(dep + 1, ColAARect.byTopLeft(topLeft + subDim, subDim))
-        val quad3 = ColTreeSet(dep + 1, ColAARect.byTopLeft(topLeft + DVec2(0.0, subDim.y), subDim))
+        val quad1 = ColTreeSet(dep + 1, ColAARect.byTopLeft(topLeft + subDim.xVec, subDim))
+        val quad4 = ColTreeSet(dep + 1, ColAARect.byTopLeft(topLeft - subDim.yVec + subDim.xVec, subDim))
+        val quad3 = ColTreeSet(dep + 1, ColAARect.byTopLeft(topLeft - subDim.yVec, subDim))
         subTrees = arrayOf(quad1, quad2, quad3, quad4)
     }
 
@@ -77,31 +97,55 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
     }
 
     fun insert(col: Collidable) {
-        if (subTrees != null) {
-            val belongTo = subTreeBelongTo(col.encAARect)
-            belongTo?.insert(col)
-            if (belongTo != null) {
-                return
-            }
+
+        val belongTo = subTreeBelongTo(col.encAARect)
+        if (belongTo != null) {
+            belongTo.insert(col)
+            return
         }
+
         cols.add(col)
         if (cols.size > MAX_OBJECT && dep < MAX_DEP) {
             split()
             val toRemove = ArrayList<Collidable>()
-            for (c in cols){
+            for (c in cols) {
                 val belongTo = subTreeBelongTo(c.encAARect)
                 if (belongTo != null) {
                     belongTo.insert(c)
                     toRemove.add(c)
                 }
             }
-            for (c in toRemove){
+            for (c in toRemove) {
                 cols.remove(c)
             }
         }
     }
 
-    infix fun possibleCollision(col : Collidable) : ArrayList<Collidable>{
+    fun remove(col: Collidable) {
+        if (subTrees != null) {
+            val belongTo = subTreeBelongTo(col.encAARect)
+            belongTo?.remove(col)
+            if (belongTo != null) {
+                return
+            }
+        }
+        if (!cols.contains(col))
+            throw Exception("ColTreeSet.remove: the collidable to be removed is not in the tree")
+        cols.remove(col)
+    }
+
+    fun toShapes(coordTransform: (DPos2) -> DPos2 = { it }, shapeModifier: (Shape) -> Unit = { it }): ArrayList<Shape> {
+        val ret = ArrayList<Shape>()
+        for (col in allSubCols) {
+            val shape = col.toShape(coordTransform)
+            shapeModifier(shape)
+            ret.add(shape)
+        }
+        return ret
+    }
+
+
+    infix fun possibleCollision(col: Collidable): ArrayList<Collidable> {
         val belongTo = subTreeBelongTo(col.encAARect)
         val ret = ArrayList<Collidable>()
         ret.addAll(cols) // all unsplittable collidables
@@ -109,5 +153,15 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
             ret.addAll(belongTo.possibleCollision(col))
         }
         return ret
+    }
+
+    infix fun collide(col: Collidable): Boolean {
+        val possible = possibleCollision(col)
+        for (c in possible) {
+            if (c.collide(col)) {
+                return true
+            }
+        }
+        return false
     }
 }

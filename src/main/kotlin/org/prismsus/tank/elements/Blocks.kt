@@ -15,7 +15,7 @@ import org.prismsus.tank.utils.collidable.ColRect
 abstract class Block(uid : Long, val pos : IVec2, hp : Int = -1, colBox: ColRect = DEF_BLOCK_COLBOX)
     : GameElement(uid, hp, colBox){
     init{
-        this.colPoly = (colBox + pos.toDVec2()) as ColPoly
+        this.colPoly.rotationCenter = pos.toDVec2().toPt()
         // the accepted parameter is the position in the map
         // we want to make sure that the colPoly is in top-left position
     }
@@ -49,7 +49,11 @@ abstract class Block(uid : Long, val pos : IVec2, hp : Int = -1, colBox: ColRect
 }
 
 class BreakableBlock(uid : Long, pos : IVec2) : Block(uid, pos, DEF_BLOCK_HP){
+    override val serialName: String
+        get() = "BrkBlk"
 }
 
 class SolidBlock(uid : Long, pos : IVec2) : Block(uid, pos){
+    override val serialName: String
+        get() = "SldBlk"
 }
