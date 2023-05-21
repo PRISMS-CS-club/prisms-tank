@@ -11,6 +11,20 @@ class GameMap(val FileName : String) {
     var blocks : Array<Array<Block?>>
     var width: Int = 0
     var height: Int = 0
+    val gameEles : ArrayList<GameElement> = ArrayList()
+    val tks : ArrayList<Tank> = ArrayList()
+    val movables : ArrayList<MovableElement> = ArrayList()
+
+    fun addEle(ele : GameElement){
+        gameEles.add(ele)
+        if (ele is Tank){
+            tks.add(ele)
+        }
+        if (ele is MovableElement){
+            movables.add(ele)
+        }
+    }
+
     init{
         val fileText = GameMap::class.java.getResource(FileName).readText()
         val jsonEle : JsonElement = Json.parseToJsonElement(fileText)
@@ -39,5 +53,11 @@ class GameMap(val FileName : String) {
             }
         }
     }
+
+    val serialized : ByteArray
+        get() {
+            val origFileText = GameMap::class.java.getResource(FileName).readText()
+            return origFileText.toByteArray()
+        }
 
 }

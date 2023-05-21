@@ -15,9 +15,9 @@ abstract class GameElement(val uid : Long, var hp : Int = -1, open val colBox : 
      * @param other the other game element
      * @return whether the collision happened
      */
-    fun processCollision(other : GameElement) : Boolean {
+    infix fun processCollision(other : GameElement) : Boolean {
         if (other.uid in noCollisionElementIds) return false
-        if (hp == -1) return false
+        if (hp == -1 || other !is Bullet) return false
         hp -= other.hp
         if (hp <= 0) {
             removeStat = RemoveStat.TO_REMOVE
