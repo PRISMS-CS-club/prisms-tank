@@ -28,11 +28,11 @@ class ElementCreateEvent(val ele : GameElement, timeStamp : Long = currentTimeMi
             val json = buildJsonObject {
                 put("uid", ele.uid)
                 put("name", ele.serialName)
-                put("x", ele.colBox.rotationCenter.x)
-                put("y", ele.colBox.rotationCenter.y)
-                put("rad", ele.colBox.angleRotated)
-                put("width", ele.colBox.width)
-                put("height", ele.colBox.height)
+                put("x", ele.colPoly.rotationCenter.x)
+                put("y", ele.colPoly.rotationCenter.y)
+                put("rad", ele.colPoly.angleRotated)
+                put("width", ele.colPoly.width)
+                put("height", ele.colPoly.height)
             }
             return json.toString().toByteArray()
         }
@@ -59,11 +59,11 @@ class ElementUpdateEvent(val ele : GameElement, val updateEventSlect: UpdateEven
                 if (updateEventSlect.hp)
                     put("hp", ele.hp)
                 if (updateEventSlect.x)
-                    put("x", ele.colBox.rotationCenter.x)
+                    put("x", ele.colPoly.rotationCenter.x)
                 if (updateEventSlect.y)
-                    put("y", ele.colBox.rotationCenter.y)
+                    put("y", ele.colPoly.rotationCenter.y)
                 if (updateEventSlect.rad)
-                    put("rad", ele.colBox.angleRotated)
+                    put("rad", ele.colPoly.angleRotated)
             }
             return json.toString().toByteArray()
         }

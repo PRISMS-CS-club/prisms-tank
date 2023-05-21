@@ -20,11 +20,11 @@ fun Double.toModPosAngle() : Double{
     return angle % (2 * PI)
 }
 
-infix fun Double.errEquals(other : Double) : Boolean {
+infix fun Double.errEQ(other : Double) : Boolean {
     return Math.abs(this - other) < DOUBLE_PRECISION
 }
 
-infix fun Double.errNotEquals(other : Double) : Boolean {
+infix fun Double.errNE(other : Double) : Boolean {
     return Math.abs(this - other) >= DOUBLE_PRECISION
 }
 

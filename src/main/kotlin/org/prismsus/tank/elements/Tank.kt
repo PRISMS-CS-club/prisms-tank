@@ -1,9 +1,9 @@
 package org.prismsus.tank.elements
 
 import org.prismsus.tank.utils.*
-import org.prismsus.tank.utils.collidable.ColBox
+import org.prismsus.tank.utils.collidable.ColPoly
 import org.prismsus.tank.utils.collidable.Line
-import org.prismsus.tank.utils.collidable.RectColBox
+import org.prismsus.tank.utils.collidable.ColRect
 import kotlin.math.*
 
 
@@ -11,16 +11,16 @@ abstract class Tank(
     uid: Long,
     val trackMaxSpeed: Double = INIT_TANK_TRACK_SPEED,
     hp: Int = INIT_TANK_HP,
-    colBox: ColBox = INIT_TANK_COLBOX,
+    colPoly: ColPoly = INIT_TANK_COLBOX,
     val weapon: Weapon
 ) :
 
-    MovableElement(uid, hp, colBox.union(weapon.colBox + DVec2(.0, colBox.height / 2))!!) {
+    MovableElement(uid, hp, colPoly.union(weapon.colPoly + DVec2(.0, colPoly.height / 2))!!) {
     init {
         weapon.belongTo = this
     }
 
-    val rectBox = colBox as RectColBox
+    val rectBox = colPoly as ColRect
     var leftTrackVelo: Double = .0
         set(value) {
             field = sign(leftTrackVelo) * min(abs(leftTrackVelo), trackMaxSpeed)
@@ -58,17 +58,17 @@ abstract class Tank(
         set(value) {}
 
     override fun updateByTime(dt: Long) {
-        if (leftTrackVelo errEquals rightTrackVelo) {
+        if (leftTrackVelo errEQ rightTrackVelo) {
             // the tank is moving straight
-            colBox += DVec2.byPolar(1.0, colBox.angleRotated) * leftTrackVelo * dt.toDouble()
+            colPoly += DVec2.byPolar(1.0, colPoly.angleRotated) * leftTrackVelo * dt.toDouble()
             return
         }
-        if (abs(leftTrackVelo) errEquals abs(rightTrackVelo)) {
+        if (abs(leftTrackVelo) errEQ abs(rightTrackVelo)) {
             // the tank is rotating in place, left and right track speed must have different sign
             val angSign = if (rightTrackVelo > 0) 1 else -1
             val angVelo = abs(leftTrackVelo / .5)
             val angDisp = angVelo * dt.toDouble()
-            colBox.rotate(angDisp * angSign, rectBox.rotationCenter)
+            colPoly.rotate(angDisp * angSign, rectBox.rotationCenter)
         }
 
         val pivotBaseLine = if (isInnerCircLeft()) Line(rectBox.rightMidPt, rectBox.leftMidPt)
@@ -77,9 +77,9 @@ abstract class Tank(
         val angSign = if (leftTrackVelo - rightTrackVelo > 0) -1 else 1
         val angVelo = abs(inVelo / turningRad)
         val angDisp = angVelo * dt.toDouble()
-        colBox.rotate(angDisp * angSign, pivotPt)
-        weapon.colBox.angleRotated = colBox.angleRotated
-        weapon.colBox.rotationCenter = colBox.rotationCenter + weapon.centerOffset!!
+        colPoly.rotate(angDisp * angSign, pivotPt)
+        weapon.colPoly.angleRotated = colPoly.angleRotated
+        weapon.colPoly.rotationCenter = colPoly.rotationCenter + weapon.centerOffset!!
     }
 
     override val serialName: String

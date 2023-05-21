@@ -2,11 +2,10 @@ package org.prismsus.tank.elements
 
 import org.prismsus.tank.utils.DOUBLE_PRECISION
 import org.prismsus.tank.utils.DVec2
-import org.prismsus.tank.utils.collidable.ColBox
+import org.prismsus.tank.utils.collidable.ColPoly
 import org.prismsus.tank.utils.collidable.DPos2
-import org.prismsus.tank.utils.collidable.RectColBox
+import org.prismsus.tank.utils.collidable.ColRect
 import org.prismsus.tank.utils.nextUid
-import java.sql.Time
 
 open class Weapon(
     val damage : Int,
@@ -14,7 +13,7 @@ open class Weapon(
     val maxCapacity : Int,   // the maximum capacity of bullet in the weapon
     val reloadRate : Double, // the rate of refilling bullet to its max capacity, per second
     val bulletProps : BulletProps,
-    override val colBox: ColBox,
+    override val colPoly: ColPoly,
     override var belongTo: GameElement,
     override var centerOffset: DVec2,
     val firingPos : DPos2,
@@ -27,9 +26,9 @@ open class Weapon(
     fun fire() : Bullet? {
         if (System.currentTimeMillis() - lastFireTime < minInterv) return null
         val bullet = Bullet(nextUid, bulletProps)
-        bullet.colBox.rotateTo(belongTo.colBox.angleRotated)
-        bullet.colBox.bottomMidPt = firingPos
-        bullet.curVelo = DVec2.byPolar(belongTo.colBox.angleRotated, bulletProps.speed)
+        bullet.colPoly.rotateTo(belongTo.colPoly.angleRotated)
+        bullet.colPoly.bottomMidPt = firingPos
+        bullet.curVelo = DVec2.byPolar(belongTo.colPoly.angleRotated, bulletProps.speed)
         bullet.damage = damage
         lastFireTime = System.currentTimeMillis()
         curCapa--
@@ -47,9 +46,9 @@ class rectWeapon(
     maxCapacity : Int,   // the maximum capacity of bullet in the weapon
     reloadRate : Double, // the rate of refilling bullet to its max capacity
     bulletProps: BulletProps,
-    colBox: RectColBox,
+    colBox: ColRect,
     belongTo: GameElement,
-    centerOffset: DVec2 = DVec2(.0, belongTo.colBox.height / 2.0),
+    centerOffset: DVec2 = DVec2(.0, belongTo.colPoly.height / 2.0),
     firingPos : DPos2 =  colBox.topMidPt + centerOffset + DVec2(0.0,  DOUBLE_PRECISION * 100)
 ) : Weapon(damage, minInterv, maxCapacity, reloadRate,  bulletProps, colBox, belongTo, centerOffset, firingPos)
 {

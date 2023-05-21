@@ -63,7 +63,7 @@ class DPos2(var x: Double, var y: Double) : Collidable, Comparable<DPos2>, Clone
     override var rotationCenter: DPos2
         get() = this
         set(value) {super.rotationCenter = value}
-    override var encSquareSize: DDim2 // this is a point, so the size is 0
+    override var encAARectSize: DDim2 // this is a point, so the size is 0
         get() = DDim2(0.0, 0.0)
         set(value) {}
 
@@ -86,7 +86,7 @@ class DPos2(var x: Double, var y: Double) : Collidable, Comparable<DPos2>, Clone
         if (other is DPos2)
             return this == other
         return other.collide(this)
-        // except ColBox classes, classes only handle intersects with same type
+        // except ColPoly classes, classes only handle intersects with same type
     }
 
     override fun collidePts(other: Collidable): Array<DPos2> {

@@ -73,11 +73,15 @@ interface Collidable {
      * @param rad The radian to rotate.
      * @return The rotated object.
      * */
+    @Suppress("OVERLOADS_INTERFACE")
+    @JvmOverloads
     fun rotate(rad: Double, center: DPos2 = rotationCenter) : Collidable {
         val newPts = pts.copyOf().map { it.copy()}.toTypedArray()
         return byPts(newPts).rotateAssign(rad, center)
     }
 
+    @Suppress("OVERLOADS_INTERFACE")
+    @JvmOverloads
     fun rotateTo(rad: Double, center: DPos2 = rotationCenter) : Collidable {
         val rotAng = rad - angleRotated
         return rotate(rotAng, center)
@@ -90,10 +94,13 @@ interface Collidable {
      * @return The rotated object.
      * @see rotate
     * */
+    @Suppress("OVERLOADS_INTERFACE")
+    @JvmOverloads
     fun rotateDeg(degOffset: Double, center: DPos2 = rotationCenter) : Collidable {
         return rotate(degOffset.toRad(), center)
     }
-
+    @Suppress("OVERLOADS_INTERFACE")
+    @JvmOverloads
     fun rotateToDeg(degOffset: Double, center: DPos2 = rotationCenter) : Collidable {
         val rotAng = degOffset.toRad() - angleRotated
         return rotate(rotAng, center)
@@ -106,6 +113,8 @@ interface Collidable {
      * @return The rotated object.
      * @see rotate
     * */
+    @Suppress("OVERLOADS_INTERFACE")
+    @JvmOverloads
     fun rotateAssign(radOffset: Double, center: DPos2 = rotationCenter) : Collidable {
         angleRotated += radOffset
         for (pt in pts){
@@ -114,6 +123,8 @@ interface Collidable {
         return this
     }
 
+    @Suppress("OVERLOADS_INTERFACE")
+    @JvmOverloads
     fun rotateAssignTo(radOffset: Double, center: DPos2 = rotationCenter) : Collidable {
         val rotAng = radOffset - angleRotated
         return rotateAssign(rotAng, center)
@@ -126,10 +137,13 @@ interface Collidable {
      * @return The rotated object.
      * @see rotate
     * */
+    @Suppress("OVERLOADS_INTERFACE")
+    @JvmOverloads
     fun rotateAssignDeg(degOffset: Double, center: DPos2 = rotationCenter) : Collidable {
         return rotateAssign(degOffset / 180.0 * Math.PI, center)
     }
-
+    @Suppress("OVERLOADS_INTERFACE")
+    @JvmOverloads
     fun rotateAssignToDeg(degOffset: Double, center: DPos2 = rotationCenter) : Collidable {
         val rotAng = degOffset / 180.0 * Math.PI - angleRotated
         return rotateAssign(rotAng, center)
@@ -149,16 +163,57 @@ interface Collidable {
     * image for the object. Since images are always rectangles, we can use these
     * */
     var angleRotated : Double     // the angle offset from the original position (rotate by center), in radians
-    var encSquareSize : DDim2     // the size of the enclosing square, which is the size of the image
+    val encAARectSize : DDim2     // the size of the enclosing square, which is the size of the image
         get() {
             // calculate the size of the image using reduce
-            val min = pts.reduce { acc, dPos2 -> acc.min(dPos2) }
-            val max = pts.reduce { acc, dPos2 -> acc.max(dPos2) }
-            return (max - min)
+            val x = maxX - minX
+            val y = maxY - minY
+            return DDim2(x, y)
         }
-        set(x){
-            throw Exception("Cannot set size of the image")
+
+    val minX : Double
+        get(){
+        var ret = Double.MAX_VALUE
+        for (pt in pts){
+            ret = Math.min(ret, pt.x)
         }
+        return ret
+    }
+
+    val maxX : Double
+        get(){
+            var ret = Double.MIN_VALUE
+            for (pt in pts){
+                ret = Math.max(ret, pt.x)
+            }
+            return ret
+        }
+
+    val minY : Double
+        get(){
+            var ret = Double.MAX_VALUE
+            for (pt in pts){
+                ret = Math.min(ret, pt.y)
+            }
+            return ret
+        }
+
+    val maxY : Double
+        get(){
+            var ret = Double.MIN_VALUE
+            for (pt in pts){
+                ret = Math.max(ret, pt.y)
+            }
+            return ret
+        }
+
+    val encAARect : ColAARect   // the enclosing rectangle, which is the image
+        get() {
+            val dim = encAARectSize
+            val topLeft = DPos2(minX, minY)
+            return ColAARect.byTopLeft(topLeft, dim)
+        }
+
 
     val unrotated : Collidable // the unrotated version of the object, used for a more accurate rotation
     var rotationCenter : DPos2    // the center of the object, used for rotation

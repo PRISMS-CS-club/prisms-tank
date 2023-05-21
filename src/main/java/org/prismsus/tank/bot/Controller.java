@@ -1,6 +1,7 @@
 package org.prismsus.tank.bot;
 
 import org.prismsus.tank.elements.Block;
+import org.prismsus.tank.elements.GameElement;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -8,18 +9,13 @@ import java.util.concurrent.ExecutionException;
 public class Controller {
     FutureController controller;
 
-    void setLeftTrackSpeed(double speed) throws ExecutionException, InterruptedException {
-        controller.setLeftTrackSpeed(speed);
-    }
-
-
     /**
      * Get all bot's visible blocks excluding empty blocks. The function returns a list of `Block` objects.
      * Bot's vision may be blocked by other opaque blocks.
      * @return List of all visible blocks.
      */
-    List<Block> getVisibleBlocks() throws ExecutionException, InterruptedException {
-        return controller.getVisibleBlocks().get();
+    List<GameElement> getVisibleElements() throws ExecutionException, InterruptedException {
+        return controller.getVisibleElements().get();
     }
 
     /**
@@ -29,7 +25,7 @@ public class Controller {
      * these blocks enter the bot's vision again.
      * @return List of all visited blocks.
      */
-    List<Block> getVisitedBlocks() throws ExecutionException, InterruptedException {
-        return controller.getVisitedBlocks().get();
+    List<GameElement> getVisitedElements() throws ExecutionException, InterruptedException {
+        return controller.getVisitedElements().get();
     }
 }

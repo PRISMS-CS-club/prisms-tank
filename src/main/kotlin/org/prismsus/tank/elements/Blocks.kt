@@ -1,8 +1,8 @@
 package org.prismsus.tank.elements
 
 import org.prismsus.tank.utils.*
-import org.prismsus.tank.utils.collidable.ColBox
-import org.prismsus.tank.utils.collidable.RectColBox
+import org.prismsus.tank.utils.collidable.ColPoly
+import org.prismsus.tank.utils.collidable.ColRect
 
 /**
  * @param uid unique id of the block
@@ -12,12 +12,12 @@ import org.prismsus.tank.utils.collidable.RectColBox
  *
  * Gives all relevant data of a block in the game map.
  */
-abstract class Block(uid : Long, val pos : IVec2, hp : Int = -1, colBox: RectColBox = DEF_BLOCK_COLBOX)
+abstract class Block(uid : Long, val pos : IVec2, hp : Int = -1, colBox: ColRect = DEF_BLOCK_COLBOX)
     : GameElement(uid, hp, colBox){
     init{
-        this.colBox = (colBox + pos.toDVec2()) as ColBox
+        this.colPoly = (colBox + pos.toDVec2()) as ColPoly
         // the accepted parameter is the position in the map
-        // we want to make sure that the colBox is in top-left position
+        // we want to make sure that the colPoly is in top-left position
     }
 
     /**
@@ -29,7 +29,7 @@ abstract class Block(uid : Long, val pos : IVec2, hp : Int = -1, colBox: RectCol
     * */
     override fun equals(other: Any?): Boolean {
         if (other !is Block) return false
-        return pos == other.pos && hp == other.hp && colBox.equalPtSet(other.colBox)
+        return pos == other.pos && hp == other.hp && colPoly.equalPtSet(other.colPoly)
     }
 
     /**
@@ -40,11 +40,11 @@ abstract class Block(uid : Long, val pos : IVec2, hp : Int = -1, colBox: RectCol
     * */
     infix fun strictEqual(other: Any?): Boolean {
         if (other !is Block) return false
-        return pos == other.pos && hp == other.hp && colBox.equalPtSet(other.colBox) && uid == other.uid
+        return pos == other.pos && hp == other.hp && colPoly.equalPtSet(other.colPoly) && uid == other.uid
     }
 
     override fun toString(): String {
-        return "uid=$uid, pos=$pos, hp=$hp, colBox=$colBox"
+        return "uid=$uid, pos=$pos, hp=$hp, colPoly=$colPoly"
     }
 }
 

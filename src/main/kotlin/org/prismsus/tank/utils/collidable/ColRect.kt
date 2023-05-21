@@ -3,15 +3,15 @@ package org.prismsus.tank.utils.collidable
 import org.prismsus.tank.utils.DDim2
 import org.prismsus.tank.utils.DVec2
 
-class RectColBox (val centerPos : DPos2, val size : DDim2) : ColBox(arrayOf(
+open class ColRect (val centerPos : DPos2, val size : DDim2) : ColPoly(arrayOf(
     centerPos + DVec2(-size.x / 2.0, size.y / 2.0),
     centerPos + size / 2.0,
     centerPos + DVec2(size.x / 2.0, -size.y / 2.0),
     centerPos - size / 2.0
 )){
     companion object{
-        fun byTopLeft(topLeft : DPos2, size : DDim2) : RectColBox {
-            return RectColBox(topLeft + DVec2(size.x / 2, -size.y / 2), size)
+        fun byTopLeft(topLeft : DPos2, size : DDim2) : ColRect {
+            return ColRect(topLeft + DVec2(size.x / 2, -size.y / 2), size)
         }
     }
 

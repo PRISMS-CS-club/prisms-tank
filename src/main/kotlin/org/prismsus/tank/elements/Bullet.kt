@@ -2,10 +2,10 @@ package org.prismsus.tank.elements
 
 import org.prismsus.tank.utils.INIT_BULLET_COLBOX
 import org.prismsus.tank.utils.INIT_BULLET_SPEED
-import org.prismsus.tank.utils.collidable.RectColBox
+import org.prismsus.tank.utils.collidable.ColRect
 
-class Bullet(uid: Long, var speed: Double = INIT_BULLET_SPEED, override val colBox: RectColBox = INIT_BULLET_COLBOX) :
-    MovableElement(uid, -1, colBox) {
+class Bullet(uid: Long, var speed: Double = INIT_BULLET_SPEED, override val colPoly: ColRect = INIT_BULLET_COLBOX) :
+    MovableElement(uid, -1, colPoly) {
     constructor(uid: Long, props: BulletProps) : this(uid, props.speed, props.colBox)
 
     override val serialName: String
@@ -14,4 +14,4 @@ class Bullet(uid: Long, var speed: Double = INIT_BULLET_SPEED, override val colB
 
 }
 
-data class BulletProps(val speed: Double = INIT_BULLET_SPEED, val colBox: RectColBox = INIT_BULLET_COLBOX)
+data class BulletProps(val speed: Double = INIT_BULLET_SPEED, val colBox: ColRect = INIT_BULLET_COLBOX)

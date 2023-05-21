@@ -3,7 +3,6 @@ package org.prismsus.tank.utils.collidable
 
 import org.prismsus.tank.utils.DOUBLE_PRECISION
 import org.prismsus.tank.utils.DVec2
-import org.prismsus.tank.utils.toModPosAngle
 import org.prismsus.tank.utils.treeDistinct
 import java.awt.Shape
 import java.awt.geom.Path2D
@@ -18,26 +17,26 @@ import kotlin.math.*
  */
 
 
-open class ColBox(override var pts: Array<DPos2>) : Collidable {
+open class ColPoly(override var pts: Array<DPos2>) : Collidable {
     // here use the JvmField to restrict the auto generation of getter and setter
     // because we want to override the getter and setter
     val origPts = pts.copyOf()
     var rCenter = (pts.reduce { acc, dPos2 -> (acc + dPos2).toPt() }.toVec() / pts.size.toDouble()).toPt()
 
-    // since there will usually be more points in ColBox, so we don't calculate the center every time
+    // since there will usually be more points in ColPoly, so we don't calculate the center every time
     // instead, we keep the center, and update it when the points are updated
     override var rotationCenter: DPos2
         get() = rCenter
         set(value) {}
     override val unrotated: Collidable
-        get() = ColBox(origPts)
+        get() = ColPoly(origPts)
     override var angleRotated = 0.0
-    override fun plus(shift: DVec2): ColBox {
-        return super.plus(shift) as ColBox
+    override fun plus(shift: DVec2): ColPoly {
+        return super.plus(shift) as ColPoly
     }
 
-    override fun minus(shift: DVec2): ColBox {
-        return super.minus(shift) as ColBox
+    override fun minus(shift: DVec2): ColPoly {
+        return super.minus(shift) as ColPoly
     }
 
     open val height : Double
@@ -52,7 +51,7 @@ open class ColBox(override var pts: Array<DPos2>) : Collidable {
 
     /**
      * Helper function of [collidePts], this function only check the sitution when this box enclose the other box, not the other way around.
-     * @param other The other ColBox.
+     * @param other The other ColPoly.
      * @return True if intersects, false otherwise.
      * @see collidePts
      * */
@@ -96,7 +95,7 @@ open class ColBox(override var pts: Array<DPos2>) : Collidable {
             return ret.toTypedArray()
         }
 
-        if (other is ColBox) {
+        if (other is ColPoly) {
             for (line in lines) {
                 for (otherLine in other.lines) {
                     ret.addAll(line intersectPts otherLine)
@@ -111,7 +110,7 @@ open class ColBox(override var pts: Array<DPos2>) : Collidable {
      * @return A pair containing the graph and a boolean array indicating if the point is belong (point on this polygon's line) to this polygon.
      * */
     fun contourGraph(
-        other: ColBox,
+        other: ColPoly,
         collideResult: Array<DPos2>
     ): Pair<TreeMap<DPos2, ArrayList<DPos2>>, TreeMap<DPos2, Boolean>> {
         val edge = TreeMap<DPos2, ArrayList<DPos2>>()
@@ -170,7 +169,7 @@ open class ColBox(override var pts: Array<DPos2>) : Collidable {
         return Pair(edge, isThisPt)
     }
 
-    infix fun contourGraph(other: ColBox): Pair<TreeMap<DPos2, ArrayList<DPos2>>, TreeMap<DPos2, Boolean>> {
+    infix fun contourGraph(other: ColPoly): Pair<TreeMap<DPos2, ArrayList<DPos2>>, TreeMap<DPos2, Boolean>> {
         return contourGraph(other, intersectPts(other))
     }
 
@@ -185,7 +184,7 @@ open class ColBox(override var pts: Array<DPos2>) : Collidable {
      * @see Collidable.collidePts
      * */
     override fun collidePts(other: Collidable): Array<DPos2> {
-        if (other !is ColBox) return (enclosedPts(other) + intersectPts(other))
+        if (other !is ColPoly) return (enclosedPts(other) + intersectPts(other))
         val thisRet = enclosedPts(other)
         val otherRet = other.enclosedPts(this)
         // delete repeated points
@@ -197,18 +196,18 @@ open class ColBox(override var pts: Array<DPos2>) : Collidable {
     }
 
     /**
-     * Check if two ColBox are equal.
-     * Notice that two ColBox with different order of points are not considered equal. Since they can form different polygons.
+     * Check if two ColPoly are equal.
+     * Notice that two ColPoly with different order of points are not considered equal. Since they can form different polygons.
      * They are only considered equal if every adjacent points are the same, in a circular way.
      * Meaning that the polygon still have the same set of lines.
-     * To check if two ColBox are having same point set, use [equalPtSet] instead.
-     * @param other The other ColBox.
+     * To check if two ColPoly are having same point set, use [equalPtSet] instead.
+     * @param other The other ColPoly.
      * @return True if equal, false otherwise.
      * @see equalPtSet
      * */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is ColBox) return false
+        if (other !is ColPoly) return false
         val otherStartIdx = other.pts.indexOf(pts[0])
         if (otherStartIdx == -1) return false
         for (i in pts.indices) {
@@ -220,13 +219,13 @@ open class ColBox(override var pts: Array<DPos2>) : Collidable {
     /**
      * Check if two intersectable objects are having same point set.
      * Notice that with same point set, the polygon can be different.
-     * To check if two ColBox are equal, use [equals] instead.
-     * @param other The other ColBox.
+     * To check if two ColPoly are equal, use [equals] instead.
+     * @param other The other ColPoly.
      * @return True if equal, false otherwise.
      * @see equals
      * */
     infix fun equalPtSet(other: Collidable): Boolean {
-        if (other !is ColBox) return false
+        if (other !is ColPoly) return false
         val thisSorted = pts.copyOf()
         val otherSorted = other.pts.copyOf()
         thisSorted.sort()
@@ -235,7 +234,7 @@ open class ColBox(override var pts: Array<DPos2>) : Collidable {
     }
 
     override fun byPts(pts: Array<DPos2>): Collidable {
-        return ColBox(pts)
+        return ColPoly(pts)
     }
 
     override fun rotateAssign(radOffset: Double, center: DPos2): Collidable {
@@ -256,15 +255,15 @@ open class ColBox(override var pts: Array<DPos2>) : Collidable {
     }
 
     /**
-     * @return the combination of two ColBox, which is the union of the two polygons.
+     * @return the combination of two ColPoly, which is the union of the two polygons.
      * If they do not intersect, return null.
      * Note that if the actual union forms a shape with empty space, the empty space will not be included.
      * */
-    infix fun union(other: ColBox): ColBox? {
+    infix fun union(other: ColPoly): ColPoly? {
         if (!collide(other)) return null
-        if (enclose(other)) return ColBox(pts.copyOf().map { it.copy() }
+        if (enclose(other)) return ColPoly(pts.copyOf().map { it.copy() }
             .toTypedArray())
-        if (other.enclose(this)) return ColBox(other.pts.copyOf().map { it.copy() }
+        if (other.enclose(this)) return ColPoly(other.pts.copyOf().map { it.copy() }
             .toTypedArray())
 
         val (graph, _) = contourGraph(other)
@@ -294,17 +293,17 @@ open class ColBox(override var pts: Array<DPos2>) : Collidable {
             else
                 curPt = nextPt
         }
-        return ColBox(ret.toTypedArray())
+        return ColPoly(ret.toTypedArray())
     }
 
 
     companion object {
 
         /**
-         * Create a ColBox from a set of points that are not ordered
-         * @see ColBox (the primary constructor)
+         * Create a ColPoly from a set of points that are not ordered
+         * @see ColPoly (the primary constructor)
          * */
-        fun byUnorderedPtSet(pts: Array<DPos2>): ColBox {
+        fun byUnorderedPtSet(pts: Array<DPos2>): ColPoly {
             // sort the points using angle with horizontal line
             val sortedPts = pts.copyOf()
             val avePt: DPos2 =
@@ -321,7 +320,7 @@ open class ColBox(override var pts: Array<DPos2>) : Collidable {
                     if (to1.len() < to2.len()) -1 else 1
                 }
             }
-            return ColBox(sortedPts)
+            return ColPoly(sortedPts)
         }
 
 

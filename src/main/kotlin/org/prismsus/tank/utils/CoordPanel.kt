@@ -2,7 +2,7 @@ package org.prismsus.tank.utils
 
 import org.prismsus.tank.utils.collidable.DPos2
 import org.prismsus.tank.utils.collidable.Collidable
-import org.prismsus.tank.utils.collidable.RectColBox
+import org.prismsus.tank.utils.collidable.ColRect
 import java.awt.*
 import java.text.DecimalFormat
 import javax.swing.JPanel
@@ -148,7 +148,7 @@ class CoordPanel(
 
     fun main() {
         val panel : CoordPanel = CoordPanel(IDim2(1, 1), IDim2(15, 15))
-        val box = RectColBox(DPos2(0.0, 0.0), DDim2(10, 10))
+        val box = ColRect(DPos2(0.0, 0.0), DDim2(10, 10))
         val pt = DPos2(4.0, 4.0)
         panel.drawCollidable(box, pt)
         panel.showFrame()

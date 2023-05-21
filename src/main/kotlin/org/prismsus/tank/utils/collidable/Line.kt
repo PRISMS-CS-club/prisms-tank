@@ -1,8 +1,8 @@
 package org.prismsus.tank.utils.collidable
 import org.prismsus.tank.utils.DOUBLE_PRECISION
 import org.prismsus.tank.utils.DVec2
-import org.prismsus.tank.utils.errEquals
-import org.prismsus.tank.utils.errNotEquals
+import org.prismsus.tank.utils.errEQ
+import org.prismsus.tank.utils.errNE
 import java.awt.Shape
 import java.awt.geom.Line2D
 import kotlin.math.*
@@ -61,31 +61,31 @@ class Line(override var pts : Array<DPos2>) : Collidable, Comparable<Line> {
     override fun intersectPts(other: Collidable): Array<DPos2> {
         if (other is DPos2) {
             if (isVerti()){
-                if (other.x errEquals startP.x && inYrg(other.y))
+                if (other.x errEQ startP.x && inYrg(other.y))
                     return arrayOf(other)
                 return arrayOf()
             }
             // calculate y position of the line given x is other.x
             val y = slope * other.x + inter
-            if (inXrg(other.x) && y errEquals other.y)
+            if (inXrg(other.x) && y errEQ other.y)
                 return arrayOf(other)
             return emptyArray()
         }
         if (other !is Line) {
-            // in this case, the other object is a colBox
+            // in this case, the other object is a colPoly
             return other.collidePts(this)
         }
         val otherLine = other as Line
         // check if two lines are parallel, in this case, they will never intersect
-        if (slope errEquals otherLine.slope && ! isVerti() && !otherLine.isVerti()) {
-            if (inter errNotEquals otherLine.inter) {
+        if (slope errEQ otherLine.slope && ! isVerti() && !otherLine.isVerti()) {
+            if (inter errNE otherLine.inter) {
                 return arrayOf()
             }
             val newStartX = max(startP.x, otherLine.startP.x)
             val newEndX = min(endP.x, otherLine.endP.x)
             if (newStartX > newEndX)
                 return arrayOf()
-            if (newStartX errEquals newEndX)
+            if (newStartX errEQ newEndX)
                 return arrayOf(atX(newStartX))
             return arrayOf(atX(newStartX), atX(newEndX))
         }
@@ -96,14 +96,14 @@ class Line(override var pts : Array<DPos2>) : Collidable, Comparable<Line> {
 
         if (infCnt == 2) {
             // both lines are vertical
-            if (startP.x errNotEquals otherLine.startP.x) {
+            if (startP.x errNE otherLine.startP.x) {
                 return arrayOf()
             }
             val newStartY = max(startP.y, otherLine.startP.y)
             val newEndY = min(endP.y, otherLine.endP.y)
             if (newStartY > newEndY)
                 return arrayOf()
-            if (newStartY errEquals newEndY)
+            if (newStartY errEQ newEndY)
                 return arrayOf(atY(newStartY))
             return arrayOf(atY(newStartY), atY(newEndY))
         }
@@ -256,11 +256,11 @@ class Line(override var pts : Array<DPos2>) : Collidable, Comparable<Line> {
     }
 
     fun isVerti() : Boolean {
-        return startP.x errEquals endP.x
+        return startP.x errEQ endP.x
     }
 
     fun isHori() : Boolean {
-        return startP.y errEquals endP.y
+        return startP.y errEQ endP.y
     }
 
     fun minXpt() : DPos2 {
@@ -273,24 +273,9 @@ class Line(override var pts : Array<DPos2>) : Collidable, Comparable<Line> {
         return if (startP.y < endP.y) startP else endP
     }
 
-    fun maxYpt() : DPos2 {
+    val maxYpt : DPos2
+        get(){
         return if (startP.y > endP.y) startP else endP
-    }
-
-    fun minX() : Double{
-        return minXpt().x
-    }
-
-    fun maxX() : Double{
-        return maxXpt().x
-    }
-
-    fun minY() : Double{
-        return minYpt().y
-    }
-
-    fun maxY() : Double{
-        return maxYpt().y
     }
 
 

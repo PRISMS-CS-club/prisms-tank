@@ -3,17 +3,26 @@ import kotlinx.serialization.json.*
 import org.prismsus.tank.utils.ELE_SERIAL_NAME_TO_CLASS
 import org.prismsus.tank.utils.IVec2
 import org.prismsus.tank.utils.nextUid
+import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.reflect.full.*
 /**
  * The game map containing all blocks.
  */
 class GameMap(val FileName : String) {
-    var blocks : Array<Array<Block?>>
+    val blocks : Array<Array<Block?>>
     var width: Int = 0
     var height: Int = 0
     val gameEles : ArrayList<GameElement> = ArrayList()
     val tks : ArrayList<Tank> = ArrayList()
     val movables : ArrayList<MovableElement> = ArrayList()
+
+
+
+    fun addTankAtRandPos(){
+
+    }
+
 
     fun addEle(ele : GameElement){
         gameEles.add(ele)

@@ -3,26 +3,25 @@ package org.prismsus.tank.utils.tests
 import org.junit.jupiter.api.Test
 import org.prismsus.tank.utils.*
 import org.junit.jupiter.api.Assertions.*
-import org.prismsus.tank.utils.collidable.ColBox
+import org.prismsus.tank.utils.collidable.ColPoly
 import org.prismsus.tank.utils.collidable.DPos2
 import org.prismsus.tank.utils.collidable.Line
-import org.prismsus.tank.utils.collidable.RectColBox
+import org.prismsus.tank.utils.collidable.ColRect
 import java.awt.Color
 import java.awt.Graphics2D
-import kotlin.math.PI
 import kotlin.random.Random
 
 typealias Pos = DPos2
 
-class ColBoxTest {
+class ColPolyTest {
 
     @Test
     fun rotate() {
         var testNum = 0
         // create a square box, rotate it by 90 degree, it should have the same point set as the original
         println("t${++testNum}")
-        var box1 : ColBox = RectColBox.byTopLeft(Pos(0.0, 1.0), DDim2(1.0, 1.0))
-        var box2 : ColBox = RectColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0)).rotateDeg(90.0, Pos.ORIGIN) as ColBox
+        var box1 : ColPoly = ColRect.byTopLeft(Pos(0.0, 1.0), DDim2(1.0, 1.0))
+        var box2 : ColPoly = ColRect.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0)).rotateDeg(90.0, Pos.ORIGIN) as ColPoly
 
 
         assertTrue(box2 equalPtSet box1)
@@ -30,24 +29,24 @@ class ColBoxTest {
 
         // create a square box, rotate it by 180 degree from the center, it should have the same point set as the original
         println("t${++testNum}")
-        box1 = RectColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
-        box2 = RectColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0)).rotateDeg(180.0, Pos(.5, -.5)) as ColBox
+        box1 = ColRect.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
+        box2 = ColRect.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0)).rotateDeg(180.0, Pos(.5, -.5)) as ColPoly
         assertTrue(box2 == box1)
         println("passed")
 
         // create a rectangle box with longer side on x axis, rotate it by 90 degree, it should have the same point set
         // with a rectangle box with longer side on y axis
         println("t${++testNum}")
-        box1 = RectColBox.byTopLeft(Pos(0.0, 1.0), DDim2(2.0, 1.0)).rotateDeg(90.0, Pos.ORIGIN) as ColBox
-        box2 = RectColBox.byTopLeft(Pos(-1.0, 2.0), DDim2(1.0, 2.0))
+        box1 = ColRect.byTopLeft(Pos(0.0, 1.0), DDim2(2.0, 1.0)).rotateDeg(90.0, Pos.ORIGIN) as ColPoly
+        box2 = ColRect.byTopLeft(Pos(-1.0, 2.0), DDim2(1.0, 2.0))
         assertTrue(box2 == box1)
         println("passed")
 
         // create a rectangle box with longer side on x axis, rotate it by -90 degree, it should have the same point set
         // with a rectangle box with longer side on y axis
         println("t${++testNum}")
-        box1 = RectColBox.byTopLeft(Pos(0.0, 1.0), DDim2(2.0, 1.0)).rotateDeg(-90.0, Pos.ORIGIN) as ColBox
-        box2 = RectColBox.byTopLeft(Pos(0.0, 0.0), DDim2(1.0, 2.0))
+        box1 = ColRect.byTopLeft(Pos(0.0, 1.0), DDim2(2.0, 1.0)).rotateDeg(-90.0, Pos.ORIGIN) as ColPoly
+        box2 = ColRect.byTopLeft(Pos(0.0, 0.0), DDim2(1.0, 2.0))
         assertTrue(box2 == box1)
         println("passed")
     }
@@ -55,24 +54,24 @@ class ColBoxTest {
     @Test
     fun intersect() {
         var testNum = 0
-        // test if two same ColBox.byTopLeftes can intersect
+        // test if two same ColPoly.byTopLeftes can intersect
         println("t${++testNum}")
-        var box1 : ColBox = RectColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
-        var box2 : ColBox = RectColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
+        var box1 : ColPoly = ColRect.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
+        var box2 : ColPoly = ColRect.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
         assertTrue(box1.collide(box2) && box2.collide(box1))
         println("pass")
 
-        // test if two ColBox.byTopLeftes with different size can intersect
+        // test if two ColPoly.byTopLeftes with different size can intersect
         println("t${++testNum}")
-        box1 = RectColBox.byTopLeft(Pos.ORIGIN, DDim2(2.0, 2.0))
-        box2 = RectColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
+        box1 = ColRect.byTopLeft(Pos.ORIGIN, DDim2(2.0, 2.0))
+        box2 = ColRect.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
         assertTrue(box1.collide(box2) && box2.collide(box1))
         println("pass")
 
         // test two boxes touching
         println("t${++testNum}")
-        box1 = RectColBox.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
-        box2 = RectColBox.byTopLeft(Pos.UP, DDim2(1.0, 1.0))
+        box1 = ColRect.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
+        box2 = ColRect.byTopLeft(Pos.UP, DDim2(1.0, 1.0))
         assertTrue(box1.collide(box2) && box2.collide(box1))
         println("pass")
 
@@ -84,8 +83,8 @@ class ColBoxTest {
 
         // test the case when on box enclose the other
         println("t${++testNum}")
-        box1 = RectColBox.byTopLeft(Pos.ORIGIN, DDim2(3.0, 3.0))
-        box2 = RectColBox.byTopLeft(Pos(0.0, -1.5), DDim2(1.0, 1.0))
+        box1 = ColRect.byTopLeft(Pos.ORIGIN, DDim2(3.0, 3.0))
+        box2 = ColRect.byTopLeft(Pos(0.0, -1.5), DDim2(1.0, 1.0))
         assertTrue(box1.collide(box2))
         assertTrue(box2.collide(box1))
         print(box1.collidePts(box2).contentToString())
@@ -93,8 +92,8 @@ class ColBoxTest {
 
         // test polygon other than rectangle, first test right triangle
         println("t${++testNum}")
-        box1 = ColBox(arrayOf(Pos.ORIGIN, Pos.RT, Pos.UP))
-        box2 = ColBox(arrayOf(Pos.ORIGIN, Pos.RT, Pos.UP))
+        box1 = ColPoly(arrayOf(Pos.ORIGIN, Pos.RT, Pos.UP))
+        box2 = ColPoly(arrayOf(Pos.ORIGIN, Pos.RT, Pos.UP))
         assertTrue(box1.collide(box2) && box2.collide(box1))
         println("pass")
 
@@ -119,8 +118,8 @@ class ColBoxTest {
         pts1[PT_CNT - 1] = samePt
         pts2[PT_CNT - 1] = samePt
         var startTm = System.currentTimeMillis()
-        box1 = ColBox.byUnorderedPtSet(pts1)
-        box2 = ColBox.byUnorderedPtSet(pts2)
+        box1 = ColPoly.byUnorderedPtSet(pts1)
+        box2 = ColPoly.byUnorderedPtSet(pts2)
         println("time to construct two boxes: ${System.currentTimeMillis() - startTm} ms")
         startTm = System.currentTimeMillis()
         assertTrue(box1.collide(box2))
@@ -141,7 +140,7 @@ class ColBoxTest {
     fun testGenRandPolygon(){
         // generate random points, print them in the format of x, y , no parentheses
         val pts = Array(100){(DVec2.randUnitVec() * Random.nextDouble() * 100.0).toPt()}
-        val box = ColBox.byUnorderedPtSet(pts)
+        val box = ColPoly.byUnorderedPtSet(pts)
         for (pt : DPos2 in box.pts) {
             println("${pt.x}, ${pt.y}")
         }
@@ -161,8 +160,8 @@ class ColBoxTest {
         // the other two vertices are outside the rectangle
         run {
             return@run
-            val rect = RectColBox.byTopLeft(DPos2(-.5, .5), DDim2(1.0, 1.0))
-            val tri = ColBox(arrayOf(DPos2(0.0, 0.0), DPos2(2.0, 0.0), DPos2(1.0, 1.0)))
+            val rect = ColRect.byTopLeft(DPos2(-.5, .5), DDim2(1.0, 1.0))
+            val tri = ColPoly(arrayOf(DPos2(0.0, 0.0), DPos2(2.0, 0.0), DPos2(1.0, 1.0)))
             val panel = CoordPanel(IDim2(1, 1), IDim2(80, 80))
             panel.drawCollidable(rect, tri)
             panel.showFrame()
@@ -179,8 +178,8 @@ class ColBoxTest {
         run{
             return@run
             // create a large triangle in the center, and a rectangle that pass through the center
-            val tri = ColBox(arrayOf(DPos2(-1.0, -1.0), DPos2(1.0, -1.0), DPos2(0.0, 1.0)))
-            val rect = RectColBox(DPos2.ORIGIN, DDim2(4.0, .5))
+            val tri = ColPoly(arrayOf(DPos2(-1.0, -1.0), DPos2(1.0, -1.0), DPos2(0.0, 1.0)))
+            val rect = ColRect(DPos2.ORIGIN, DDim2(4.0, .5))
             val sepP = CoordPanel(IDim2(1, 1), IDim2(80, 80))
             sepP.drawCollidable(tri)
             sepP.graphicsModifier = { g : Graphics2D ->
@@ -196,13 +195,13 @@ class ColBoxTest {
 
         run{
             return@run
-            val tri = ColBox(arrayOf(
+            val tri = ColPoly(arrayOf(
                 DPos2(.0, 1.0),
                 DPos2(3.0, 0.0),
                 DPos2(0.0, -1.0)
             ))
 
-            val rect = RectColBox(DPos2.ORIGIN, DDim2(4.0, .5))
+            val rect = ColRect(DPos2.ORIGIN, DDim2(4.0, .5))
             val sepP = CoordPanel(IDim2(1, 1), IDim2(150, 150))
             sepP.drawCollidable(tri)
             sepP.graphicsModifier = { g : Graphics2D ->
@@ -236,9 +235,9 @@ class ColBoxTest {
                 DPos2(-1.3610651218633572, 0.6199913535366662)
             )
             val randArr = Array(150) { (DVec2.randUnitVec() * Random.nextDouble() * 3.0).toPt() }
-            val poly = ColBox.byUnorderedPtSet(randArr)
-//            val poly = ColBox(polyArr)
-            val rect = RectColBox(DPos2.ORIGIN, DDim2(4.0, 2.0))
+            val poly = ColPoly.byUnorderedPtSet(randArr)
+//            val poly = ColPoly(polyArr)
+            val rect = ColRect(DPos2.ORIGIN, DDim2(4.0, 2.0))
             println("poly=$poly")
             separateP.drawCollidable(poly)
             separateP.graphicsModifier = { g : Graphics2D ->
@@ -255,8 +254,8 @@ class ColBoxTest {
 
         run{
             // create two random polygons
-            val poly1 = ColBox.byUnorderedPtSet(Array(20) { (DVec2.randUnitVec() * Random.nextDouble() * 3.0).toPt() })
-            val poly2 = ColBox.byUnorderedPtSet(Array(20) { (DVec2.randUnitVec() * Random.nextDouble() * 3.0).toPt() })
+            val poly1 = ColPoly.byUnorderedPtSet(Array(20) { (DVec2.randUnitVec() * Random.nextDouble() * 3.0).toPt() })
+            val poly2 = ColPoly.byUnorderedPtSet(Array(20) { (DVec2.randUnitVec() * Random.nextDouble() * 3.0).toPt() })
             val sepP = CoordPanel(IDim2(1, 1), IDim2(150, 150))
             sepP.drawCollidable(poly1)
             sepP.graphicsModifier = { g : Graphics2D ->

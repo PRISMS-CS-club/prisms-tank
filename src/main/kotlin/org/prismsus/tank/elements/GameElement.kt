@@ -1,8 +1,8 @@
 package org.prismsus.tank.elements;
-import org.prismsus.tank.utils.collidable.ColBox
+import org.prismsus.tank.utils.collidable.ColPoly
 import kotlin.collections.ArrayList
 
-abstract class GameElement(val uid : Long, var hp : Int = -1, open val colBox : ColBox) {
+abstract class GameElement(val uid : Long, var hp : Int = -1, open val colPoly : ColPoly) {
     var noCollisionElementIds = ArrayList<Long>()  // game elements that will not collide with this game element
                                                    // e.g. bullet shot by one player will not collide with itself
     enum class RemoveStat {
@@ -23,6 +23,10 @@ abstract class GameElement(val uid : Long, var hp : Int = -1, open val colBox : 
             removeStat = RemoveStat.TO_REMOVE
         }
         return true
+    }
+
+    override fun hashCode(): Int {
+        return uid.toInt()
     }
 
     abstract val serialName : String

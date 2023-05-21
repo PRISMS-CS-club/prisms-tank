@@ -1,18 +1,18 @@
 package org.prismsus.tank.elements
 
-import org.prismsus.tank.utils.collidable.ColBox
+import org.prismsus.tank.utils.collidable.ColPoly
 import org.prismsus.tank.utils.DVec2
 
-abstract class MovableElement(uid: Long, hp: Int, colBox: ColBox) :
-    GameElement(uid, hp, colBox), TimeUpdatable {
+abstract class MovableElement(uid: Long, hp: Int, colPoly: ColPoly) :
+    GameElement(uid, hp, colPoly), TimeUpdatable {
 
     var curVelo: DVec2 = DVec2(.0, .0)
     var curAngV: Double = .0
 
     override fun updateByTime(dt: Long) {
-        colBox += curVelo * dt.toDouble()
+        colPoly += curVelo * dt.toDouble()
         // center is the intersection of two diagonals
-        colBox.rotateAssign(curAngV * dt.toDouble())
+        colPoly.rotateAssign(curAngV * dt.toDouble())
     }
 
 }

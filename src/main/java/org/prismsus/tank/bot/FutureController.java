@@ -25,7 +25,7 @@ public class FutureController {
         return ret;
     }
 
-    void shoot(int cnt) {
+    void shoot() {
         requests.add(new ControllerRequest<>(cid, null, OtherRequests.SHOOT));
     }
 
