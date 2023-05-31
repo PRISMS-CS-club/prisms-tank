@@ -7,20 +7,20 @@ import org.prismsus.tank.utils.collidable.ColRect
 import kotlin.math.*
 
 
-abstract class Tank(
+class Tank(
     uid: Long,
+    val weaponProps: WeaponProps,
     val trackMaxSpeed: Double = INIT_TANK_TRACK_SPEED,
     hp: Int = INIT_TANK_HP,
-    colPoly: ColPoly = INIT_TANK_COLBOX,
-    val weapon: Weapon
+    val rectBox: ColRect = INIT_TANK_COLBOX,
 ) :
 
-    MovableElement(uid, hp, colPoly.union(weapon.colPoly + DVec2(.0, colPoly.height / 2))!!) {
-    init {
-        weapon.belongTo = this
-    }
+    MovableElement(uid, hp, rectBox.union(weaponProps.colPoly + DVec2(.0, rectBox.height / 2))!!) {
 
-    val rectBox = colPoly as ColRect
+    var weapon : Weapon
+    init {
+        weapon = weaponProps.toWeapon(this)
+    }
     var leftTrackVelo: Double = .0
         set(value) {
             field = sign(leftTrackVelo) * min(abs(leftTrackVelo), trackMaxSpeed)

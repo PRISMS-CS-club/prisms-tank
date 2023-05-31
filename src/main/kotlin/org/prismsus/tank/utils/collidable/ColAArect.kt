@@ -5,29 +5,37 @@ import org.prismsus.tank.utils.*
 /*
 * Axis Aligned Rectangle Collision Box, cannot rotate, can make collision detection faster
 * */
-class ColAARect(centerPos : DPos2, size : DDim2) : ColRect(centerPos, size){
-
+class ColAArect(centerPos : DPos2, size : DDim2) : ColRect(centerPos, size){
+    constructor(rect: ColRect) : this(rect.centerPos, rect.size)
     companion object{
-        fun byTopLeft(topLeft : DPos2, size : DDim2) : ColAARect {
-            val cent = topLeft + DVec2(size.x / 2, -size.y / 2)
-            return ColAARect(cent, size)
+        fun byTopLeft(topLeft : DPos2, size : DDim2) : ColAArect {
+            return ColAArect(ColRect.byTopLeft(topLeft, size))
+        }
+        fun byBottomLeft(bottomLeft : DPos2, size : DDim2) : ColAArect {
+            return ColAArect(ColRect.byBottomLeft(bottomLeft, size))
+        }
+        fun byTopRight(topRight : DPos2, size : DDim2) : ColAArect {
+            return ColAArect(ColRect.byTopRight(topRight, size))
+        }
+        fun byBottomRight(bottomRight : DPos2, size : DDim2) : ColAArect {
+            return ColAArect(ColRect.byBottomRight(bottomRight, size))
         }
     }
 
     override fun rotateAssign(radOffset: Double, center: DPos2): Collidable {
-        throw UnsupportedOperationException("ColAARect cannot rotate")
+        throw UnsupportedOperationException("ColAArect cannot rotate")
     }
 
     override fun rotateAssignDeg(degOffset: Double, center: DPos2): Collidable {
-        throw UnsupportedOperationException("ColAARect cannot rotate")
+        throw UnsupportedOperationException("ColAArect cannot rotate")
     }
 
     override fun rotateAssignTo(radOffset: Double, center: DPos2): Collidable {
-        throw UnsupportedOperationException("ColAARect cannot rotate")
+        throw UnsupportedOperationException("ColAArect cannot rotate")
     }
 
     override fun rotateAssignToDeg(degOffset: Double, center: DPos2): Collidable {
-        throw UnsupportedOperationException("ColAARect cannot rotate")
+        throw UnsupportedOperationException("ColAArect cannot rotate")
     }
 
     override fun collide(other: Collidable): Boolean {
@@ -60,7 +68,7 @@ class ColAARect(centerPos : DPos2, size : DDim2) : ColRect(centerPos, size){
     }
 
     override fun enclose(other: Collidable): Boolean {
-        if (other is ColAARect){
+        if (other is ColAArect){
             return maxX > other.maxX && minX < other.minX && maxY > other.maxY && minY < other.minY
         }
         for (pt in other.pts){
@@ -100,6 +108,6 @@ class ColAARect(centerPos : DPos2, size : DDim2) : ColRect(centerPos, size){
         get() = 0.0
         set(value) {}
 
-    override val encAARect: ColAARect
+    override val encAARect: ColAArect
         get() = this
 }

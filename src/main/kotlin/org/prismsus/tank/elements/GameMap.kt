@@ -1,8 +1,10 @@
 package org.prismsus.tank.elements
 import kotlinx.serialization.json.*
-import org.prismsus.tank.utils.ELE_SERIAL_NAME_TO_CLASS
-import org.prismsus.tank.utils.IVec2
-import org.prismsus.tank.utils.nextUid
+import org.prismsus.tank.utils.*
+import org.prismsus.tank.utils.collidable.ColAArect
+import org.prismsus.tank.utils.collidable.ColTreeSet
+import org.prismsus.tank.utils.collidable.Collidable
+import org.prismsus.tank.utils.collidable.DPos2
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.reflect.full.*
@@ -15,23 +17,90 @@ class GameMap(val FileName : String) {
     var height: Int = 0
     val gameEles : ArrayList<GameElement> = ArrayList()
     val tks : ArrayList<Tank> = ArrayList()
-    val movables : ArrayList<MovableElement> = ArrayList()
+    val movables : ArrayList<MovableElement> = ArrayList() // TODO: use a better data structure, such as mutable set
+    val timeUpdatables : ArrayList<TimeUpdatable> = ArrayList()
+    val bullets : ArrayList<Bullet> = ArrayList()
+    val quadTree = ColTreeSet(0, ColAArect.byBottomLeft(DPos2(0, 0), DDim2(width.toDouble(), height.toDouble())))
+    val collidableToEle = mutableMapOf<Collidable, GameElement>()
+    val lastUid : Long
+        get() {
+            if (gameEles.size == 0)
+                return -1
+            return gameEles.last().uid
+        }
 
-
-
-    fun addTankAtRandPos(){
-
+    fun getRandPos() : DPos2{
+        return DPos2(Random().nextDouble() * width, Random().nextDouble() * height)
     }
 
 
-    fun addEle(ele : GameElement){
-        gameEles.add(ele)
+    fun getUnoccupiedRandPos(box : Collidable) : DPos2{
+        var pos = getRandPos()
+        while(true){
+            box.rotationCenter = pos
+            if (!quadTree.collide(box))
+                break
+        }
+        return pos
+
+    }
+
+    fun addEle(ele : GameElement) : GameElement{
+        collidableToEle[ele.colPoly] = ele
+        if (!gameEles.add(ele)){
+            throw Exception("failed to add game element")
+        }
+        quadTree.insert(ele.colPoly)
         if (ele is Tank){
-            tks.add(ele)
+            if (!tks.add(ele)){
+                throw Exception("failed to add tank")
+            }
+        }
+        if (ele is Bullet){
+            if (!bullets.add(ele)){
+                throw Exception("failed to add bullet")
+            }
+        }
+        if (ele is TimeUpdatable){
+            if (!timeUpdatables.add(ele)){
+                throw Exception("failed to add time updatable")
+            }
         }
         if (ele is MovableElement){
-            movables.add(ele)
+            if (!movables.add(ele)){
+                throw Exception("failed to add movable element")
+            }
         }
+        return ele
+    }
+
+    fun remEle(ele: GameElement) : GameElement{
+        collidableToEle.remove(ele.colPoly)
+        if (!gameEles.remove(ele)){
+            throw Exception("failed to remove game element")
+        }
+        quadTree.remove(ele.colPoly)
+        if (ele is Tank){
+            if (!tks.remove(ele)){
+                throw Exception("failed to remove tank")
+            }
+        }
+        if (ele is Bullet){
+            if (!bullets.remove(ele)){
+                throw Exception("failed to remove bullet")
+            }
+        }
+        if (ele is TimeUpdatable){
+            if (!timeUpdatables.remove(ele)){
+                throw Exception("failed to remove time updatable")
+            }
+        }
+        if (ele is MovableElement){
+            if (!movables.remove(ele)){
+                throw Exception("failed to remove movable element")
+            }
+        }
+        return ele
     }
 
     init{

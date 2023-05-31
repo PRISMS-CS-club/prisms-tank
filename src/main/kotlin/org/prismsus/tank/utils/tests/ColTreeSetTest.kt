@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.prismsus.tank.utils.*
 
-import org.prismsus.tank.utils.collidable.ColAARect
+import org.prismsus.tank.utils.collidable.ColAArect
 import org.prismsus.tank.utils.collidable.ColTreeSet
 import org.prismsus.tank.utils.collidable.DPos2
 import kotlin.random.Random
@@ -17,7 +17,7 @@ class ColTreeSetTest {
         // first randomly generate DPos2
         val randPts = Array(200) { DVec2.randUnitVec() * Random.nextDouble(-5.0, 5.0) }
         println(randPts.contentToString())
-        val quadTree = ColTreeSet(0, ColAARect(DPos2(0, 0), DDim2(10, 10)))
+        val quadTree = ColTreeSet(0, ColAArect(DPos2(0, 0), DDim2(10, 10)))
         for (pt in randPts) {
             quadTree.insert(pt.toPt())
         }

@@ -6,6 +6,10 @@ import org.prismsus.tank.utils.DVec2
 abstract class MovableElement(uid: Long, hp: Int, colPoly: ColPoly) :
     GameElement(uid, hp, colPoly), TimeUpdatable {
 
+    constructor(other : MovableElement) : this(other.uid, other.hp, other.colPoly) {
+        curVelo = other.curVelo
+        curAngV = other.curAngV
+    }
     var curVelo: DVec2 = DVec2(.0, .0)
     var curAngV: Double = .0
 

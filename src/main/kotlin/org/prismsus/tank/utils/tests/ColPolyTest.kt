@@ -254,8 +254,8 @@ class ColPolyTest {
 
         run{
             // create two random polygons
-            val poly1 = ColPoly.byUnorderedPtSet(Array(20) { (DVec2.randUnitVec() * Random.nextDouble() * 3.0).toPt() })
-            val poly2 = ColPoly.byUnorderedPtSet(Array(20) { (DVec2.randUnitVec() * Random.nextDouble() * 3.0).toPt() })
+            val poly1 = ColPoly.byUnorderedPtSet(Array(120) { (DVec2.randUnitVec() * Random.nextDouble() * 3.0).toPt() })
+            val poly2 = ColPoly.byUnorderedPtSet(Array(120) { (DVec2.randUnitVec() * Random.nextDouble() * 3.0).toPt() })
             val sepP = CoordPanel(IDim2(1, 1), IDim2(150, 150))
             sepP.drawCollidable(poly1)
             sepP.graphicsModifier = { g : Graphics2D ->

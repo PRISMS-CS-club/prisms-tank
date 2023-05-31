@@ -20,19 +20,20 @@ import kotlin.math.*
 open class ColPoly(override var pts: Array<DPos2>) : Collidable {
     // here use the JvmField to restrict the auto generation of getter and setter
     // because we want to override the getter and setter
-    val origPts = pts.copyOf()
     var rCenter = (pts.reduce { acc, dPos2 -> (acc + dPos2).toPt() }.toVec() / pts.size.toDouble()).toPt()
 
     // since there will usually be more points in ColPoly, so we don't calculate the center every time
     // instead, we keep the center, and update it when the points are updated
     override var rotationCenter: DPos2
         get() = rCenter
-        set(value) {}
-    override val unrotated: Collidable
-        get() = ColPoly(origPts)
+        set(value) {
+            val diff = value - rCenter
+            pts = pts.map { it + diff }.toTypedArray()
+            rCenter = value
+        }
     override var angleRotated = 0.0
     override fun plus(shift: DVec2): ColPoly {
-        return super.plus(shift) as ColPoly
+            return super.plus(shift) as ColPoly
     }
 
     override fun minus(shift: DVec2): ColPoly {

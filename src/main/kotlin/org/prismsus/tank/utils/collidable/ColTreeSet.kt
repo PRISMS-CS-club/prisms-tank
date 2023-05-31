@@ -7,7 +7,7 @@ import java.awt.Shape
  * collection of collidables, implemented by a quad tree
  *
  * */
-class ColTreeSet(val dep: Int, val bound: ColAARect) {
+class ColTreeSet(val dep: Int, val bound: ColAArect) {
     var MAX_OBJECT = 5
     var MAX_DEP = 8
     var cols = ArrayList<Collidable>()
@@ -74,10 +74,10 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
         val tlShift = DVec2(DOUBLE_PRECISION, DOUBLE_PRECISION) * 10.0
         val subDim = (bound.size / 2.0) + tlShift * 2.0
         val topLeft = bound.topLeftPt - tlShift.xVec + tlShift.yVec
-        val quad2 = ColTreeSet(dep + 1, ColAARect.byTopLeft(topLeft, subDim))
-        val quad1 = ColTreeSet(dep + 1, ColAARect.byTopLeft(topLeft + subDim.xVec, subDim))
-        val quad4 = ColTreeSet(dep + 1, ColAARect.byTopLeft(topLeft - subDim.yVec + subDim.xVec, subDim))
-        val quad3 = ColTreeSet(dep + 1, ColAARect.byTopLeft(topLeft - subDim.yVec, subDim))
+        val quad2 = ColTreeSet(dep + 1, ColAArect.byTopLeft(topLeft, subDim))
+        val quad1 = ColTreeSet(dep + 1, ColAArect.byTopLeft(topLeft + subDim.xVec, subDim))
+        val quad4 = ColTreeSet(dep + 1, ColAArect.byTopLeft(topLeft - subDim.yVec + subDim.xVec, subDim))
+        val quad3 = ColTreeSet(dep + 1, ColAArect.byTopLeft(topLeft - subDim.yVec, subDim))
         subTrees = arrayOf(quad1, quad2, quad3, quad4)
     }
 
@@ -86,7 +86,7 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
      *  calculate wich subtree(quadrant) the AArect can be put in
      *  if none of the subtrees can completely contain the AArect or this node have not been splitted, return null
      * */
-    fun subTreeBelongTo(box: ColAARect): ColTreeSet? {
+    fun subTreeBelongTo(box: ColAArect): ColTreeSet? {
         if (subTrees == null) return null
         for (sub in subTrees!!) {
             if (sub.bound.enclose(box)) {
@@ -119,6 +119,14 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
                 cols.remove(c)
             }
         }
+    }
+
+    fun corespondingAArect(col : Collidable) : ColAArect{
+        val belongTo = subTreeBelongTo(col.encAARect)
+        if (belongTo != null) {
+            return belongTo.corespondingAArect(col)
+        }
+        return bound
     }
 
     fun remove(col: Collidable) {
@@ -157,11 +165,17 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
 
     infix fun collide(col: Collidable): Boolean {
         val possible = possibleCollision(col)
+        return collidedObjs(col).isNotEmpty()
+    }
+
+    infix fun collidedObjs(col: Collidable): ArrayList<Collidable> {
+        val possible = possibleCollision(col)
+        val ret = ArrayList<Collidable>()
         for (c in possible) {
             if (c.collide(col)) {
-                return true
+                ret.add(c)
             }
         }
-        return false
+        return ret
     }
 }

@@ -194,15 +194,18 @@ interface Collidable {
             return ret
         }
 
-    val encAARect : ColAARect   // the enclosing rectangle, which is the image
+    val encAARect : ColAArect   // the enclosing rectangle, which is the image
         get() {
             val dim = encAARectSize
             val topLeft = DPos2(minX, minY)
-            return ColAARect.byTopLeft(topLeft, dim)
+            return ColAArect.byTopLeft(topLeft, dim)
         }
 
 
     val unrotated : Collidable // the unrotated version of the object, used for a more accurate rotation
+        get() {
+            return rotate(-angleRotated)
+        }
     var rotationCenter : DPos2    // the center of the object, used for rotation
         get() {
             val ave = DVec2()

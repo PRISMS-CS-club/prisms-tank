@@ -40,7 +40,7 @@ open class Weapon(
     }
 }
 
-class rectWeapon(
+class RectWeapon(
     damage: Int,
     minInterv : Int,     // the minimum interval between two fires
     maxCapacity : Int,   // the maximum capacity of bullet in the weapon
@@ -52,4 +52,35 @@ class rectWeapon(
     firingPos : DPos2 =  colBox.topMidPt + centerOffset + DVec2(0.0,  DOUBLE_PRECISION * 100)
 ) : Weapon(damage, minInterv, maxCapacity, reloadRate,  bulletProps, colBox, belongTo, centerOffset, firingPos)
 {
+}
+
+open class WeaponProps(
+    val damage: Int,
+    val minInterv : Int,     // the minimum interval between two fires
+    val maxCapacity : Int,   // the maximum capacity of bullet in the weapon
+    val reloadRate : Double, // the rate of refilling bullet to its max capacity
+    val bulletProps: BulletProps,
+    val colPoly: ColPoly,
+    val centerOffset: DVec2,
+    val firingPos : DPos2
+) {
+    open fun toWeapon(belongTo: GameElement) : Weapon {
+        return Weapon(damage, minInterv, maxCapacity, reloadRate, bulletProps, colPoly, belongTo, centerOffset, firingPos)
+    }
+}
+
+class RectWeaponProps(
+    damage: Int,
+    minInterv : Int,     // the minimum interval between two fires
+    maxCapacity : Int,   // the maximum capacity of bullet in the weapon
+    reloadRate : Double, // the rate of refilling bullet to its max capacity
+    bulletProps: BulletProps,
+    val colBox: ColRect,
+    centerOffset: DVec2 = DVec2(.0, colBox.height / 2.0),
+    firingPos : DPos2 =  colBox.topMidPt + centerOffset + DVec2(0.0,  DOUBLE_PRECISION * 100)
+) : WeaponProps(damage, minInterv, maxCapacity, reloadRate, bulletProps, colBox, centerOffset, firingPos)
+{
+    override fun toWeapon(belongTo: GameElement) : RectWeapon {
+        return RectWeapon(damage, minInterv, maxCapacity, reloadRate, bulletProps, colBox, belongTo, centerOffset, firingPos)
+    }
 }

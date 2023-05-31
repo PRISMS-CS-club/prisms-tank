@@ -8,10 +8,6 @@ import java.awt.geom.Ellipse2D
 import java.awt.geom.Point2D
 import kotlin.math.*
 class DPos2(var x: Double, var y: Double) : Collidable, Comparable<DPos2>, Cloneable {
-
-    val origX = x
-    val origY = y
-
     constructor(other : DPos2) : this(other.x, other.y)
     constructor(x : Int, y : Int) : this(x.toDouble(), y.toDouble())
     override operator fun plus(other: DVec2): DPos2 {
@@ -50,9 +46,6 @@ class DPos2(var x: Double, var y: Double) : Collidable, Comparable<DPos2>, Clone
     override var angleRotated: Double
         get() = 0.0
         set(value) {}
-    override val unrotated: Collidable
-        get() = DPos2(origX, origY)
-
     override var pts: Array<DPos2>
         get() = arrayOf(DPos2(x, y))
         set(value) {

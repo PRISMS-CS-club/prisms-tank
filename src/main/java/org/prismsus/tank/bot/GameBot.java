@@ -15,5 +15,5 @@ public interface GameBot<T> {
      *                   through this controller, and all the commands for your bot can be sent through
      *                   this controller.
      */
-    void run(T controller);
+    public void loop(T controller);
 }
