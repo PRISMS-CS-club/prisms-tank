@@ -16,9 +16,10 @@ import org.prismsus.tank.game.OtherRequests.*
 import org.prismsus.tank.utils.*
 import org.prismsus.tank.utils.collidable.ColPoly
 import org.prismsus.tank.utils.collidable.DPos2
+import java.io.File
 
-class Game(vararg val bots: GameBot<FutureController>) {
-    var eventHistory = LinkedList<GameEvent>()
+class Game(vararg val bots: GameBot<FutureController>, val replayFile: File) {
+    val eventHistory = PriorityBlockingQueue<GameEvent>()
     lateinit var controllers: Array<FutureController>
     val requestsQ = PriorityBlockingQueue<ControllerRequest<Any>>()
     val map = GameMap("default.json")
@@ -36,7 +37,7 @@ class Game(vararg val bots: GameBot<FutureController>) {
 
     }
 
-    fun tankWeaponInfoHandler(req: ControllerRequest<Any>) : Any {
+    fun tankWeaponInfoHandler(req: ControllerRequest<Any>): Any {
         when (req.requestType) {
             TANK_HP -> {
                 return cidToTank[req.cid]!!.hp
@@ -104,13 +105,25 @@ class Game(vararg val bots: GameBot<FutureController>) {
                 // TODO: add bullet speed as a field in weapon
                 return INIT_BULLET_SPEED
             }
+
             else -> {
                 throw IllegalArgumentException("Invalid request type")
             }
         }
     }
 
-    fun handleOtherRequests(req : ControllerRequest<Any>){
+    fun replaySaver() {
+        // read from eventHistory, save to file
+        while (true) {
+            Thread.sleep(50)
+            if (eventHistory.isEmpty())
+                continue
+            val curEvent = eventHistory.poll()
+            replayFile.appendBytes(curEvent.serialized + "\n".toByteArray())
+        }
+    }
+
+    fun handleOtherRequests(req: ControllerRequest<Any>) {
         when (req.requestType) {
             GET_VISIBLE_ELEMENTS -> {
                 // TODO: implement limited visibility
@@ -122,15 +135,18 @@ class Game(vararg val bots: GameBot<FutureController>) {
                 // TODO: implement this
                 req.returnTo!!.complete(ArrayList<GameElement>())
             }
+
             SHOOT -> {
                 val bullet = cidToTank[req.cid]!!.weapon.fire()
                 if (bullet != null)
-                map.addEle(bullet)
+                    map.addEle(bullet)
             }
+
             SET_LTRACK_SPEED -> {
                 val target = req.params!!.first() as Double
                 cidToTank[req.cid]!!.leftTrackVelo = target
             }
+
             SET_RTRACK_SPEED -> {
                 val target = req.params!!.first() as Double
                 cidToTank[req.cid]!!.rightTrackVelo = target
@@ -144,44 +160,52 @@ class Game(vararg val bots: GameBot<FutureController>) {
                 bot.loop(controllers[i])
             }.start()
         }
+        Thread{
+            replaySaver()
+        }.start()
         var lastUpd = System.currentTimeMillis()
         while (true) {
-            synchronized(requestsQ) {
-                // first handle all the requests, then move all the elements
-                while (!requestsQ.isEmpty()) {
-                    val curReq = requestsQ.poll()
-                    when (curReq.requestType) {
-                        is TankWeaponInfo -> {
-                            val ret = tankWeaponInfoHandler(curReq)
-                            curReq.returnTo!!.complete(ret)
-                        }
-                        is OtherRequests -> {
-                            handleOtherRequests(curReq)
-                        }
-                        else -> {
-                            throw IllegalArgumentException("Invalid request type")
-                        }
+
+            // first handle all the requests, then move all the elements
+            while (!requestsQ.isEmpty()) {
+                val curReq = requestsQ.poll()
+                when (curReq.requestType) {
+                    is TankWeaponInfo -> {
+                        val ret = tankWeaponInfoHandler(curReq)
+                        curReq.returnTo!!.complete(ret)
+                    }
+
+                    is OtherRequests -> {
+                        handleOtherRequests(curReq)
+                    }
+
+                    else -> {
+                        throw IllegalArgumentException("Invalid request type")
                     }
                 }
             }
+
             val dt = System.currentTimeMillis() - lastUpd
             lastUpd = System.currentTimeMillis()
-            for (updatable in map.timeUpdatables){
-                var prevCent : DPos2? = null
-                if (updatable is MovableElement){
+            for (updatable in map.timeUpdatables) {
+                var prevCent: DPos2? = null
+                if (updatable is MovableElement) {
                     prevCent = updatable.colPoly.rotationCenter
                 }
                 updatable.updateByTime(dt)
-                if (updatable is MovableElement){
+                if (updatable is MovableElement) {
                     val collideds = map.quadTree.collidedObjs(updatable.colPoly)
-                    for (collided in collideds){
+                    for (collided in collideds) {
                         updatable.processCollision(map.collidableToEle[collided]!!)
                         map.collidableToEle[collided]!!.processCollision(updatable)
                     }
                     updatable.colPoly.rotationCenter = prevCent!!
-                    eventHistory.add(ElementUpdateEvent(updatable,
+                    eventHistory.add(
+                        ElementUpdateEvent(
+                            updatable,
                             UpdateEventSlect.defaultTrue()
-                        ))
+                        )
+                    )
                 }
             }
         }
