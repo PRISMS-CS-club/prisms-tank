@@ -21,15 +21,10 @@ class Line(override var pts : Array<DPos2>) : Collidable, Comparable<Line> {
     }
 
     override var angleRotated = 0.0
-    val origStart = DPos2(startP)
-    val origEnd = DPos2(endP)
 
     override var rotationCenter: DPos2
         get() = ((startP.toVec() + endP.toVec()) / 2.0).toPt()
         set(value) {}
-
-    override val unrotated: Collidable
-        get() = Line(origStart, origEnd)
 
 
     constructor (startP : DPos2, endP : DPos2) : this(arrayOf(startP, endP)){

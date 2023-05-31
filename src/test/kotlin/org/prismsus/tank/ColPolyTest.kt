@@ -1,17 +1,15 @@
 package org.prismsus.tank
 
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.prismsus.tank.utils.*
+import org.junit.jupiter.api.Assertions.*
 import org.prismsus.tank.utils.collidable.ColPoly
-import org.prismsus.tank.utils.collidable.ColRect
 import org.prismsus.tank.utils.collidable.DPos2
 import org.prismsus.tank.utils.collidable.Line
+import org.prismsus.tank.utils.collidable.ColRect
 import java.awt.Color
 import java.awt.Graphics2D
 import kotlin.random.Random
-
-
 
 typealias Pos = DPos2
 
@@ -26,14 +24,14 @@ class ColPolyTest {
         var box2 : ColPoly = ColRect.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0)).rotateDeg(90.0, Pos.ORIGIN) as ColPoly
 
 
-        Assertions.assertTrue(box2 equalPtSet box1)
+        assertTrue(box2 equalPtSet box1)
         println("passed")
 
         // create a square box, rotate it by 180 degree from the center, it should have the same point set as the original
         println("t${++testNum}")
         box1 = ColRect.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
         box2 = ColRect.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0)).rotateDeg(180.0, Pos(.5, -.5)) as ColPoly
-        Assertions.assertTrue(box2 == box1)
+        assertTrue(box2 == box1)
         println("passed")
 
         // create a rectangle box with longer side on x axis, rotate it by 90 degree, it should have the same point set
@@ -41,7 +39,7 @@ class ColPolyTest {
         println("t${++testNum}")
         box1 = ColRect.byTopLeft(Pos(0.0, 1.0), DDim2(2.0, 1.0)).rotateDeg(90.0, Pos.ORIGIN) as ColPoly
         box2 = ColRect.byTopLeft(Pos(-1.0, 2.0), DDim2(1.0, 2.0))
-        Assertions.assertTrue(box2 == box1)
+        assertTrue(box2 == box1)
         println("passed")
 
         // create a rectangle box with longer side on x axis, rotate it by -90 degree, it should have the same point set
@@ -49,7 +47,7 @@ class ColPolyTest {
         println("t${++testNum}")
         box1 = ColRect.byTopLeft(Pos(0.0, 1.0), DDim2(2.0, 1.0)).rotateDeg(-90.0, Pos.ORIGIN) as ColPoly
         box2 = ColRect.byTopLeft(Pos(0.0, 0.0), DDim2(1.0, 2.0))
-        Assertions.assertTrue(box2 == box1)
+        assertTrue(box2 == box1)
         println("passed")
     }
 
@@ -60,35 +58,35 @@ class ColPolyTest {
         println("t${++testNum}")
         var box1 : ColPoly = ColRect.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
         var box2 : ColPoly = ColRect.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
-        Assertions.assertTrue(box1.collide(box2) && box2.collide(box1))
+        assertTrue(box1.collide(box2) && box2.collide(box1))
         println("pass")
 
         // test if two ColPoly.byTopLeftes with different size can intersect
         println("t${++testNum}")
         box1 = ColRect.byTopLeft(Pos.ORIGIN, DDim2(2.0, 2.0))
         box2 = ColRect.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
-        Assertions.assertTrue(box1.collide(box2) && box2.collide(box1))
+        assertTrue(box1.collide(box2) && box2.collide(box1))
         println("pass")
 
         // test two boxes touching
         println("t${++testNum}")
         box1 = ColRect.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
         box2 = ColRect.byTopLeft(Pos.UP, DDim2(1.0, 1.0))
-        Assertions.assertTrue(box1.collide(box2) && box2.collide(box1))
+        assertTrue(box1.collide(box2) && box2.collide(box1))
         println("pass")
 
         // move the second box up, they should not touch this time
         println("t${++testNum}")
         box2 = box2 + DVec2.UP
-        Assertions.assertFalse(box1.collide(box2) && box2.collide(box1))
+        assertFalse(box1.collide(box2) && box2.collide(box1))
         println("pass")
 
         // test the case when on box enclose the other
         println("t${++testNum}")
         box1 = ColRect.byTopLeft(Pos.ORIGIN, DDim2(3.0, 3.0))
         box2 = ColRect.byTopLeft(Pos(0.0, -1.5), DDim2(1.0, 1.0))
-        Assertions.assertTrue(box1.collide(box2))
-        Assertions.assertTrue(box2.collide(box1))
+        assertTrue(box1.collide(box2))
+        assertTrue(box2.collide(box1))
         print(box1.collidePts(box2).contentToString())
         println("pass")
 
@@ -96,19 +94,19 @@ class ColPolyTest {
         println("t${++testNum}")
         box1 = ColPoly(arrayOf(Pos.ORIGIN, Pos.RT, Pos.UP))
         box2 = ColPoly(arrayOf(Pos.ORIGIN, Pos.RT, Pos.UP))
-        Assertions.assertTrue(box1.collide(box2) && box2.collide(box1))
+        assertTrue(box1.collide(box2) && box2.collide(box1))
         println("pass")
 
         // move the second box a little bit, they should touch this time
         println("t${++testNum}")
         box2 = box2 + DVec2.UP * 0.5
-        Assertions.assertTrue(box1.collide(box2) && box2.collide(box1))
+        assertTrue(box1.collide(box2) && box2.collide(box1))
         println("pass")
 
         // move it further, they should not touch this time
         println("t${++testNum}")
         box2 = box2 + DVec2.UP
-        Assertions.assertFalse(box1.collide(box2) && box2.collide(box1))
+        assertFalse(box1.collide(box2) && box2.collide(box1))
         println("pass")
 
         // generate two polygons with PT_CNT points randomly, they share one point, so they should intersect
@@ -124,7 +122,7 @@ class ColPolyTest {
         box2 = ColPoly.byUnorderedPtSet(pts2)
         println("time to construct two boxes: ${System.currentTimeMillis() - startTm} ms")
         startTm = System.currentTimeMillis()
-        Assertions.assertTrue(box1.collide(box2))
+        assertTrue(box1.collide(box2))
         println("time to test intersection: ${System.currentTimeMillis() - startTm} ms")
         println("pass")
         val panel = CoordPanel(IDim2(1, 1), IDim2(15, 15))
@@ -143,12 +141,12 @@ class ColPolyTest {
         // generate random points, print them in the format of x, y , no parentheses
         val pts = Array(100){(DVec2.randUnitVec() * Random.nextDouble() * 100.0).toPt()}
         val box = ColPoly.byUnorderedPtSet(pts)
-        for (pt : Pos in box.pts) {
+        for (pt : DPos2 in box.pts) {
             println("${pt.x}, ${pt.y}")
         }
         // print the original point order
         println("original order:")
-        for (pt : Pos in pts) {
+        for (pt : DPos2 in pts) {
             println("${pt.x}, ${pt.y}")
         }
 
@@ -162,8 +160,8 @@ class ColPolyTest {
         // the other two vertices are outside the rectangle
         run {
             return@run
-            val rect = ColRect.byTopLeft(Pos(-.5, .5), DDim2(1.0, 1.0))
-            val tri = ColPoly(arrayOf(Pos(0.0, 0.0), Pos(2.0, 0.0), Pos(1.0, 1.0)))
+            val rect = ColRect.byTopLeft(DPos2(-.5, .5), DDim2(1.0, 1.0))
+            val tri = ColPoly(arrayOf(DPos2(0.0, 0.0), DPos2(2.0, 0.0), DPos2(1.0, 1.0)))
             val panel = CoordPanel(IDim2(1, 1), IDim2(80, 80))
             panel.drawCollidable(rect, tri)
             panel.showFrame()
@@ -180,8 +178,8 @@ class ColPolyTest {
         run{
             return@run
             // create a large triangle in the center, and a rectangle that pass through the center
-            val tri = ColPoly(arrayOf(Pos(-1.0, -1.0), Pos(1.0, -1.0), Pos(0.0, 1.0)))
-            val rect = ColRect(Pos.ORIGIN, DDim2(4.0, .5))
+            val tri = ColPoly(arrayOf(DPos2(-1.0, -1.0), DPos2(1.0, -1.0), DPos2(0.0, 1.0)))
+            val rect = ColRect(DPos2.ORIGIN, DDim2(4.0, .5))
             val sepP = CoordPanel(IDim2(1, 1), IDim2(80, 80))
             sepP.drawCollidable(tri)
             sepP.graphicsModifier = { g : Graphics2D ->
@@ -197,15 +195,13 @@ class ColPolyTest {
 
         run{
             return@run
-            val tri = ColPoly(
-                arrayOf(
-                    Pos(.0, 1.0),
-                    Pos(3.0, 0.0),
-                    Pos(0.0, -1.0)
-                )
-            )
+            val tri = ColPoly(arrayOf(
+                DPos2(.0, 1.0),
+                DPos2(3.0, 0.0),
+                DPos2(0.0, -1.0)
+            ))
 
-            val rect = ColRect(Pos.ORIGIN, DDim2(4.0, .5))
+            val rect = ColRect(DPos2.ORIGIN, DDim2(4.0, .5))
             val sepP = CoordPanel(IDim2(1, 1), IDim2(150, 150))
             sepP.drawCollidable(tri)
             sepP.graphicsModifier = { g : Graphics2D ->
@@ -258,8 +254,8 @@ class ColPolyTest {
 
         run{
             // create two random polygons
-            val poly1 = ColPoly.byUnorderedPtSet(Array(20) { (DVec2.randUnitVec() * Random.nextDouble() * 3.0).toPt() })
-            val poly2 = ColPoly.byUnorderedPtSet(Array(20) { (DVec2.randUnitVec() * Random.nextDouble() * 3.0).toPt() })
+            val poly1 = ColPoly.byUnorderedPtSet(Array(120) { (DVec2.randUnitVec() * Random.nextDouble() * 3.0).toPt() })
+            val poly2 = ColPoly.byUnorderedPtSet(Array(120) { (DVec2.randUnitVec() * Random.nextDouble() * 3.0).toPt() })
             val sepP = CoordPanel(IDim2(1, 1), IDim2(150, 150))
             sepP.drawCollidable(poly1)
             sepP.graphicsModifier = { g : Graphics2D ->
@@ -291,7 +287,7 @@ class ColPolyTest {
             if (rot < 0)
                 rot += 360.0
 
-            Assertions.assertEquals(rot, randObj.angleRotated.toDeg(), DOUBLE_PRECISION)
+            assertEquals(rot, randObj.angleRotated.toDeg(), DOUBLE_PRECISION)
         }
 
     }

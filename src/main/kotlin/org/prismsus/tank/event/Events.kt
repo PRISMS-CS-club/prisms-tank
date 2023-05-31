@@ -8,20 +8,20 @@ import java.lang.System.currentTimeMillis
  * @property timeStamp Timestamp of the event. The timestamp is the number of milliseconds since the start
  *                     of the game.
  */
-abstract class Event(val timeStamp: Long = currentTimeMillis()){
+abstract class GameEvent(val timeStamp: Long = currentTimeMillis()){
     abstract val serialized : ByteArray
     abstract val serialName : String
 }
 
 
-class MapCreateEvent (val map : GameMap, timeStamp : Long = currentTimeMillis()) : Event(timeStamp){
+class MapCreateEvent (val map : GameMap, timeStamp : Long = currentTimeMillis()) : GameEvent(timeStamp){
     override val serialized: ByteArray
         get() = map.serialized
     // TODO: implement, now set the timestamp to 0
     override val serialName : String = "MapCrt"
 }
 
-class ElementCreateEvent(val ele : GameElement, timeStamp : Long = currentTimeMillis()) : Event(timeStamp){
+class ElementCreateEvent(val ele : GameElement, timeStamp : Long = currentTimeMillis()) : GameEvent(timeStamp){
     override val serialized: ByteArray
         get() {
             val json = buildJsonObject {
@@ -50,7 +50,7 @@ data class UpdateEventSlect(val hp : Boolean, val x : Boolean, val y : Boolean, 
     }
 }
 
-class ElementUpdateEvent(val ele : GameElement, val updateEventSlect: UpdateEventSlect, timeStamp: Long = currentTimeMillis()) : Event(timeStamp){
+class ElementUpdateEvent(val ele : GameElement, val updateEventSlect: UpdateEventSlect, timeStamp: Long = currentTimeMillis()) : GameEvent(timeStamp){
     override val serialized: ByteArray
         get() {
             val json = buildJsonObject {

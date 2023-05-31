@@ -13,6 +13,21 @@ open class ColRect (val centerPos : DPos2, val size : DDim2) : ColPoly(arrayOf(
         fun byTopLeft(topLeft : DPos2, size : DDim2) : ColRect {
             return ColRect(topLeft + DVec2(size.x / 2, -size.y / 2), size)
         }
+        fun byBottomLeft(bottomLeft : DPos2, size : DDim2) : ColRect {
+            val tmp = ColRect(bottomLeft, size)
+            tmp.bottomLeftPt = bottomLeft
+            return tmp
+        }
+        fun byTopRight(topRight : DPos2, size : DDim2) : ColRect {
+            val tmp = ColRect(topRight, size)
+            tmp.topRightPt = topRight
+            return tmp
+        }
+        fun byBottomRight(bottomRight : DPos2, size : DDim2) : ColRect {
+            val tmp = ColRect(bottomRight, size)
+            tmp.bottomRightPt = bottomRight
+            return tmp
+        }
     }
 
     var topLeftPt : DPos2

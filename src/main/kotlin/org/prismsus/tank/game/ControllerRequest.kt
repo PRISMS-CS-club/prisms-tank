@@ -8,6 +8,7 @@ data class ControllerRequest<T> @JvmOverloads constructor(
     val requestType : ControllerRequestTypes,
     val params : Array<*>? = null,
     val timeStamp : Long = System.currentTimeMillis()
+
     ) : Comparable<ControllerRequest<*>> {
     override fun compareTo(other: ControllerRequest<*>): Int {
         return timeStamp.compareTo(other.timeStamp)
