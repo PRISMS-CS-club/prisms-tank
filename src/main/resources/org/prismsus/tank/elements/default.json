@@ -2,12 +2,13 @@
   "type" : "MapCrt",
   "x": 6,
   "y": 6,
-  "map": [
+  "map":
+  [
     "SldBlk", "SldBlk", "SldBlk", "SldBlk", "SldBlk", "SldBlk",
-    "SldBlk", null,     null,     "BrkBlk", null,     "SldBlk",
-    "SldBlk", null,     "BrkBlk", "BrkBlk", null,     "SldBlk",
-    "SldBlk", null,     "BrkBlk", "BrkBlk", null,     "SldBlk",
-    "SldBlk", null,     "BrkBlk", null,     null,     "SldBlk",
+    "SldBlk", "",     "",     "BrkBlk", "",     "SldBlk",
+    "SldBlk", "",     "BrkBlk", "BrkBlk", "",     "SldBlk",
+    "SldBlk", "",     "BrkBlk", "BrkBlk", "",     "SldBlk",
+    "SldBlk", "",     "BrkBlk", "",     "",     "SldBlk",
     "SldBlk", "SldBlk", "SldBlk", "SldBlk", "SldBlk", "SldBlk"
   ]
 }

@@ -8,9 +8,12 @@ import java.lang.System.currentTimeMillis
  * @property timeStamp Timestamp of the event. The timestamp is the number of milliseconds since the start
  *                     of the game.
  */
-abstract class GameEvent(val timeStamp: Long = currentTimeMillis()){
+abstract class GameEvent(val timeStamp: Long = currentTimeMillis()) : Comparable<GameEvent> {
     abstract val serialized : ByteArray
     abstract val serialName : String
+    override fun compareTo(other: GameEvent): Int {
+        return timeStamp.compareTo(other.timeStamp)
+    }
 }
 
 

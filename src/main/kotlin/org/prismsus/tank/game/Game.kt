@@ -2,6 +2,7 @@ package org.prismsus.tank.game
 
 import org.prismsus.tank.bot.FutureController
 import org.prismsus.tank.bot.GameBot
+import org.prismsus.tank.bot.RandomMovingBot
 import org.prismsus.tank.elements.GameElement
 import org.prismsus.tank.elements.GameMap
 import org.prismsus.tank.elements.MovableElement
@@ -9,16 +10,14 @@ import org.prismsus.tank.elements.Tank
 import org.prismsus.tank.event.ElementUpdateEvent
 import org.prismsus.tank.event.GameEvent
 import org.prismsus.tank.event.UpdateEventSlect
-import java.util.LinkedList
 import java.util.concurrent.PriorityBlockingQueue
 import org.prismsus.tank.game.TankWeaponInfo.*
 import org.prismsus.tank.game.OtherRequests.*
 import org.prismsus.tank.utils.*
-import org.prismsus.tank.utils.collidable.ColPoly
-import org.prismsus.tank.utils.collidable.DPos2
 import java.io.File
+import java.nio.charset.Charset
 
-class Game(vararg val bots: GameBot<FutureController>, val replayFile: File) {
+class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
     val eventHistory = PriorityBlockingQueue<GameEvent>()
     lateinit var controllers: Array<FutureController>
     val requestsQ = PriorityBlockingQueue<ControllerRequest<Any>>()
@@ -30,8 +29,7 @@ class Game(vararg val bots: GameBot<FutureController>, val replayFile: File) {
         for ((i, c) in controllers.withIndex()) {
             val tankPos = map.getUnoccupiedRandPos(INIT_TANK_COLBOX)
             var uid = 0
-            val tank = map.addEle(Tank(nextUid, INIT_RECT_WEAPON_RPOPS))
-            tank.colPoly.rotationCenter = tankPos
+            val tank = map.addEle(Tank.byInitPos(nextUid, tankPos))
             cidToTank[c.cid] = tank as Tank
         }
 
@@ -61,7 +59,7 @@ class Game(vararg val bots: GameBot<FutureController>, val replayFile: File) {
             }
 
             TANK_COLBOX -> {
-                return cidToTank[req.cid]!!.rectBox
+                return cidToTank[req.cid]!!.tankRectBox
             }
 
             TANK_POS -> {
@@ -119,7 +117,9 @@ class Game(vararg val bots: GameBot<FutureController>, val replayFile: File) {
             if (eventHistory.isEmpty())
                 continue
             val curEvent = eventHistory.poll()
-            replayFile.appendBytes(curEvent.serialized + "\n".toByteArray())
+            replayFile.appendBytes(curEvent.serialized + "\n".toByteArray(Charsets.UTF_8)
+            println("saved event: ${curEvent.serialized.toString(Charsets.UTF_8)}")
+            println("cur file size: ${replayFile.length()}")
         }
     }
 
@@ -160,7 +160,7 @@ class Game(vararg val bots: GameBot<FutureController>, val replayFile: File) {
                 bot.loop(controllers[i])
             }.start()
         }
-        Thread{
+        Thread {
             replaySaver()
         }.start()
         var lastUpd = System.currentTimeMillis()
@@ -188,26 +188,43 @@ class Game(vararg val bots: GameBot<FutureController>, val replayFile: File) {
             val dt = System.currentTimeMillis() - lastUpd
             lastUpd = System.currentTimeMillis()
             for (updatable in map.timeUpdatables) {
-                var prevCent: DPos2? = null
                 if (updatable is MovableElement) {
-                    prevCent = updatable.colPoly.rotationCenter
-                }
-                updatable.updateByTime(dt)
-                if (updatable is MovableElement) {
+                    val prevPos = updatable.colPoly.rotationCenter.copy()
+                    val prevAng = updatable.colPoly.angleRotated
+                    updatable.updateByTime(dt)
+                    val curPos = updatable.colPoly.rotationCenter.copy()
+                    val curAng = updatable.colPoly.angleRotated
                     val collideds = map.quadTree.collidedObjs(updatable.colPoly)
                     for (collided in collideds) {
                         updatable.processCollision(map.collidableToEle[collided]!!)
                         map.collidableToEle[collided]!!.processCollision(updatable)
                     }
-                    updatable.colPoly.rotationCenter = prevCent!!
-                    eventHistory.add(
-                        ElementUpdateEvent(
-                            updatable,
-                            UpdateEventSlect.defaultTrue()
+                    updatable.colPoly.rotationCenter = prevPos
+                    if (collideds.isNotEmpty() && (prevPos != curPos || prevAng != curAng))
+                        eventHistory.add(
+                            ElementUpdateEvent(
+                                updatable,
+                                UpdateEventSlect.defaultFalse(
+                                    x = (prevPos.x != curPos.x),
+                                    y = (prevPos.y != curPos.y),
+                                    rad = (prevAng != curAng)
+                                )
+                            )
                         )
-                    )
+                } else {
+                    updatable.updateByTime(dt)
                 }
             }
         }
     }
+
+    companion object {
+        @JvmStatic
+        fun main(args: Array<String>) {
+            val file = File(Game::class.java.getResource("replay.json").path)
+            val game = Game(file, RandomMovingBot())
+            game.start()
+        }
+    }
 }
+typealias FutureBot = GameBot<FutureController>

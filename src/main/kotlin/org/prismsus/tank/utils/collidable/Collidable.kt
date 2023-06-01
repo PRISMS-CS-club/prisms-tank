@@ -43,7 +43,28 @@ interface Collidable {
      * @return The shifted object.
      * */
     operator fun plus(shift : DVec2) : Collidable {
-        return byPts(pts.map{it + shift}.toTypedArray())
+        for (pt in pts){
+            pt += shift
+        }
+        return this
+    }
+
+    infix fun shift(shift : DVec2) : Collidable {
+        return plus(shift)
+    }
+
+    infix fun shiftAssign(shift : DVec2) {
+        plusAssign(shift)
+    }
+
+    infix fun shiftTo(pt : DPos2) : Collidable {
+        val shift = pt - pts[0]
+        return plus(shift)
+    }
+
+    infix fun shiftToAssign(pt : DPos2) {
+        val shift = pt - pts[0]
+        plusAssign(shift)
     }
 
     operator fun plusAssign(shift : DVec2) {
@@ -77,6 +98,7 @@ interface Collidable {
 
     fun rotate(rad: Double, center: DPos2 = rotationCenter) : Collidable {
         val newPts = pts.copyOf().map { it.copy()}.toTypedArray()
+        angleRotated += rad
         return byPts(newPts).rotateAssign(rad, center)
     }
 

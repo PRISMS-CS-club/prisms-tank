@@ -1,5 +1,4 @@
 package org.prismsus.tank
-
 import org.junit.jupiter.api.Test
 import org.prismsus.tank.utils.*
 import org.junit.jupiter.api.Assertions.*
