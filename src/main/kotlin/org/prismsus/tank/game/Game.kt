@@ -117,7 +117,7 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
             if (eventHistory.isEmpty())
                 continue
             val curEvent = eventHistory.poll()
-            replayFile.appendBytes(curEvent.serialized + "\n".toByteArray(Charsets.UTF_8)
+            replayFile.appendBytes(curEvent.serialized + "\n".toByteArray(Charsets.UTF_8))
             println("saved event: ${curEvent.serialized.toString(Charsets.UTF_8)}")
             println("cur file size: ${replayFile.length()}")
         }
