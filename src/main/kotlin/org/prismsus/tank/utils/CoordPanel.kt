@@ -14,6 +14,7 @@ import kotlin.math.roundToInt
 class CoordPanel(
     val gridInterv: IDim2,
     val factor: IDim2,
+    val size : IDim2 = IDim2(CoordPanel.DEFAULT_WIDTH, CoordPanel.DEFAULT_HEIGHT),
     val originPos: IPos2 = IPos2(0, 0)
 ) : JPanel() {
 
@@ -39,8 +40,8 @@ class CoordPanel(
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
         g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
 
-        val width = size.width
-        val height = size.height
+        val width = size.x
+        val height = size.y
 
         g2d.background = Color.WHITE
         g2d.clearRect(0, 0, width, height)
@@ -144,7 +145,7 @@ class CoordPanel(
         SwingUtilities.invokeLater {
             val frame = JFrame("Coordinate System")
             frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
-            frame.setSize(CoordPanel.DEFAULT_WIDTH, CoordPanel.DEFAULT_HEIGHT)
+            frame.setSize(size.x, size.y)
             frame.contentPane.add(this)
             framModifier(frame)
             frame.isVisible = true

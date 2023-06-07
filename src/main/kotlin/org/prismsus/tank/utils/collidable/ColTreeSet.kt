@@ -1,7 +1,12 @@
 package org.prismsus.tank.utils.collidable
 
 import org.prismsus.tank.utils.*
+import java.awt.Color
 import java.awt.Shape
+import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * collection of collidables, implemented by a quad tree
@@ -71,13 +76,14 @@ class ColTreeSet(val dep: Int, val bound: ColAArect) {
     fun split() {
         // make each of the four subtrees slightly larger than bound.size / 2
         // so that there will be no gap between the four subtrees
-        val tlShift = DVec2(DOUBLE_PRECISION, DOUBLE_PRECISION) * 10.0
-        val subDim = (bound.size / 2.0) + tlShift * 2.0
+        val offset = DOUBLE_PRECISION * 10.0
+        val tlShift = DVec2(offset, offset) * 10.0
+        val subDim = (bound.size / 2.0)
         val topLeft = bound.topLeftPt - tlShift.xVec + tlShift.yVec
         val quad2 = ColTreeSet(dep + 1, ColAArect.byTopLeft(topLeft, subDim))
-        val quad1 = ColTreeSet(dep + 1, ColAArect.byTopLeft(topLeft + subDim.xVec, subDim))
-        val quad4 = ColTreeSet(dep + 1, ColAArect.byTopLeft(topLeft - subDim.yVec + subDim.xVec, subDim))
-        val quad3 = ColTreeSet(dep + 1, ColAArect.byTopLeft(topLeft - subDim.yVec, subDim))
+        val quad1 = ColTreeSet(dep + 1, ColAArect.byTopLeft(topLeft + (subDim.xVec - tlShift.xVec), subDim + tlShift * 2.0 ))
+        val quad4 = ColTreeSet(dep + 1, ColAArect.byTopLeft(topLeft - (subDim.yVec - tlShift.yVec) + (subDim.xVec - tlShift.xVec), subDim + tlShift * 2.0))
+        val quad3 = ColTreeSet(dep + 1, ColAArect.byTopLeft(topLeft - (subDim.yVec - tlShift.yVec), subDim + tlShift * 2.0 ))
         subTrees = arrayOf(quad1, quad2, quad3, quad4)
     }
 
@@ -164,7 +170,6 @@ class ColTreeSet(val dep: Int, val bound: ColAArect) {
     }
 
     infix fun collide(col: Collidable): Boolean {
-        val possible = possibleCollision(col)
         return collidedObjs(col).isNotEmpty()
     }
 
@@ -172,10 +177,37 @@ class ColTreeSet(val dep: Int, val bound: ColAArect) {
         val possible = possibleCollision(col)
         val ret = ArrayList<Collidable>()
         for (c in possible) {
-            if (c.collide(col)) {
+            if (c.collide(col) && c != col) {
                 ret.add(c)
             }
         }
         return ret
     }
+
+
+    fun getCoordPanel(panelSiz : IDim2) : CoordPanel {
+            var maxPos = DPos2(Double.MIN_VALUE / 2, Double.MIN_VALUE / 2)
+            var minPos = DPos2(Double.MAX_VALUE / 2, Double.MAX_VALUE / 2)
+            for (col in allSubCols){
+                maxPos = maxPos max col.encAARect.topRightPt
+                minPos = minPos min col.encAARect.bottomLeftPt
+            }
+            val xsz = max(abs(maxPos.x), abs(minPos.x)) * 2
+            val ysz = max(abs(maxPos.y), abs(minPos.y)) * 2
+            val pfactor = min(panelSiz.x / xsz, panelSiz.y / ysz)
+            // make sure that the actual interval between grids is at least 30pixel
+            // actual interval = pinterv * pfactor
+            val pinterv = ceil(max(30.0 / pfactor, 1.0)).toInt()
+            val panel = CoordPanel(IDim2(pinterv, pinterv), IDim2(pfactor.toInt(), pfactor.toInt()), panelSiz)
+            for (col in allSubCols){
+                panel.drawCollidable(col)
+            }
+            for (line in allSubPartitionLines){
+                panel.graphicsModifier = {
+                    g -> g.color = Color.RED
+                }
+                panel.drawCollidable(line)
+            }
+            return panel
+        }
 }

@@ -127,11 +127,11 @@ class DPos2(var x: Double, var y: Double) : Collidable, Comparable<DPos2>, Clone
         return abs(x - other.x) + abs(y - other.y)
     }
 
-    fun min(other: DPos2): DPos2 {
+    infix fun min(other: DPos2): DPos2 {
         return DPos2(min(x, other.x), min(y, other.y))
     }
 
-    fun max(other: DPos2): DPos2 {
+    infix fun max(other: DPos2): DPos2 {
         return DPos2(max(x, other.x), max(y, other.y))
     }
 

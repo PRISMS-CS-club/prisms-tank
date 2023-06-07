@@ -35,12 +35,14 @@ open class ColRect (val centerPos : DPos2, val size : DDim2) : ColPoly(arrayOf(
         set(value){
             val vec = value.toVec() - topLeftPt.toVec()
             pts.forEach { it += vec }
+            centerPos += vec
         }
     var topRightPt : DPos2
         get() = pts[1]
         set(value){
             val vec = value.toVec() - topRightPt.toVec()
             pts.forEach { it += vec }
+            centerPos += vec
         }
     var bottomRightPt : DPos2
         get() = pts[2]
@@ -53,6 +55,7 @@ open class ColRect (val centerPos : DPos2, val size : DDim2) : ColPoly(arrayOf(
         set(value){
             val vec = value.toVec() - bottomLeftPt.toVec()
             pts.forEach { it += vec }
+            centerPos += vec
         }
     var leftMidPt : DPos2
         get() = ((topLeftPt.toVec() + bottomLeftPt.toVec()) / 2.0).toPt()
@@ -65,19 +68,26 @@ open class ColRect (val centerPos : DPos2, val size : DDim2) : ColPoly(arrayOf(
         set(value){
             val vec = value.toVec() - rightMidPt.toVec()
             pts.forEach { it += vec }
+            centerPos += vec
         }
     var topMidPt : DPos2
         get() = ((topLeftPt.toVec() + topRightPt.toVec()) / 2.0).toPt()
         set(value){
             val vec = value.toVec() - topMidPt.toVec()
             pts.forEach { it += vec }
+            centerPos += vec
         }
     var bottomMidPt : DPos2
         get() = ((bottomLeftPt.toVec() + bottomRightPt.toVec()) / 2.0).toPt()
         set(value){
             val vec = value.toVec() - bottomMidPt.toVec()
             pts.forEach { it += vec }
+            centerPos += vec
         }
+
+    override fun copy(): ColRect {
+        return byTopLeft(topLeftPt, size)
+    }
     override val height : Double
         get() {
             return size.y

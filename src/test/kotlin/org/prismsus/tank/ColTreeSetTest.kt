@@ -39,4 +39,15 @@ class ColTreeSetTest {
         while(true){}
     }
 
+    @Test
+    fun getCordPanel(){
+        var randPts = Array(200) { DVec2.randUnitVec() * Random.nextDouble(-5.0, 5.0) }
+        val quadTree = ColTreeSet(0, ColAArect(DPos2(0, 0), DDim2(10, 10)))
+        for (pt in randPts) {
+            quadTree.insert(pt.toPt())
+        }
+        val panel = quadTree.getCoordPanel(IDim2(1000, 1000))
+        panel.showFrame()
+        while(true){}
+    }
 }

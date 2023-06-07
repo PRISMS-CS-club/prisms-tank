@@ -219,8 +219,8 @@ interface Collidable {
     val encAARect : ColAArect   // the enclosing rectangle, which is the image
         get() {
             val dim = encAARectSize
-            val topLeft = DPos2(minX, minY)
-            return ColAArect.byTopLeft(topLeft, dim)
+            val bottomLeft = DPos2(minX, minY)
+            return ColAArect.byBottomLeft(bottomLeft, dim)
         }
 
 

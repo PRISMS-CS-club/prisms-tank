@@ -18,4 +18,5 @@ public interface GameBot<T> {
      *                   this controller.
      */
     public void loop(T controller) throws ExecutionException, InterruptedException;
+    // whenever there is an interruptedException, this function should return immediately.
 }

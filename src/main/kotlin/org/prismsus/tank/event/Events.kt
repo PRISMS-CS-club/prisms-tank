@@ -28,7 +28,8 @@ class ElementCreateEvent(val ele : GameElement, timeStamp : Long = currentTimeMi
     override val serialized: ByteArray
         get() {
             val json = buildJsonObject {
-                put("timestamp", timeStamp)
+                put("type", serialName)
+                put("t", timeStamp)
                 put("uid", ele.uid)
                 put("name", ele.serialName)
                 put("x", ele.colPoly.rotationCenter.x)
@@ -58,7 +59,8 @@ class ElementUpdateEvent(val ele : GameElement, val updateEventSlect: UpdateEven
     override val serialized: ByteArray
         get() {
             val json = buildJsonObject {
-                put("timestamp", timeStamp)
+                put("type", serialName)
+                put("t", timeStamp)
                 put("uid", ele.uid)
                 if (updateEventSlect.hp)
                     put("hp", ele.hp)
@@ -69,6 +71,7 @@ class ElementUpdateEvent(val ele : GameElement, val updateEventSlect: UpdateEven
                 if (updateEventSlect.rad)
                     put("rad", ele.colPoly.angleRotated)
             }
+
             return json.toString().toByteArray()
         }
     override val serialName: String = "EleUpd"

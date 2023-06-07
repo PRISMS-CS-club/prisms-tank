@@ -13,14 +13,14 @@ import kotlin.reflect.full.*
  */
 class GameMap(val FileName : String) {
     val blocks : Array<Array<Block?>>
-    var width: Int = 0
-    var height: Int = 0
+    val width : Int
+    val height: Int
     val gameEles : ArrayList<GameElement> = ArrayList()
     val tks : ArrayList<Tank> = ArrayList()
     val movables : ArrayList<MovableElement> = ArrayList() // TODO: use a better data structure, such as mutable set
     val timeUpdatables : ArrayList<TimeUpdatable> = ArrayList()
     val bullets : ArrayList<Bullet> = ArrayList()
-    val quadTree = ColTreeSet(0, ColAArect.byBottomLeft(DPos2(0, 0), DDim2(width.toDouble(), height.toDouble())))
+    val quadTree : ColTreeSet
     val collidableToEle = mutableMapOf<Collidable, GameElement>()
     val lastUid : Long
         get() {
@@ -108,6 +108,8 @@ class GameMap(val FileName : String) {
         val jsonEle : JsonElement = Json.parseToJsonElement(fileText)
         width = jsonEle.jsonObject["x"]!!.jsonPrimitive.int
         height = jsonEle.jsonObject["y"]!!.jsonPrimitive.int
+        val blPt = DPos2(-DOUBLE_PRECISION * 100, -DOUBLE_PRECISION * 100)
+        quadTree = ColTreeSet(5, ColAArect.byBottomLeft(blPt, DDim2(width.toDouble(), height.toDouble()) - blPt.toVec() * 2.0))
         blocks = Array(width){Array(height){null}}
         var tmpArr : JsonArray = jsonEle.jsonObject["map"]!!.jsonArray
         for (x in 0 until height){
@@ -128,6 +130,9 @@ class GameMap(val FileName : String) {
                 }
 
                 blocks[x][y] = ele
+                ele?.run {
+                    quadTree.insert(ele.colPoly)
+                }
             }
         }
     }

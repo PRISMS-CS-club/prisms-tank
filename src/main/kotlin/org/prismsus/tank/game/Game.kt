@@ -16,6 +16,9 @@ import org.prismsus.tank.game.OtherRequests.*
 import org.prismsus.tank.utils.*
 import java.io.File
 import java.nio.charset.Charset
+import java.nio.file.Paths
+import java.time.LocalDate
+import java.time.LocalTime
 
 class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
     val eventHistory = PriorityBlockingQueue<GameEvent>()
@@ -23,6 +26,11 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
     val requestsQ = PriorityBlockingQueue<ControllerRequest<Any>>()
     val map = GameMap("default.json")
     val cidToTank = mutableMapOf<Long, Tank>()
+    val botThs: Array<Thread?> = Array(bots.size) { null }
+    lateinit var replayTh: Thread
+    val gameInitMs = System.currentTimeMillis()
+    val gameCurMs: Long
+        get() = System.currentTimeMillis() - gameInitMs
 
     init {
         controllers = Array(bots.size) { i -> FutureController(i.toLong(), requestsQ) }
@@ -112,14 +120,18 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
 
     fun replaySaver() {
         // read from eventHistory, save to file
-        while (true) {
-            Thread.sleep(50)
-            if (eventHistory.isEmpty())
-                continue
-            val curEvent = eventHistory.poll()
-            replayFile.appendBytes(curEvent.serialized + "\n".toByteArray(Charsets.UTF_8))
-            println("saved event: ${curEvent.serialized.toString(Charsets.UTF_8)}")
-            println("cur file size: ${replayFile.length()}")
+        try {
+            while (true) {
+                Thread.sleep(100)
+                while(eventHistory.isNotEmpty()) {
+                    val curEvent = eventHistory.poll()
+                    replayFile.appendBytes(curEvent.serialized + ",\n".toByteArray(Charsets.UTF_8))
+//                    println("saved event: ${curEvent.serialized.toString(Charsets.UTF_8)}")
+//                    println("cur file size: ${replayFile.length()}")
+                }
+            }
+        } catch (e: InterruptedException) {
+            return
         }
     }
 
@@ -156,16 +168,28 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
 
     fun start() {
         for ((i, bot) in bots.withIndex()) {
-            Thread {
-                bot.loop(controllers[i])
-            }.start()
+            botThs[i] =
+                Thread {
+                    bot.loop(controllers[i])
+                }
+            botThs[i]!!.start()
         }
-        Thread {
+        replayTh = Thread {
             replaySaver()
-        }.start()
+        }
+        replayFile.appendText("[\n")
+        replayTh.start()
         var lastUpd = System.currentTimeMillis()
-        while (true) {
 
+
+        Runtime.getRuntime().addShutdownHook(Thread {
+            println("saving replay file...")
+            replayFile.appendText("]")
+            println("replay file saved")
+            stop()
+        })
+
+        while (true) {
             // first handle all the requests, then move all the elements
             while (!requestsQ.isEmpty()) {
                 val curReq = requestsQ.poll()
@@ -199,18 +223,30 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
                         updatable.processCollision(map.collidableToEle[collided]!!)
                         map.collidableToEle[collided]!!.processCollision(updatable)
                     }
-                    updatable.colPoly.rotationCenter = prevPos
-                    if (collideds.isNotEmpty() && (prevPos != curPos || prevAng != curAng))
+
+                    if (collideds.isNotEmpty()) {
+                        print("collision detected: ")
+                        // restore to the original position
+                        updatable.colPoly.rotationCenter = prevPos
+                        updatable.colPoly.rotateTo(prevAng)
+                        continue
+                    }
+
+
+                    if (collideds.isEmpty() && (prevPos != curPos || prevAng != curAng))
                         eventHistory.add(
                             ElementUpdateEvent(
                                 updatable,
                                 UpdateEventSlect.defaultFalse(
                                     x = (prevPos.x != curPos.x),
                                     y = (prevPos.y != curPos.y),
-                                    rad = (prevAng != curAng)
-                                )
+                                    rad = (prevAng != curAng
+                                            )
+                                ), gameCurMs
                             )
                         )
+
+
                 } else {
                     updatable.updateByTime(dt)
                 }
@@ -218,11 +254,31 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
         }
     }
 
+
+    fun stop() {
+        // interrupt all the bots
+        for (botTh in botThs) {
+            botTh!!.interrupt()
+        }
+        // interrupt the replay saver
+        replayTh!!.interrupt()
+        // write the ending ] and close the replay file
+        replayFile.appendText("]")
+    }
+
+
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            val file = File(Game::class.java.getResource("replay.json").path)
-            val game = Game(file, RandomMovingBot())
+            var curTime = LocalDate.now().toString() + "_" + LocalTime.now().toString()
+            // create a new file of this name
+            // replace all : with -
+            curTime = curTime.replace(':', '-')
+            val replayFile = File("./replayFiles/replay_@$curTime.json")
+
+            println(Paths.get(replayFile.path.toString()).toAbsolutePath())
+            replayFile.createNewFile()
+            val game = Game(replayFile, RandomMovingBot())
             game.start()
         }
     }

@@ -60,10 +60,11 @@ class Tank(
         set(value) {}
 
     override fun updateByTime(dt: Long) {
+        val ddt = dt / 1000.0 // convert to second
         if (leftTrackVelo errEQ 0.0 && rightTrackVelo errEQ 0.0) return
         if (leftTrackVelo errEQ rightTrackVelo) {
             // the tank is moving straight
-            val shiftVal = DVec2.byPolar(1.0, colPoly.angleRotated) * leftTrackVelo * dt.toDouble()
+            val shiftVal = DVec2.byPolar(1.0, colPoly.angleRotated) * leftTrackVelo * ddt
             colPoly += shiftVal
             weapon.colPoly += shiftVal
             tankRectBox += shiftVal
@@ -74,10 +75,10 @@ class Tank(
             // meaing that the rotation center is the rotation center of the tank
             val angSign = if (rightTrackVelo > 0) 1 else -1
             val angVelo = abs(leftTrackVelo / .5)
-            val angDisp = angVelo * dt.toDouble()
-            colPoly.rotate(angDisp * angSign, tankRectBox.rotationCenter)
-            tankRectBox.rotate(angDisp * angSign, tankRectBox.rotationCenter)
-            weapon.colPoly.rotateTo(colPoly.angleRotated, tankRectBox.rotationCenter)
+            val angDisp = angVelo * ddt
+            colPoly.rotateAssign(angDisp * angSign, tankRectBox.rotationCenter)
+            tankRectBox.rotateAssignTo(angDisp * angSign, tankRectBox.rotationCenter)
+            weapon.colPoly.rotateAssignTo(colPoly.angleRotated, tankRectBox.rotationCenter)
             return
         }
 
@@ -86,10 +87,10 @@ class Tank(
         val pivotPt = pivotBaseLine.atT(turningRad)
         val angSign = if (leftTrackVelo - rightTrackVelo > 0) -1 else 1
         val angVelo = abs(inVelo / turningRad)
-        val angDisp = angVelo * dt.toDouble()
-        colPoly.rotate(angDisp * angSign, pivotPt)
-        tankRectBox.rotateTo(colPoly.angleRotated, pivotPt)
-        weapon.colPoly.rotateTo(colPoly.angleRotated, pivotPt)
+        val angDisp = angVelo * ddt
+        colPoly.rotateAssign(angDisp * angSign, pivotPt)
+        tankRectBox.rotateAssignTo(colPoly.angleRotated, pivotPt)
+        weapon.colPoly.rotateAssignTo(colPoly.angleRotated, pivotPt)
     }
 
     override val serialName: String

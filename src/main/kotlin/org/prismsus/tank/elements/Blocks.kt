@@ -12,10 +12,10 @@ import org.prismsus.tank.utils.collidable.ColRect
  *
  * Gives all relevant data of a block in the game map.
  */
-abstract class Block(uid : Long, val pos : IVec2, hp : Int = -1, colBox: ColRect = DEF_BLOCK_COLBOX)
-    : GameElement(uid, hp, colBox){
+abstract class Block(uid : Long, val pos : IVec2, hp : Int = -1, override val colPoly: ColRect = DEF_BLOCK_COLBOX.copy() as ColRect)
+    : GameElement(uid, hp, colPoly){
     init{
-        this.colPoly.rotationCenter = pos.toDVec2().toPt()
+        colPoly.bottomLeftPt = pos.toDVec2().toPt()
         // the accepted parameter is the position in the map
         // we want to make sure that the colPoly is in top-left position
     }
