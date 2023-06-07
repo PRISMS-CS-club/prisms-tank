@@ -124,6 +124,12 @@ data class IVec2(var x: Int, var y: Int) {
         return false
     }
 
+    override fun hashCode(): Int {
+        var result = x
+        result = 31 * result + y
+        return result
+    }
+
     companion object {
         val ORIGIN = IVec2(0, 0)
         val UP = IVec2(0, 1)

@@ -8,7 +8,7 @@ interface Collidable {
 
     /**
      * This is intended to be a static method, but Kotlin does not support static methods in interfaces.
-     * Create an collidable object from a list of points.
+     * Create a collidable object from a list of points.
      *  */
     fun byPts(pts: Array<DPos2>): Collidable
     /**
@@ -216,11 +216,11 @@ interface Collidable {
             return ret
         }
 
-    val encAARect : ColAArect   // the enclosing rectangle, which is the image
+    val encAARect : ColAARect   // the enclosing rectangle, which is the image
         get() {
             val dim = encAARectSize
             val bottomLeft = DPos2(minX, minY)
-            return ColAArect.byBottomLeft(bottomLeft, dim)
+            return ColAARect.byBottomLeft(bottomLeft, dim)
         }
 
 

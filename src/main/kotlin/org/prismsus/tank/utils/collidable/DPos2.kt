@@ -10,21 +10,21 @@ import kotlin.math.*
 data class DPos2(var x: Double, var y: Double) : Collidable, Comparable<DPos2>, Cloneable {
     constructor(other : DPos2) : this(other.x, other.y)
     constructor(x : Int, y : Int) : this(x.toDouble(), y.toDouble())
-    override operator fun plus(other: DVec2): DPos2 {
-        return DPos2(x + other.x, y + other.y)
+    override operator fun plus(shift: DVec2): DPos2 {
+        return DPos2(x + shift.x, y + shift.y)
     }
 
-    override operator fun plusAssign(other: DVec2) {
-        x += other.x
-        y += other.y
+    override operator fun plusAssign(shift: DVec2) {
+        x += shift.x
+        y += shift.y
     }
 
     operator fun plus(other: DPos2): DVec2 {
         return DVec2(x + other.x, y + other.y)
     }
 
-    override operator fun minus(other: DVec2): DPos2 {
-        return DPos2(x - other.x, y - other.y)
+    override operator fun minus(shift: DVec2): DPos2 {
+        return DPos2(x - shift.x, y - shift.y)
     }
 
     override fun minusAssign(shift: DVec2) {
@@ -187,6 +187,12 @@ data class DPos2(var x: Double, var y: Double) : Collidable, Comparable<DPos2>, 
 
     fun toIPos2() : IPos2 {
         return IPos2(x.roundToInt(), y.roundToInt())
+    }
+
+    override fun hashCode(): Int {
+        var result = x.hashCode()
+        result = 31 * result + y.hashCode()
+        return result
     }
 
     companion object{
