@@ -1,6 +1,7 @@
 package org.prismsus.tank.elements
 
 import org.prismsus.tank.utils.*
+import org.prismsus.tank.utils.collidable.ColPoly
 import org.prismsus.tank.utils.collidable.Line
 import org.prismsus.tank.utils.collidable.ColRect
 import org.prismsus.tank.utils.collidable.DPos2
@@ -12,10 +13,12 @@ class Tank(
     val weaponProps: WeaponProps,
     val trackMaxSpeed: Double = INIT_TANK_TRACK_SPEED,
     hp: Int = INIT_TANK_HP,
-    val tankRectBox: ColRect = INIT_TANK_COLBOX,
+    val tankRectBox: ColRect = INIT_TANK_COLBOX.copy(),
 ) :
 
-    MovableElement(uid, hp, (tankRectBox).union(weaponProps.colPoly + DVec2(.0, tankRectBox.height / 2))!!) {
+    MovableElement(
+        uid, hp, ((tankRectBox).union(weaponProps.colPoly + DVec2(.0, tankRectBox.height / 2))!!).copy() as ColPoly
+    ), MultiPartElement {
 
     var weapon: Weapon
 
@@ -96,17 +99,52 @@ class Tank(
     override val serialName: String
         get() = "Tk"
 
+    var overallRotationCenter: DPos2
+        get() = colPoly.rotationCenter
+        set(value) {
+            val offsetVec = value.toVec() - colPoly.rotationCenter.toVec()
+            colPoly += offsetVec
+            weapon.colPoly += offsetVec
+            tankRectBox += offsetVec
+
+        }
+    var tankRotationCenter: DPos2
+        get() = tankRectBox.rotationCenter
+        set(value) {
+            val offsetVec = value.toVec() - tankRectBox.rotationCenter.toVec()
+            colPoly += offsetVec
+            weapon.colPoly += offsetVec
+            tankRectBox += offsetVec
+        }
+    var weaponRotationCenter: DPos2
+        get() = weapon.colPoly.rotationCenter
+        set(value) {
+            val offsetVec = value.toVec() - weapon.colPoly.rotationCenter.toVec()
+            colPoly += offsetVec
+            weapon.colPoly += offsetVec
+            tankRectBox += offsetVec
+        }
+
+    override val baseColPoly: ColPoly
+        get() = tankRectBox
+    override val subColPolys: ArrayList<ColPoly>
+        get() = arrayListOf(weapon.colPoly, tankRectBox)
+    override val subElements: ArrayList<SubGameElement>
+        get() = arrayListOf(weapon)
+    override val overallColPoly: ColPoly
+        get() = colPoly
+
     companion object {
         fun byInitPos(
             uid: Long,
             initPos: DPos2,
-            weaponProps: WeaponProps = INIT_RECT_WEAPON_RPOPS,
+            weaponProps: WeaponProps = INIT_RECT_WEAPON_RPOPS.copy(),
             trackMaxSpeed: Double = INIT_TANK_TRACK_SPEED,
             hp: Int = INIT_TANK_HP,
-            rectBox: ColRect = INIT_TANK_COLBOX
+            rectBox: ColRect = INIT_TANK_COLBOX.copy()
         ): Tank {
-            rectBox.rotationCenter = initPos
-            weaponProps.colPoly.rotationCenter = initPos
+            rectBox.rotationCenter = initPos.copy()
+            weaponProps.colPoly.rotationCenter = initPos.copy()
             return Tank(uid, weaponProps, trackMaxSpeed, hp, rectBox)
         }
     }

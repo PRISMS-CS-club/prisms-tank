@@ -33,12 +33,25 @@ open class ColPoly(override var pts: Array<DPos2>) : Collidable {
         }
     override var angleRotated = 0.0
     override fun plus(shift: DVec2): ColPoly {
+            rCenter = rCenter + shift
             return super.plus(shift) as ColPoly
     }
 
     override fun minus(shift: DVec2): ColPoly {
+        rCenter = rCenter - shift
         return super.minus(shift) as ColPoly
     }
+
+    override fun plusAssign(shift: DVec2) {
+        rCenter = rCenter + shift
+        super.plusAssign(shift)
+    }
+
+    override fun minusAssign(shift: DVec2) {
+        rCenter = rCenter - shift
+        super.minusAssign(shift)
+    }
+
 
     open val height : Double
         get() = pts.maxBy { it.y }!!.y - pts.minBy { it.y }!!.y

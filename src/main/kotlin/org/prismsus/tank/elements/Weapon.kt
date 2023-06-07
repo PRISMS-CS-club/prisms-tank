@@ -83,4 +83,7 @@ class RectWeaponProps(
     override fun toWeapon(belongTo: GameElement) : RectWeapon {
         return RectWeapon(damage, minInterv, maxCapacity, reloadRate, bulletProps, colBox, belongTo, centerOffset, firingPos)
     }
+    fun copy() : RectWeaponProps {
+        return RectWeaponProps(damage, minInterv, maxCapacity, reloadRate, bulletProps.copy(), colBox.copy(), centerOffset.copy(), firingPos.copy())
+    }
 }

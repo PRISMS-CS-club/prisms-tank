@@ -160,7 +160,7 @@ interface Collidable {
 
     fun copy() : Collidable {
         val newPts = pts.copyOf().map { it.copy()}.toTypedArray()
-        return byPts(pts)
+        return byPts(newPts)
     }
 
     fun toShape(coordTransform : (DPos2) -> DPos2 = {it}, shapeModifier : (Shape) -> Unit = {it}) : Shape

@@ -7,6 +7,7 @@ import org.prismsus.tank.elements.GameElement
 import org.prismsus.tank.elements.GameMap
 import org.prismsus.tank.elements.MovableElement
 import org.prismsus.tank.elements.Tank
+import org.prismsus.tank.event.ElementCreateEvent
 import org.prismsus.tank.event.ElementUpdateEvent
 import org.prismsus.tank.event.GameEvent
 import org.prismsus.tank.event.UpdateEventSlect
@@ -14,8 +15,8 @@ import java.util.concurrent.PriorityBlockingQueue
 import org.prismsus.tank.game.TankWeaponInfo.*
 import org.prismsus.tank.game.OtherRequests.*
 import org.prismsus.tank.utils.*
+import org.prismsus.tank.utils.collidable.DPos2
 import java.io.File
-import java.nio.charset.Charset
 import java.nio.file.Paths
 import java.time.LocalDate
 import java.time.LocalTime
@@ -35,12 +36,37 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
     init {
         controllers = Array(bots.size) { i -> FutureController(i.toLong(), requestsQ) }
         for ((i, c) in controllers.withIndex()) {
-            val tankPos = map.getUnoccupiedRandPos(INIT_TANK_COLBOX)
-            var uid = 0
-            val tank = map.addEle(Tank.byInitPos(nextUid, tankPos))
+            val tank = Tank.byInitPos(nextUid, DPos2.ORIGIN)
+            val tankPos = map.getUnoccupiedRandPos(tank.colPoly)!!
+            tank.overallRotationCenter = tankPos
+            val tpanel = CoordPanel(IDim2(1, 1), IDim2(50, 50))
+            tpanel.drawCollidable(tank.overallColPoly)
+            tpanel.showFrame()
+            map.addEle(tank)
+            eventHistory.add(ElementCreateEvent(tank, gameCurMs))
             cidToTank[c.cid] = tank as Tank
         }
 
+        val panel = map.quadTree.getCoordPanel(IDim2(1000, 1000))
+        panel.showFrame()
+
+        for ((i, bot) in bots.withIndex()) {
+            botThs[i] =
+                Thread {
+                    bot.loop(controllers[i])
+                }
+            botThs[i]!!.start()
+        }
+        replayTh = Thread {
+            replaySaver()
+        }
+        replayFile.appendText("[\n")
+        replayTh.start()
+
+
+        Runtime.getRuntime().addShutdownHook(Thread {
+            stop()
+        })
     }
 
     fun tankWeaponInfoHandler(req: ControllerRequest<Any>): Any {
@@ -167,28 +193,7 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
     }
 
     fun start() {
-        for ((i, bot) in bots.withIndex()) {
-            botThs[i] =
-                Thread {
-                    bot.loop(controllers[i])
-                }
-            botThs[i]!!.start()
-        }
-        replayTh = Thread {
-            replaySaver()
-        }
-        replayFile.appendText("[\n")
-        replayTh.start()
         var lastUpd = System.currentTimeMillis()
-
-
-        Runtime.getRuntime().addShutdownHook(Thread {
-            println("saving replay file...")
-            replayFile.appendText("]")
-            println("replay file saved")
-            stop()
-        })
-
         while (true) {
             // first handle all the requests, then move all the elements
             while (!requestsQ.isEmpty()) {
@@ -208,7 +213,6 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
                     }
                 }
             }
-
             val dt = System.currentTimeMillis() - lastUpd
             lastUpd = System.currentTimeMillis()
             for (updatable in map.timeUpdatables) {
@@ -225,15 +229,22 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
                     }
 
                     if (collideds.isNotEmpty()) {
-                        print("collision detected: ")
+                        println("collision detected: ")
                         // restore to the original position
                         updatable.colPoly.rotationCenter = prevPos
-                        updatable.colPoly.rotateTo(prevAng)
+                        updatable.colPoly.rotateAssignTo(prevAng)
                         continue
                     }
 
 
                     if (collideds.isEmpty() && (prevPos != curPos || prevAng != curAng))
+                        updatable.colPoly.rotationCenter = prevPos
+                        updatable.colPoly.rotateAssignTo(prevAng)
+                        // update it in the quadtree
+                        map.quadTree.remove(updatable.colPoly);
+                        updatable.colPoly.rotationCenter = curPos
+                        updatable.colPoly.rotateAssignTo(curAng)
+                        map.quadTree.insert(updatable.colPoly)
                         eventHistory.add(
                             ElementUpdateEvent(
                                 updatable,
@@ -257,13 +268,20 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
 
     fun stop() {
         // interrupt all the bots
+        print("closing bot threads...")
         for (botTh in botThs) {
             botTh!!.interrupt()
         }
+        println("done")
         // interrupt the replay saver
+        print("closing replay saver thread...")
         replayTh!!.interrupt()
+        println("done")
         // write the ending ] and close the replay file
+        println("saving replay file...")
         replayFile.appendText("]")
+        println("replay file saved")
+
     }
 
 

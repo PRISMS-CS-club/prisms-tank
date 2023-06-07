@@ -14,4 +14,8 @@ class Bullet(uid: Long, var speed: Double = INIT_BULLET_SPEED, override val colP
 
 }
 
-data class BulletProps(val speed: Double = INIT_BULLET_SPEED, val colBox: ColRect = INIT_BULLET_COLBOX.copy())
+class BulletProps(val speed: Double = INIT_BULLET_SPEED, val colBox: ColRect = INIT_BULLET_COLBOX){
+    fun copy() : BulletProps {
+        return BulletProps(speed, colBox.copy())
+    }
+}

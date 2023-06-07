@@ -2,6 +2,7 @@ package org.prismsus.tank.event
 import kotlinx.serialization.json.*
 import org.prismsus.tank.elements.GameElement
 import org.prismsus.tank.elements.GameMap
+import org.prismsus.tank.elements.MultiPartElement
 import java.lang.System.currentTimeMillis
 /**
  * Base class for all events.
@@ -65,9 +66,13 @@ class ElementUpdateEvent(val ele : GameElement, val updateEventSlect: UpdateEven
                 if (updateEventSlect.hp)
                     put("hp", ele.hp)
                 if (updateEventSlect.x)
-                    put("x", ele.colPoly.rotationCenter.x)
+                    if (ele is MultiPartElement)
+                        put("x", ele.baseColPoly.rotationCenter.x)
+                    else put("x", ele.colPoly.rotationCenter.x)
                 if (updateEventSlect.y)
-                    put("y", ele.colPoly.rotationCenter.y)
+                    if (ele is MultiPartElement)
+                        put("y", ele.baseColPoly.rotationCenter.y)
+                    else put("y", ele.colPoly.rotationCenter.y)
                 if (updateEventSlect.rad)
                     put("rad", ele.colPoly.angleRotated)
             }
