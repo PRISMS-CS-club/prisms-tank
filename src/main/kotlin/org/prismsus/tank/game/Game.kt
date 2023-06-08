@@ -110,7 +110,7 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
             }
 
             WEAPON_CUR_CAPACITY -> {
-                return cidToTank[req.cid]!!.weapon.curCapa
+                return cidToTank[req.cid]!!.weapon.curCapacity
             }
 
             WEAPON_DAMAGE -> {

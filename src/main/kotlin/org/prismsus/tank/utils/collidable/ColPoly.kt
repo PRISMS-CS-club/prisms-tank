@@ -266,9 +266,17 @@ open class ColPoly(override var pts: Array<DPos2>) : Collidable {
     }
 
     /**
+     * @param other The other ColPoly to calculate union with.
      * @return the combination of two ColPoly, which is the union of the two polygons.
+     *
      * If they do not intersect, return null.
-     * Note that if the actual union forms a shape with empty space, the empty space will not be included.
+     *
+     * If the union consists of a large polygon with smaller polygon holes inside, the function
+     * will only return the outer polygon.
+     *
+     * This function's return value may point to the same object as one of the two ColPoly.
+     * Therefore, it should be read-only by default. If you want to modify the points of the
+     * union polygon, please copy it first.
      * */
     infix fun union(other: ColPoly): ColPoly? {
         if (!collide(other)) return null

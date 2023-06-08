@@ -2,7 +2,7 @@ package org.prismsus.tank.elements
 
 import kotlinx.serialization.json.*
 import org.prismsus.tank.utils.*
-import org.prismsus.tank.utils.collidable.ColAArect
+import org.prismsus.tank.utils.collidable.ColAARect
 import org.prismsus.tank.utils.collidable.ColTreeSet
 import org.prismsus.tank.utils.collidable.Collidable
 import org.prismsus.tank.utils.collidable.DPos2
@@ -13,12 +13,12 @@ import kotlin.reflect.full.*
 /**
  * The game map containing all blocks.
  */
-class GameMap(val FileName: String) {
+class GameMap(val fileName: String) {
     val blocks: Array<Array<Block?>>
     val width: Int
     val height: Int
     val gameEles: ArrayList<GameElement> = ArrayList()
-    val tks: ArrayList<Tank> = ArrayList()
+    val tanks: ArrayList<Tank> = ArrayList()
     val movables: ArrayList<MovableElement> = ArrayList() // TODO: use a better data structure, such as mutable set
     val timeUpdatables: ArrayList<TimeUpdatable> = ArrayList()
     val bullets: ArrayList<Bullet> = ArrayList()
@@ -61,7 +61,7 @@ class GameMap(val FileName: String) {
         // randome shuffle the value from emptyBlkCenters
         val randPoses = emptyBlkCenters ; randPoses.shuffle()
         for (pos in randPoses){
-            val emptyAArect = ColAArect(pos, DEF_BLOCK_COLBOX.size)
+            val emptyAArect = ColAARect(pos, DEF_BLOCK_COLBOX.size)
             if (emptyAArect.size.x < box.encAARectSize.x || emptyAArect.size.y < box.encAARectSize.y) {
                 continue
             }
@@ -79,7 +79,7 @@ class GameMap(val FileName: String) {
         }
         quadTree.insert(ele.colPoly)
         if (ele is Tank) {
-            if (!tks.add(ele)) {
+            if (!tanks.add(ele)) {
                 throw Exception("failed to add tank")
             }
         }
@@ -108,7 +108,7 @@ class GameMap(val FileName: String) {
         }
         quadTree.remove(ele.colPoly)
         if (ele is Tank) {
-            if (!tks.remove(ele)) {
+            if (!tanks.remove(ele)) {
                 throw Exception("failed to remove tank")
             }
         }
@@ -131,13 +131,13 @@ class GameMap(val FileName: String) {
     }
 
     init {
-        val fileText = GameMap::class.java.getResource(FileName).readText()
+        val fileText = GameMap::class.java.getResource(fileName).readText()
         val jsonEle: JsonElement = Json.parseToJsonElement(fileText)
         width = jsonEle.jsonObject["x"]!!.jsonPrimitive.int
         height = jsonEle.jsonObject["y"]!!.jsonPrimitive.int
         val blPt = DPos2(-DOUBLE_PRECISION * 100, -DOUBLE_PRECISION * 100)
         quadTree =
-            ColTreeSet(5, ColAArect.byBottomLeft(blPt, DDim2(width.toDouble(), height.toDouble()) - blPt.toVec() * 2.0))
+            ColTreeSet(5, ColAARect.byBottomLeft(blPt, DDim2(width.toDouble(), height.toDouble()) - blPt.toVec() * 2.0))
         blocks = Array(width) { Array(height) { null } }
         var tmpArr: JsonArray = jsonEle.jsonObject["map"]!!.jsonArray
         for (x in 0 until height) {
@@ -167,7 +167,7 @@ class GameMap(val FileName: String) {
 
     val serialized: ByteArray
         get() {
-            val origFileText = GameMap::class.java.getResource(FileName).readText()
+            val origFileText = GameMap::class.java.getResource(fileName)!!.readText()
             return origFileText.toByteArray()
         }
 

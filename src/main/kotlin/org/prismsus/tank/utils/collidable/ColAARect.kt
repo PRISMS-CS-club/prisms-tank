@@ -5,20 +5,20 @@ import org.prismsus.tank.utils.*
 /*
 * Axis Aligned Rectangle Collision Box, cannot rotate, can make collision detection faster
 * */
-class ColAArect(centerPos : DPos2, size : DDim2) : ColRect(centerPos, size){
+class ColAARect(centerPos : DPos2, size : DDim2) : ColRect(centerPos, size){
     constructor(rect: ColRect) : this(rect.centerPos, rect.size)
     companion object{
-        fun byTopLeft(topLeft : DPos2, size : DDim2) : ColAArect {
-            return ColAArect(ColRect.byTopLeft(topLeft, size))
+        fun byTopLeft(topLeft : DPos2, size : DDim2) : ColAARect {
+            return ColAARect(ColRect.byTopLeft(topLeft, size))
         }
-        fun byBottomLeft(bottomLeft : DPos2, size : DDim2) : ColAArect {
-            return ColAArect(ColRect.byBottomLeft(bottomLeft, size))
+        fun byBottomLeft(bottomLeft : DPos2, size : DDim2) : ColAARect {
+            return ColAARect(ColRect.byBottomLeft(bottomLeft, size))
         }
-        fun byTopRight(topRight : DPos2, size : DDim2) : ColAArect {
-            return ColAArect(ColRect.byTopRight(topRight, size))
+        fun byTopRight(topRight : DPos2, size : DDim2) : ColAARect {
+            return ColAARect(ColRect.byTopRight(topRight, size))
         }
-        fun byBottomRight(bottomRight : DPos2, size : DDim2) : ColAArect {
-            return ColAArect(ColRect.byBottomRight(bottomRight, size))
+        fun byBottomRight(bottomRight : DPos2, size : DDim2) : ColAARect {
+            return ColAARect(ColRect.byBottomRight(bottomRight, size))
         }
     }
 
@@ -68,7 +68,7 @@ class ColAArect(centerPos : DPos2, size : DDim2) : ColRect(centerPos, size){
     }
 
     override fun enclose(other: Collidable): Boolean {
-        if (other is ColAArect){
+        if (other is ColAARect){
             return maxX > other.maxX && minX < other.minX && maxY > other.maxY && minY < other.minY
         }
         for (pt in other.pts){
@@ -108,6 +108,6 @@ class ColAArect(centerPos : DPos2, size : DDim2) : ColRect(centerPos, size){
         get() = 0.0
         set(value) {}
 
-    override val encAARect: ColAArect
+    override val encAARect: ColAARect
         get() = this
 }

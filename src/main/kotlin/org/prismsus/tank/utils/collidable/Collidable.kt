@@ -8,7 +8,7 @@ interface Collidable {
 
     /**
      * This is intended to be a static method, but Kotlin does not support static methods in interfaces.
-     * Create an collidable object from a list of points.
+     * Create a collidable object from a list of points.
      *  */
     fun byPts(pts: Array<DPos2>): Collidable
     /**
@@ -97,7 +97,7 @@ interface Collidable {
      * */
 
     fun rotate(rad: Double, center: DPos2 = rotationCenter) : Collidable {
-        val newPts = pts.copyOf().map { it.copy()}.toTypedArray()
+        val newPts = pts.copyOf().map { it.copy() }.toTypedArray()
         angleRotated += rad
         return byPts(newPts).rotateAssign(rad, center)
     }
@@ -159,7 +159,7 @@ interface Collidable {
 
 
     fun copy() : Collidable {
-        val newPts = pts.copyOf().map { it.copy()}.toTypedArray()
+        val newPts = pts.copyOf().map { it.copy() }.toTypedArray()
         return byPts(newPts)
     }
 
@@ -186,7 +186,7 @@ interface Collidable {
 
     val minX : Double
         get(){
-        var ret = Double.MAX_VALUE
+        var ret = Double.POSITIVE_INFINITY
         for (pt in pts){
             ret = min(ret, pt.x)
         }
@@ -196,7 +196,7 @@ interface Collidable {
     val maxX : Double
         get(){
 
-            var ret = -Double.MAX_VALUE
+            var ret = Double.NEGATIVE_INFINITY
             for (pt in pts){
                 ret = max(ret, pt.x)
             }
@@ -205,7 +205,7 @@ interface Collidable {
 
     val minY : Double
         get(){
-            var ret = Double.MAX_VALUE
+            var ret = Double.POSITIVE_INFINITY
             for (pt in pts){
                 ret = min(ret, pt.y)
             }
@@ -214,18 +214,18 @@ interface Collidable {
 
     val maxY : Double
         get(){
-            var ret = -Double.MAX_VALUE
+            var ret = Double.NEGATIVE_INFINITY
             for (pt in pts){
                 ret = max(ret, pt.y)
             }
             return ret
         }
 
-    val encAARect : ColAArect   // the enclosing rectangle, which is the image
+    val encAARect : ColAARect   // the enclosing rectangle, which is the image
         get() {
             val dim = encAARectSize
             val bottomLeft = DPos2(minX, minY)
-            return ColAArect.byBottomLeft(bottomLeft, dim)
+            return ColAARect.byBottomLeft(bottomLeft, dim)
         }
 
 
