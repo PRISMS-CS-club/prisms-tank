@@ -2,6 +2,7 @@ package org.prismsus.tank.elements
 
 import org.prismsus.tank.utils.DVec2
 import org.prismsus.tank.utils.collidable.ColPoly
+import org.prismsus.tank.utils.collidable.DPos2
 
 interface MultiPartElement {
 
@@ -12,6 +13,9 @@ interface MultiPartElement {
     infix fun shiftAll(offset : DVec2){
         subColPolys.forEach { it += offset }
         overallColPoly += offset
-        baseColPoly += offset
+    }
+
+    fun rotateAll(offset : DVec2, center : DPos2) {
+
     }
 }

@@ -166,6 +166,11 @@ interface Collidable {
     fun toShape(coordTransform : (DPos2) -> DPos2 = {it}, shapeModifier : (Shape) -> Unit = {it}) : Shape
 
 
+    fun become(other : Collidable) {
+        pts = other.pts.copyOf().map { it.copy()} .toTypedArray()
+        angleRotated = other.angleRotated
+    }
+
     /*
     * The following variables are used to indicate the position and size of the
     * image for the object. Since images are always rectangles, we can use these

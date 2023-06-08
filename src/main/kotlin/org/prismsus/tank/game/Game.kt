@@ -3,14 +3,11 @@ package org.prismsus.tank.game
 import org.prismsus.tank.bot.FutureController
 import org.prismsus.tank.bot.GameBot
 import org.prismsus.tank.bot.RandomMovingBot
-import org.prismsus.tank.elements.GameElement
-import org.prismsus.tank.elements.GameMap
-import org.prismsus.tank.elements.MovableElement
-import org.prismsus.tank.elements.Tank
+import org.prismsus.tank.elements.*
 import org.prismsus.tank.event.ElementCreateEvent
 import org.prismsus.tank.event.ElementUpdateEvent
 import org.prismsus.tank.event.GameEvent
-import org.prismsus.tank.event.UpdateEventSlect
+import org.prismsus.tank.event.UpdateEventMask
 import java.util.concurrent.PriorityBlockingQueue
 import org.prismsus.tank.game.TankWeaponInfo.*
 import org.prismsus.tank.game.OtherRequests.*
@@ -217,11 +214,9 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
             lastUpd = System.currentTimeMillis()
             for (updatable in map.timeUpdatables) {
                 if (updatable is MovableElement) {
-                    val prevPos = updatable.colPoly.rotationCenter.copy()
-                    val prevAng = updatable.colPoly.angleRotated
+                    val prevColPoly = updatable.colPoly.copy()
                     updatable.updateByTime(dt)
-                    val curPos = updatable.colPoly.rotationCenter.copy()
-                    val curAng = updatable.colPoly.angleRotated
+                    val newColPoly = updatable.colPoly.copy()
                     val collideds = map.quadTree.collidedObjs(updatable.colPoly)
                     for (collided in collideds) {
                         updatable.processCollision(map.collidableToEle[collided]!!)
@@ -231,31 +226,41 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
                     if (collideds.isNotEmpty()) {
                         println("collision detected: ")
                         // restore to the original position
-                        updatable.colPoly.rotationCenter = prevPos
-                        updatable.colPoly.rotateAssignTo(prevAng)
+                        updatable.colPoly.become(prevColPoly)
                         continue
                     }
 
-
-                    if (collideds.isEmpty() && (prevPos != curPos || prevAng != curAng))
-                        updatable.colPoly.rotationCenter = prevPos
-                        updatable.colPoly.rotateAssignTo(prevAng)
+                    val prevPos = prevColPoly.rotationCenter.copy()
+                    val prevAng = prevColPoly.angleRotated
+                    val curPos = newColPoly.rotationCenter.copy()
+                    val curAng = newColPoly.angleRotated
+                    if (collideds.isEmpty() && (prevPos != curPos || prevAng != curAng)){
+                        updatable.colPoly.become(prevColPoly)
                         // update it in the quadtree
                         map.quadTree.remove(updatable.colPoly);
-                        updatable.colPoly.rotationCenter = curPos
-                        updatable.colPoly.rotateAssignTo(curAng)
+                        updatable.colPoly.become(newColPoly)
                         map.quadTree.insert(updatable.colPoly)
+
+                        val diff = curPos - prevPos
+
+                        if (updatable is MultiPartElement){
+
+                            updatable.shiftAll(diff)
+                        }
+
                         eventHistory.add(
                             ElementUpdateEvent(
                                 updatable,
-                                UpdateEventSlect.defaultFalse(
-                                    x = (prevPos.x != curPos.x),
-                                    y = (prevPos.y != curPos.y),
-                                    rad = (prevAng != curAng
+                                UpdateEventMask.defaultFalse(
+                                    x = (prevPos.x errNE curPos.x),
+                                    y = (prevPos.y errNE curPos.y),
+                                    rad = (prevAng errNE curAng
                                             )
                                 ), gameCurMs
                             )
                         )
+                    }
+
 
 
                 } else {

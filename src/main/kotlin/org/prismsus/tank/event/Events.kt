@@ -45,36 +45,40 @@ class ElementCreateEvent(val ele : GameElement, timeStamp : Long = currentTimeMi
 }
 
 
-data class UpdateEventSlect(val hp : Boolean, val x : Boolean, val y : Boolean, val rad : Boolean){
+data class UpdateEventMask(val hp : Boolean, val x : Boolean, val y : Boolean, val rad : Boolean){
     companion object{
-        fun defaultTrue(hp : Boolean = true, x : Boolean = true, y : Boolean = true, rad : Boolean = true) : UpdateEventSlect{
-            return UpdateEventSlect(hp, x, y, rad)
+        fun defaultTrue(hp : Boolean = true, x : Boolean = true, y : Boolean = true, rad : Boolean = true) : UpdateEventMask{
+            return UpdateEventMask(hp, x, y, rad)
         }
-        fun defaultFalse(hp : Boolean = false, x : Boolean = false, y : Boolean = false, rad : Boolean = false) : UpdateEventSlect{
-            return UpdateEventSlect(hp, x, y, rad)
+        fun defaultFalse(hp : Boolean = false, x : Boolean = false, y : Boolean = false, rad : Boolean = false) : UpdateEventMask{
+            return UpdateEventMask(hp, x, y, rad)
         }
     }
 }
 
-class ElementUpdateEvent(val ele : GameElement, val updateEventSlect: UpdateEventSlect, timeStamp: Long = currentTimeMillis()) : GameEvent(timeStamp){
+class ElementUpdateEvent(val ele : GameElement, val updateEventMask: UpdateEventMask, timeStamp: Long = currentTimeMillis()) : GameEvent(timeStamp){
     override val serialized: ByteArray
         get() {
             val json = buildJsonObject {
                 put("type", serialName)
                 put("t", timeStamp)
                 put("uid", ele.uid)
-                if (updateEventSlect.hp)
+                if (updateEventMask.hp) {
                     put("hp", ele.hp)
-                if (updateEventSlect.x)
+                }
+                if (updateEventMask.x) {
                     if (ele is MultiPartElement)
                         put("x", ele.baseColPoly.rotationCenter.x)
                     else put("x", ele.colPoly.rotationCenter.x)
-                if (updateEventSlect.y)
+                }
+                if (updateEventMask.y) {
                     if (ele is MultiPartElement)
                         put("y", ele.baseColPoly.rotationCenter.y)
                     else put("y", ele.colPoly.rotationCenter.y)
-                if (updateEventSlect.rad)
+                }
+                if (updateEventMask.rad) {
                     put("rad", ele.colPoly.angleRotated)
+                }
             }
 
             return json.toString().toByteArray()
