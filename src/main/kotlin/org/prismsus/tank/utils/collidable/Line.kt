@@ -9,8 +9,8 @@ import kotlin.math.*
 import javax.swing.*
 
 /**
- * @param startP The starting point of the line.
- * @param endP The ending point of the line.
+ * @property startP The starting point of the line.
+ * @property endP The ending point of the line.
  * @constructor Create a line with two points.
  * */
 class Line(override var pts : Array<DPos2>) : Collidable, Comparable<Line> {

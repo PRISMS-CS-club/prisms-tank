@@ -97,7 +97,7 @@ interface Collidable {
      * */
 
     fun rotate(rad: Double, center: DPos2 = rotationCenter) : Collidable {
-        val newPts = pts.copyOf().map { it.copy()}.toTypedArray()
+        val newPts = pts.copyOf().map { it.copy() }.toTypedArray()
         angleRotated += rad
         return byPts(newPts).rotateAssign(rad, center)
     }
@@ -159,7 +159,7 @@ interface Collidable {
 
 
     fun copy() : Collidable {
-        val newPts = pts.copyOf().map { it.copy()}.toTypedArray()
+        val newPts = pts.copyOf().map { it.copy() }.toTypedArray()
         return byPts(newPts)
     }
 
@@ -181,7 +181,7 @@ interface Collidable {
 
     val minX : Double
         get(){
-        var ret = Double.MAX_VALUE
+        var ret = Double.POSITIVE_INFINITY
         for (pt in pts){
             ret = min(ret, pt.x)
         }
@@ -191,7 +191,7 @@ interface Collidable {
     val maxX : Double
         get(){
 
-            var ret = -Double.MAX_VALUE
+            var ret = Double.NEGATIVE_INFINITY
             for (pt in pts){
                 ret = max(ret, pt.x)
             }
@@ -200,7 +200,7 @@ interface Collidable {
 
     val minY : Double
         get(){
-            var ret = Double.MAX_VALUE
+            var ret = Double.POSITIVE_INFINITY
             for (pt in pts){
                 ret = min(ret, pt.y)
             }
@@ -209,7 +209,7 @@ interface Collidable {
 
     val maxY : Double
         get(){
-            var ret = -Double.MAX_VALUE
+            var ret = Double.NEGATIVE_INFINITY
             for (pt in pts){
                 ret = max(ret, pt.y)
             }

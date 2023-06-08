@@ -10,5 +10,5 @@ interface SubGameElement {
     // if null, this will be determined by the parent game element
     var belongTo : GameElement      // the uid of the parent game element
     // the later two variables are var
-    // since they could be setted in the parent game element
+    // since they could be set in the parent game element
 }

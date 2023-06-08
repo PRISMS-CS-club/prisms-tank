@@ -13,8 +13,11 @@ import kotlin.math.min
  *
  * */
 class ColTreeSet(val dep: Int, val bound: ColAARect) {
-    var MAX_OBJECT = 5
-    var MAX_DEP = 8
+    companion object {
+        const val MAX_OBJECT = 5
+        const val MAX_DEP = 8
+    }
+
     var cols = ArrayList<Collidable>()
     var subTrees: Array<ColTreeSet>? = null
 
@@ -60,7 +63,8 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
         }
 
     /**
-     * delete all the collidables in the tree, including the subtrees
+     * delete all the collidables in this subtree, including the collidables stored in
+     * this node and the collidables stored in the subtrees.
      * */
     fun clearAll() {
         cols.clear()
@@ -96,7 +100,6 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
         return subTrees?.let {
             for (sub in it) {
                 if (sub.bound.enclose(box)) {
-                    // TODO (What if the collision box lies on the boundary of two or more subtrees?)
                     return sub
                 }
             }
@@ -104,8 +107,11 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
         }
     }
 
+    /**
+     * Insert a new collidable object into the quad-tree.
+     * @param col The object to be inserted.
+     */
     fun insert(col: Collidable) {
-
         val belongTo = subTreeBelongTo(col.encAARect)
         if (belongTo != null) {
             belongTo.insert(col)
@@ -137,13 +143,15 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
         return bound
     }
 
+    /**
+     * Remove one collidable object from the collision quad-tree.
+     * @param col The object to be removed.
+     */
     fun remove(col: Collidable) {
-        if (subTrees != null) {
-            val belongTo = subTreeBelongTo(col.encAARect)
-            belongTo?.remove(col)
-            if (belongTo != null) {
-                return
-            }
+        val belongTo = subTreeBelongTo(col.encAARect)
+        if (belongTo != null) {
+            belongTo.remove(col)
+            return
         }
         if (!cols.contains(col))
             throw Exception("ColTreeSet.remove: the collidable to be removed is not in the tree")
@@ -164,7 +172,7 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
     infix fun possibleCollision(col: Collidable): ArrayList<Collidable> {
         val belongTo = subTreeBelongTo(col.encAARect)
         val ret = ArrayList<Collidable>()
-        ret.addAll(cols) // all unsplittable collidables
+        ret.addAll(cols) // all unsplittable collidable objects
         if (belongTo != null) {
             ret.addAll(belongTo.possibleCollision(col))
         }
@@ -188,28 +196,28 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
 
 
     fun getCoordPanel(panelSiz : IDim2) : CoordPanel {
-            var maxPos = DPos2(Double.MIN_VALUE / 2, Double.MIN_VALUE / 2)
-            var minPos = DPos2(Double.MAX_VALUE / 2, Double.MAX_VALUE / 2)
-            for (col in allSubCols){
-                maxPos = maxPos max col.encAARect.topRightPt
-                minPos = minPos min col.encAARect.bottomLeftPt
-            }
-            val xsz = max(abs(maxPos.x), abs(minPos.x)) * 2
-            val ysz = max(abs(maxPos.y), abs(minPos.y)) * 2
-            val pfactor = min(panelSiz.x / xsz, panelSiz.y / ysz)
-            // make sure that the actual interval between grids is at least 30pixel
-            // actual interval = pinterv * pfactor
-            val pinterv = ceil(max(30.0 / pfactor, 1.0)).toInt()
-            val panel = CoordPanel(IDim2(pinterv, pinterv), IDim2(pfactor.toInt(), pfactor.toInt()), panelSiz)
-            for (col in allSubCols){
-                panel.drawCollidable(col)
-            }
-            for (line in allSubPartitionLines){
-                panel.graphicsModifier = {
-                    g -> g.color = Color.RED
-                }
-                panel.drawCollidable(line)
-            }
-            return panel
+        var maxPos = DPos2(Double.MIN_VALUE / 2, Double.MIN_VALUE / 2)
+        var minPos = DPos2(Double.MAX_VALUE / 2, Double.MAX_VALUE / 2)
+        for (col in allSubCols){
+            maxPos = maxPos max col.encAARect.topRightPt
+            minPos = minPos min col.encAARect.bottomLeftPt
         }
+        val xsz = max(abs(maxPos.x), abs(minPos.x)) * 2
+        val ysz = max(abs(maxPos.y), abs(minPos.y)) * 2
+        val pfactor = min(panelSiz.x / xsz, panelSiz.y / ysz)
+        // make sure that the actual interval between grids is at least 30pixel
+        // actual interval = pinterv * pfactor
+        val pinterv = ceil(max(30.0 / pfactor, 1.0)).toInt()
+        val panel = CoordPanel(IDim2(pinterv, pinterv), IDim2(pfactor.toInt(), pfactor.toInt()), panelSiz)
+        for (col in allSubCols){
+            panel.drawCollidable(col)
+        }
+        for (line in allSubPartitionLines){
+            panel.graphicsModifier = {
+                g -> g.color = Color.RED
+            }
+            panel.drawCollidable(line)
+        }
+        return panel
+    }
 }

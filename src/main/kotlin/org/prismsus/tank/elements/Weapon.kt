@@ -20,8 +20,8 @@ open class Weapon(
 ) : SubGameElement, TimeUpdatable {
     override val serialName: String
         get() = "Wep"
-    var curCapa : Int = maxCapacity
-    var lastFireTime : Long = 0
+    var curCapacity : Int = maxCapacity
+    private var lastFireTime : Long = 0
 
     fun fire() : Bullet? {
         if (System.currentTimeMillis() - lastFireTime < minInterv) return null
@@ -31,12 +31,12 @@ open class Weapon(
         bullet.curVelo = DVec2.byPolar(belongTo.colPoly.angleRotated, bulletProps.speed)
         bullet.damage = damage
         lastFireTime = System.currentTimeMillis()
-        curCapa--
+        curCapacity--
         return bullet
     }
 
     override fun updateByTime(dt: Long) {
-        curCapa += (reloadRate * dt * 1000).toInt()
+        curCapacity += (reloadRate * dt * 1000).toInt()
     }
 }
 
