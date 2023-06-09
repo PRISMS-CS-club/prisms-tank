@@ -80,7 +80,7 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
     private fun split() {
         // make each of the four subtrees slightly larger than bound.size / 2
         // so that there will be no gap between the four subtrees
-        val offset = DOUBLE_PRECISION * 10.0
+        val offset = DOUBLE_PRECISION * 100.0
         val tlShift = DVec2(offset, offset) * 10.0
         val subDim = (bound.size / 2.0)
         val topLeft = bound.topLeftPt - tlShift.xVec + tlShift.yVec

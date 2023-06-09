@@ -2,12 +2,10 @@ package org.prismsus.tank
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.prismsus.tank.utils.DOUBLE_PRECISION
-import org.prismsus.tank.utils.DVec2
+import org.prismsus.tank.utils.*
+import org.prismsus.tank.utils.collidable.ColRect
 import org.prismsus.tank.utils.collidable.DPos2
 import org.prismsus.tank.utils.collidable.Line
-import org.prismsus.tank.utils.toDeg
-import org.prismsus.tank.utils.toRad
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -132,5 +130,16 @@ class LineTest {
         // rotate the line from the right end point of a line
         var lineRotatedByRight = line.copy().rotate(90.0.toRad(), DPos2(1.0, 0.0))
         Assertions.assertEquals(lineRotatedByCenter.angleRotated, lineRotatedByRight.angleRotated, DOUBLE_PRECISION)
+    }
+
+    @org.junit.Test
+    fun _rotate(){
+        val rect = ColRect(DPos2(0, 0), DDim2(10, 10))
+        for (i in 0..50){
+            val rotAng = Math.random() * 2 * Math.PI
+            rect.rotateAssign(rotAng)
+            rect.rotateAssign(-rotAng)
+        }
+        println(rect)
     }
 }

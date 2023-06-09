@@ -3,6 +3,7 @@ package org.prismsus.tank.utils.collidable
 import org.prismsus.tank.utils.DDim2
 import org.prismsus.tank.utils.DVec2
 
+// TODO: More accurate ColRect representation
 open class ColRect (val centerPos : DPos2, val size : DDim2) : ColPoly(arrayOf(
     centerPos + DVec2(-size.x / 2.0, size.y / 2.0),
     centerPos + size / 2.0,

@@ -1,11 +1,10 @@
 package org.prismsus.tank.elements
 
 import org.prismsus.tank.utils.*
-import org.prismsus.tank.utils.collidable.ColPoly
-import org.prismsus.tank.utils.collidable.Line
-import org.prismsus.tank.utils.collidable.ColRect
-import org.prismsus.tank.utils.collidable.DPos2
-import kotlin.math.*
+import org.prismsus.tank.utils.collidable.*
+import kotlin.math.abs
+import kotlin.math.min
+import kotlin.math.sign
 
 
 class Tank(
@@ -17,8 +16,8 @@ class Tank(
 ) :
 
     MovableElement(
-        uid, hp, ((tankRectBox).union(weaponProps.colPoly + DVec2(.0, tankRectBox.height / 2))!!).copy() as ColPoly
-    ), MultiPartElement {
+        uid, hp, ColMultiPart((tankRectBox), (weaponProps.colPoly + DVec2(.0, tankRectBox.height / 2))!!)
+    ) {
 
     var weapon: Weapon
 
@@ -69,8 +68,8 @@ class Tank(
             // the tank is moving straight
             val shiftVal = DVec2.byPolar(1.0, colPoly.angleRotated) * leftTrackVelo * ddt
             colPoly += shiftVal
-            weapon.colPoly += shiftVal
-            tankRectBox += shiftVal
+//            weapon.colPoly += shiftVal
+//            tankRectBox += shiftVal
             return
         }
         if (abs(leftTrackVelo) errEQ abs(rightTrackVelo)) {
@@ -80,8 +79,8 @@ class Tank(
             val angVelo = abs(leftTrackVelo / .5)
             val angDisp = angVelo * ddt
             colPoly.rotateAssign(angDisp * angSign, tankRectBox.rotationCenter)
-            tankRectBox.rotateAssignTo(angDisp * angSign, tankRectBox.rotationCenter)
-            weapon.colPoly.rotateAssignTo(colPoly.angleRotated, tankRectBox.rotationCenter)
+//            tankRectBox.rotateAssignTo(angDisp * angSign, tankRectBox.rotationCenter)
+//            weapon.colPoly.rotateAssignTo(colPoly.angleRotated, tankRectBox.rotationCenter)
             return
         }
 
@@ -92,47 +91,28 @@ class Tank(
         val angVelo = abs(inVelo / turningRad)
         val angDisp = angVelo * ddt
         colPoly.rotateAssign(angDisp * angSign, pivotPt)
-        tankRectBox.rotateAssignTo(colPoly.angleRotated, pivotPt)
-        weapon.colPoly.rotateAssignTo(colPoly.angleRotated, pivotPt)
+//        tankRectBox.rotateAssignTo(colPoly.angleRotated, pivotPt)
+//        weapon.colPoly.rotateAssignTo(colPoly.angleRotated, pivotPt)
     }
 
     override val serialName: String
         get() = "Tk"
 
-    var overallRotationCenter: DPos2
-        get() = colPoly.rotationCenter
-        set(value) {
-            val offsetVec = value.toVec() - colPoly.rotationCenter.toVec()
-            colPoly += offsetVec
-            weapon.colPoly += offsetVec
-            tankRectBox += offsetVec
+    override fun willMove(dt: Long) : Boolean {
+        if (dt == 0.toLong()) return false
+        return leftTrackVelo errNE 0.0 || rightTrackVelo errNE 0.0
+    }
 
-        }
-    var tankRotationCenter: DPos2
-        get() = tankRectBox.rotationCenter
-        set(value) {
-            val offsetVec = value.toVec() - tankRectBox.rotationCenter.toVec()
-            colPoly += offsetVec
-            weapon.colPoly += offsetVec
-            tankRectBox += offsetVec
-        }
-    var weaponRotationCenter: DPos2
-        get() = weapon.colPoly.rotationCenter
-        set(value) {
-            val offsetVec = value.toVec() - weapon.colPoly.rotationCenter.toVec()
-            colPoly += offsetVec
-            weapon.colPoly += offsetVec
-            tankRectBox += offsetVec
-        }
-
-    override val baseColPoly: ColPoly
-        get() = tankRectBox
-    override val subColPolys: ArrayList<ColPoly>
-        get() = arrayListOf(weapon.colPoly, tankRectBox)
-    override val subElements: ArrayList<SubGameElement>
-        get() = arrayListOf(weapon)
-    override val overallColPoly: ColPoly
-        get() = colPoly
+    override fun colPolyAfterMove(dt: Long): ColPoly {
+        val before = colPoly.copy() as ColMultiPart
+        updateByTime(dt)
+        val after = colPoly.copy()
+        colPoly.become(before)
+        if (willMove(dt))
+            assert(after != before)
+        else assert(after == before)
+        return after as ColPoly
+    }
 
     companion object {
         fun byInitPos(

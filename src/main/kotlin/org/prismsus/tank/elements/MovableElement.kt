@@ -18,5 +18,7 @@ abstract class MovableElement(uid: Long, hp: Int, colPoly: ColPoly) :
         // center is the intersection of two diagonals
         colPoly.rotateAssign(curAngV * dt.toDouble())
     }
+    abstract fun colPolyAfterMove(dt : Long) : ColPoly
+    abstract fun willMove(dt : Long) : Boolean
 
 }

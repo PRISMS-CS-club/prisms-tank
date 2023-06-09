@@ -43,10 +43,8 @@ interface Collidable {
      * @return The shifted object.
      * */
     operator fun plus(shift : DVec2) : Collidable {
-        for (pt in pts){
-            pt += shift
-        }
-        return this
+        val newPts = pts.copyOf().map { it.copy().plus(shift) }.toTypedArray()
+        return byPts(newPts)
     }
 
     infix fun shift(shift : DVec2) : Collidable {
@@ -80,7 +78,8 @@ interface Collidable {
      * @see plus
      * */
     operator fun minus(shift : DVec2) : Collidable {
-        return byPts(pts.map{it - shift}.toTypedArray())
+        val newPts = pts.copyOf().map { it.copy().minus(shift) }.toTypedArray()
+        return byPts(newPts)
     }
 
     operator fun minusAssign(shift : DVec2) {
@@ -97,9 +96,7 @@ interface Collidable {
      * */
 
     fun rotate(rad: Double, center: DPos2 = rotationCenter) : Collidable {
-        val newPts = pts.copyOf().map { it.copy() }.toTypedArray()
-        angleRotated += rad
-        return byPts(newPts).rotateAssign(rad, center)
+        return copy().rotateAssign(rad, center)
     }
 
     fun rotateTo(rad: Double, center: DPos2 = rotationCenter) : Collidable {
@@ -160,7 +157,10 @@ interface Collidable {
 
     fun copy() : Collidable {
         val newPts = pts.copyOf().map { it.copy() }.toTypedArray()
-        return byPts(newPts)
+        assert(newPts.contentDeepEquals(pts))
+        val ret = byPts(newPts)
+        ret.angleRotated = angleRotated
+        return ret
     }
 
     fun toShape(coordTransform : (DPos2) -> DPos2 = {it}, shapeModifier : (Shape) -> Unit = {it}) : Shape
@@ -181,6 +181,7 @@ interface Collidable {
             // calculate the size of the image using reduce
             val x = maxX - minX
             val y = maxY - minY
+            return DDim2(x, y)
             return DDim2(x, y)
         }
 

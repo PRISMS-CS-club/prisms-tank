@@ -12,6 +12,7 @@ import java.util.concurrent.PriorityBlockingQueue
 import org.prismsus.tank.game.TankWeaponInfo.*
 import org.prismsus.tank.game.OtherRequests.*
 import org.prismsus.tank.utils.*
+import org.prismsus.tank.utils.collidable.ColMultiPart
 import org.prismsus.tank.utils.collidable.DPos2
 import java.io.File
 import java.nio.file.Paths
@@ -34,10 +35,11 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
         controllers = Array(bots.size) { i -> FutureController(i.toLong(), requestsQ) }
         for ((i, c) in controllers.withIndex()) {
             val tank = Tank.byInitPos(nextUid, DPos2.ORIGIN)
-            val tankPos = map.getUnoccupiedRandPos(tank.colPoly)!!
-            tank.overallRotationCenter = tankPos
+            val tankPos = DPos2(4.5, 1.5)
+            (tank.colPoly as ColMultiPart).baseColPoly.rotationCenter = tankPos
+//            (tank.colPoly as ColMultiPart).baseColPoly.rotateAssignDeg(20.0)
             val tpanel = CoordPanel(IDim2(1, 1), IDim2(50, 50))
-            tpanel.drawCollidable(tank.overallColPoly)
+            tpanel.drawCollidable(tank.colPoly)
             tpanel.showFrame()
             map.addEle(tank)
             eventHistory.add(ElementCreateEvent(tank, gameCurMs))
@@ -213,11 +215,9 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
             val dt = System.currentTimeMillis() - lastUpd
             lastUpd = System.currentTimeMillis()
             for (updatable in map.timeUpdatables) {
-                if (updatable is MovableElement) {
-                    val prevColPoly = updatable.colPoly.copy()
-                    updatable.updateByTime(dt)
-                    val newColPoly = updatable.colPoly.copy()
-                    val collideds = map.quadTree.collidedObjs(updatable.colPoly)
+                if (updatable is MovableElement && updatable.willMove(dt)) {
+                    val colPolyAfterMove = updatable.colPolyAfterMove(dt)
+                    val collideds = map.quadTree.collidedObjs(colPolyAfterMove)
                     for (collided in collideds) {
                         updatable.processCollision(map.collidableToEle[collided]!!)
                         map.collidableToEle[collided]!!.processCollision(updatable)
@@ -226,27 +226,17 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
                     if (collideds.isNotEmpty()) {
                         println("collision detected: ")
                         // restore to the original position
-                        updatable.colPoly.become(prevColPoly)
                         continue
                     }
 
-                    val prevPos = prevColPoly.rotationCenter.copy()
-                    val prevAng = prevColPoly.angleRotated
-                    val curPos = newColPoly.rotationCenter.copy()
-                    val curAng = newColPoly.angleRotated
+                    val prevPos = updatable.colPoly.rotationCenter
+                    val prevAng = updatable.colPoly.angleRotated
+                    val curPos = colPolyAfterMove.rotationCenter
+                    val curAng = colPolyAfterMove.angleRotated
                     if (collideds.isEmpty() && (prevPos != curPos || prevAng != curAng)){
-                        updatable.colPoly.become(prevColPoly)
-                        // update it in the quadtree
                         map.quadTree.remove(updatable.colPoly);
-                        updatable.colPoly.become(newColPoly)
+                        updatable.updateByTime(dt)
                         map.quadTree.insert(updatable.colPoly)
-
-                        val diff = curPos - prevPos
-
-                        if (updatable is MultiPartElement){
-
-                            updatable.shiftAll(diff)
-                        }
 
                         eventHistory.add(
                             ElementUpdateEvent(

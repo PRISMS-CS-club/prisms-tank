@@ -28,27 +28,42 @@ open class ColPoly(override var pts: Array<DPos2>) : Collidable {
         get() = rCenter
         set(value) {
             val diff = value - rCenter
-            pts = pts.map { it + diff }.toTypedArray()
+            if (parentEle != null){
+                parentEle!!.plusAssign(diff)
+                rCenter = value
+                return
+            }
             rCenter = value
+            for (pt in pts) {
+                pt += diff
+            }
         }
     override var angleRotated = 0.0
     override fun plus(shift: DVec2): ColPoly {
-            rCenter = rCenter + shift
-            return super.plus(shift) as ColPoly
+        rCenter = rCenter + shift
+        if (parentEle != null)
+            parentEle!!.plus(shift)
+        return super.plus(shift) as ColPoly
     }
 
     override fun minus(shift: DVec2): ColPoly {
         rCenter = rCenter - shift
+        if (parentEle != null)
+            parentEle!!.minus(shift)
         return super.minus(shift) as ColPoly
     }
 
     override fun plusAssign(shift: DVec2) {
         rCenter = rCenter + shift
+        if (parentEle != null)
+            parentEle!!.plusAssign(shift)
         super.plusAssign(shift)
     }
 
     override fun minusAssign(shift: DVec2) {
         rCenter = rCenter - shift
+        if (parentEle != null)
+            parentEle!!.minusAssign(shift)
         super.minusAssign(shift)
     }
 
@@ -219,6 +234,7 @@ open class ColPoly(override var pts: Array<DPos2>) : Collidable {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is ColPoly) return false
+        if (pts.size != other.pts.size) return false
         val otherStartIdx = other.pts.indexOf(pts[0])
         if (otherStartIdx == -1) return false
         for (i in pts.indices) {
@@ -250,6 +266,10 @@ open class ColPoly(override var pts: Array<DPos2>) : Collidable {
 
     override fun rotateAssign(radOffset: Double, center: DPos2): Collidable {
         rCenter = rCenter.toVec().rotate(radOffset).toPt()
+        if (parentEle != null){
+            parentEle!!.rotateAssign(radOffset, center)
+            return this
+        }
         return super.rotateAssign(radOffset, center)
     }
 
@@ -315,6 +335,17 @@ open class ColPoly(override var pts: Array<DPos2>) : Collidable {
         return ColPoly(ret.toTypedArray())
     }
 
+    fun unionMultiple(vararg others : ColPoly) : ColPoly?{
+        var ret = this
+        for (other in others){
+            val tmp = ret union other
+            if (tmp != null)
+                ret = tmp
+        }
+        if (ret === this)
+            return null
+        return ret
+    }
 
     override fun become(other: Collidable){
         if (other !is ColPoly)
@@ -351,4 +382,6 @@ open class ColPoly(override var pts: Array<DPos2>) : Collidable {
 
 
     }
+
+    open var parentEle: ColMultiPart? = null
 }

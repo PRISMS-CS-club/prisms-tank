@@ -195,6 +195,7 @@ data class DPos2(var x: Double, var y: Double) : Collidable, Comparable<DPos2>, 
         return result
     }
 
+
     companion object{
         val ORIGIN get() = DPos2(0.0, 0.0)
         val UP     get() = DPos2(0.0, 1.0)
