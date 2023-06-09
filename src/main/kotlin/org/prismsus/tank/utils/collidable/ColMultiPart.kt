@@ -2,8 +2,6 @@ package org.prismsus.tank.utils.collidable
 
 import org.prismsus.tank.utils.DVec2
 import org.prismsus.tank.utils.treeDistinct
-import java.awt.Shape
-
 
 
 class ColMultiPart(val baseColPoly : ColPoly, vararg subColPolys : ColPoly) : ColPoly((baseColPoly.unionMultiple(*subColPolys))!!.pts){
@@ -24,6 +22,9 @@ class ColMultiPart(val baseColPoly : ColPoly, vararg subColPolys : ColPoly) : Co
         for (pt in allPts) {
             pt.rotateAssign(radOffset, center)
         }
+        for (part in subColPolys)
+            part.angleRotated += radOffset
+        baseColPoly.angleRotated += radOffset
         return this
     }
 
@@ -54,7 +55,7 @@ class ColMultiPart(val baseColPoly : ColPoly, vararg subColPolys : ColPoly) : Co
     }
 
 
-    override fun become(other: Collidable) {
+    override fun becomeCopy(other: Collidable) {
         if (other !is ColMultiPart) {
             throw IllegalArgumentException("ColMultiPart can only become ColMultiPart")
         }
@@ -62,9 +63,23 @@ class ColMultiPart(val baseColPoly : ColPoly, vararg subColPolys : ColPoly) : Co
             return
         }
         angleRotated = other.angleRotated
-        baseColPoly.become(other.baseColPoly)
+        baseColPoly.becomeCopy(other.baseColPoly)
         for (i in 0 until other.subColPolys.size) {
-            subColPolys[i].become(other.subColPolys[i])
+            subColPolys[i].becomeCopy(other.subColPolys[i])
+        }
+        pts = other.pts.copyOf()
+    }
+    override fun becomeNonCopy(other: Collidable) {
+        if (other !is ColMultiPart) {
+            throw IllegalArgumentException("ColMultiPart can only become ColMultiPart")
+        }
+        if (other === this) {
+            return
+        }
+        angleRotated = other.angleRotated
+        baseColPoly.becomeNonCopy(other.baseColPoly)
+        for (i in 0 until other.subColPolys.size) {
+            subColPolys[i].becomeNonCopy(other.subColPolys[i])
         }
         pts = other.pts.copyOf()
     }
@@ -72,11 +87,10 @@ class ColMultiPart(val baseColPoly : ColPoly, vararg subColPolys : ColPoly) : Co
     override fun copy(): ColMultiPart{
         val newBase = baseColPoly.copy() as ColPoly
         if (newBase != baseColPoly){
-            // TODO: Find out the place of inaccuracy issue
-            println(newBase)
-            println(baseColPoly)
+            println("newBase is $newBase")
+            println("baseColPoly is $baseColPoly")
 //            assert(newBase == baseColPoly)
-            println(baseColPoly.copy())
+            println("baseColPoly's copy is ${baseColPoly.copy()}")
             throw Exception("newBase != baseColPoly")
         }
         val newSubs = subColPolys.copyOf().map { it.copy() as ColPoly }.toTypedArray()

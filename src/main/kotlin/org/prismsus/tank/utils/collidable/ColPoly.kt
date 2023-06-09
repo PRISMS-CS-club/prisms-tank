@@ -347,11 +347,11 @@ open class ColPoly(override var pts: Array<DPos2>) : Collidable {
         return ret
     }
 
-    override fun become(other: Collidable){
+    override fun becomeCopy(other: Collidable){
         if (other !is ColPoly)
             throw IllegalArgumentException("Cannot become a ColPoly from a ${other::class.simpleName}")
         rCenter = other.rCenter.copy()
-        super.become(other)
+        super.becomeCopy(other)
     }
 
     companion object {

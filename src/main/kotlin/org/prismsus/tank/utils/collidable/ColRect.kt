@@ -87,7 +87,11 @@ open class ColRect (val centerPos : DPos2, val size : DDim2) : ColPoly(arrayOf(
         }
 
     override fun copy(): ColRect {
-        return byTopLeft(topLeftPt, size)
+        val ang = angleRotated
+        val tmpTl = topLeftPt.rotate(-ang, rotationCenter)
+        val ret = byTopLeft(tmpTl, size)
+        ret.rotateAssign(ang)
+        return ret
     }
     override val height : Double
         get() {

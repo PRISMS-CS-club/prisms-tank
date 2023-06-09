@@ -166,8 +166,13 @@ interface Collidable {
     fun toShape(coordTransform : (DPos2) -> DPos2 = {it}, shapeModifier : (Shape) -> Unit = {it}) : Shape
 
 
-    fun become(other : Collidable) {
-        pts = other.pts.copyOf().map { it.copy()} .toTypedArray()
+    fun becomeCopy(other : Collidable) {
+        pts = other.pts.copyOf().map { it.copy() } .toTypedArray()
+        angleRotated = other.angleRotated
+    }
+
+    fun becomeNonCopy(other : Collidable) {
+        pts = other.pts.copyOf()
         angleRotated = other.angleRotated
     }
 

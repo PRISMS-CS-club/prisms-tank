@@ -107,7 +107,7 @@ class Tank(
         val before = colPoly.copy() as ColMultiPart
         updateByTime(dt)
         val after = colPoly.copy()
-        colPoly.become(before)
+        colPoly.becomeCopy(before)
         if (willMove(dt))
             assert(after != before)
         else assert(after == before)
