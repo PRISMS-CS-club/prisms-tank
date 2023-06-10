@@ -104,10 +104,10 @@ class Tank(
     }
 
     override fun colPolyAfterMove(dt: Long): ColPoly {
-        val before = colPoly.copy() as ColMultiPart
+            val before = colPoly.copy() as ColMultiPart
         updateByTime(dt)
         val after = colPoly.copy()
-        colPoly.becomeCopy(before)
+        colPoly.becomeNonCopy(before)
         if (willMove(dt))
             assert(after != before)
         else assert(after == before)

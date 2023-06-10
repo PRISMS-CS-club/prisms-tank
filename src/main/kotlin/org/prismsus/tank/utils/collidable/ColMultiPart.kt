@@ -3,10 +3,22 @@ package org.prismsus.tank.utils.collidable
 import org.prismsus.tank.utils.DVec2
 import org.prismsus.tank.utils.treeDistinct
 
+/**
+* A ColMultiPart is a collection of ColPolys that are connected to each other.
+* Any changes, including shifting and rotation, on any part of a ColMultiPart will affect the whole ColMultiPart.
+* The [baseColPoly] is the main ColPoly that is used to locate the position of display in GUI
+* The [subColPolys] are located by offset from the [baseColPoly] in GUI
+ * [pts] in this class is the union of [baseColPoly] and [subColPolys]. So that when it is exposed
+ * to the outside, it is considered as a whole. For example, when drawing this using [CoordPanel], the image is the union
+ * [allPts] contains all the points in [baseColPoly], [subColPolys] and [pts]
+ * For the point of same value in [baseColPoly], [subColPolys] and [pts], only one copy is kept in [allPts]
+* */
+class ColMultiPart(baseColPoly : ColPoly, vararg subColPolys : ColPoly) : ColPoly((baseColPoly.unionMultiple(*subColPolys))!!.pts){
+    val baseColPoly = baseColPoly
 
-class ColMultiPart(val baseColPoly : ColPoly, vararg subColPolys : ColPoly) : ColPoly((baseColPoly.unionMultiple(*subColPolys))!!.pts){
     val allPts : Array<DPos2>
     val subColPolys : Array<ColPoly> = subColPolys.toList().toTypedArray()
+
     init{
         val tmpArr = ArrayList<DPos2>()
         tmpArr.addAll(baseColPoly.pts)
@@ -15,8 +27,12 @@ class ColMultiPart(val baseColPoly : ColPoly, vararg subColPolys : ColPoly) : Co
         allPts = tmpArr.toTypedArray().treeDistinct().toTypedArray()
         baseColPoly.parentEle = this
         subColPolys.forEach { it.parentEle = this }
+
     }
 
+    /**
+     * By overaloding this function, [rotate], [rotateTo], [rotateAssignTo] ... will be available to use
+     * */
     override fun rotateAssign(radOffset: Double, center: DPos2): ColMultiPart {
         angleRotated += radOffset
         for (pt in allPts) {
@@ -24,6 +40,7 @@ class ColMultiPart(val baseColPoly : ColPoly, vararg subColPolys : ColPoly) : Co
         }
         for (part in subColPolys)
             part.angleRotated += radOffset
+
         baseColPoly.angleRotated += radOffset
         return this
     }
@@ -68,6 +85,9 @@ class ColMultiPart(val baseColPoly : ColPoly, vararg subColPolys : ColPoly) : Co
             subColPolys[i].becomeCopy(other.subColPolys[i])
         }
         pts = other.pts.copyOf()
+        allPts.forEachIndexed() { i, pt ->
+            allPts[i].becomeCopy(other.allPts[i])
+        }
     }
     override fun becomeNonCopy(other: Collidable) {
         if (other !is ColMultiPart) {
@@ -78,6 +98,9 @@ class ColMultiPart(val baseColPoly : ColPoly, vararg subColPolys : ColPoly) : Co
         }
         angleRotated = other.angleRotated
         baseColPoly.becomeNonCopy(other.baseColPoly)
+        allPts.forEachIndexed() { i, pt ->
+            allPts[i] = other.allPts[i]
+        }
         for (i in 0 until other.subColPolys.size) {
             subColPolys[i].becomeNonCopy(other.subColPolys[i])
         }
@@ -86,15 +109,7 @@ class ColMultiPart(val baseColPoly : ColPoly, vararg subColPolys : ColPoly) : Co
 
     override fun copy(): ColMultiPart{
         val newBase = baseColPoly.copy() as ColPoly
-        if (newBase != baseColPoly){
-            println("newBase is $newBase")
-            println("baseColPoly is $baseColPoly")
-//            assert(newBase == baseColPoly)
-            println("baseColPoly's copy is ${baseColPoly.copy()}")
-            throw Exception("newBase != baseColPoly")
-        }
         val newSubs = subColPolys.copyOf().map { it.copy() as ColPoly }.toTypedArray()
-        newSubs.forEachIndexed{i, it -> assert(it == subColPolys[i])}
         val ret = ColMultiPart(newBase, *newSubs)
         ret.angleRotated = angleRotated
         return ret

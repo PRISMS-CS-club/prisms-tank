@@ -3,14 +3,16 @@ package org.prismsus.tank.game
 import org.prismsus.tank.bot.FutureController
 import org.prismsus.tank.bot.GameBot
 import org.prismsus.tank.bot.RandomMovingBot
-import org.prismsus.tank.elements.*
+import org.prismsus.tank.elements.GameElement
+import org.prismsus.tank.elements.GameMap
+import org.prismsus.tank.elements.MovableElement
+import org.prismsus.tank.elements.Tank
 import org.prismsus.tank.event.ElementCreateEvent
 import org.prismsus.tank.event.ElementUpdateEvent
 import org.prismsus.tank.event.GameEvent
 import org.prismsus.tank.event.UpdateEventMask
-import java.util.concurrent.PriorityBlockingQueue
-import org.prismsus.tank.game.TankWeaponInfo.*
 import org.prismsus.tank.game.OtherRequests.*
+import org.prismsus.tank.game.TankWeaponInfo.*
 import org.prismsus.tank.utils.*
 import org.prismsus.tank.utils.collidable.ColMultiPart
 import org.prismsus.tank.utils.collidable.DPos2
@@ -18,6 +20,7 @@ import java.io.File
 import java.nio.file.Paths
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.concurrent.PriorityBlockingQueue
 
 class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
     val eventHistory = PriorityBlockingQueue<GameEvent>()
@@ -212,7 +215,8 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
                     }
                 }
             }
-            val dt = System.currentTimeMillis() - lastUpd
+//            val dt = System.currentTimeMillis() - lastUpd
+            val dt = 1L
             lastUpd = System.currentTimeMillis()
             for (updatable in map.timeUpdatables) {
                 if (updatable is MovableElement && updatable.willMove(dt)) {
