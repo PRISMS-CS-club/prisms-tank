@@ -24,6 +24,10 @@ class ColMultiPart(baseColPoly : ColPoly, vararg subColPolys : ColPoly) : ColPol
         tmpArr.addAll(baseColPoly.pts)
         subColPolys.forEach { tmpArr.addAll(it.pts) }
         tmpArr.addAll(pts)
+        for (sub in subColPolys)
+            tmpArr.add(sub.rCenter)
+        tmpArr.add(baseColPoly.rCenter)
+        tmpArr.add(rCenter)
         allPts = tmpArr.toTypedArray().treeDistinct().toTypedArray()
         baseColPoly.parentEle = this
         subColPolys.forEach { it.parentEle = this }
@@ -38,9 +42,9 @@ class ColMultiPart(baseColPoly : ColPoly, vararg subColPolys : ColPoly) : ColPol
         for (pt in allPts) {
             pt.rotateAssign(radOffset, center)
         }
-        for (part in subColPolys)
-            part.angleRotated += radOffset
-
+        for (sub in subColPolys) {
+            sub.angleRotated += radOffset
+        }
         baseColPoly.angleRotated += radOffset
         return this
     }

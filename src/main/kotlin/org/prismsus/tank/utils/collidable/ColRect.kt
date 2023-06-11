@@ -31,6 +31,7 @@ open class ColRect (val centerPos : DPos2, val size : DDim2) : ColPoly(arrayOf(
         }
     }
 
+
     var topLeftPt : DPos2
         get() = pts[0]
         set(value){
@@ -91,6 +92,7 @@ open class ColRect (val centerPos : DPos2, val size : DDim2) : ColPoly(arrayOf(
         val tmpTl = topLeftPt.rotate(-ang, rotationCenter)
         val ret = byTopLeft(tmpTl, size)
         ret.rotateAssign(ang)
+        ret.rCenter = rCenter.copy()
         return ret
     }
     override val height : Double

@@ -26,22 +26,28 @@ class MapCreateEvent (val map : GameMap, timeStamp : Long = currentTimeMillis())
 }
 
 class ElementCreateEvent(val ele : GameElement, timeStamp : Long = currentTimeMillis()) : GameEvent(timeStamp){
+    override val serialName: String = "EleCrt"
     override val serialized: ByteArray
-        get() {
+        init{
             val json = buildJsonObject {
                 put("type", serialName)
                 put("t", timeStamp)
                 put("uid", ele.uid)
                 put("name", ele.serialName)
-                put("x", ele.colPoly.rotationCenter.x)
-                put("y", ele.colPoly.rotationCenter.y)
+                if (ele.colPoly is ColMultiPart)
+                    put("x", (ele.colPoly as ColMultiPart).baseColPoly.rotationCenter.x)
+                else
+                    put("x", ele.colPoly.rotationCenter.x)
+                if (ele.colPoly is ColMultiPart)
+                    put("y", (ele.colPoly as ColMultiPart).baseColPoly.rotationCenter.y)
+                else
+                    put("y", ele.colPoly.rotationCenter.y)
                 put("rad", ele.colPoly.angleRotated)
                 put("width", ele.colPoly.width)
                 put("height", ele.colPoly.height)
             }
-            return json.toString().toByteArray()
+           serialized = json.toString().toByteArray()
         }
-    override val serialName: String = "EleCrt"
 }
 
 
@@ -57,8 +63,11 @@ data class UpdateEventMask(val hp : Boolean, val x : Boolean, val y : Boolean, v
 }
 
 class ElementUpdateEvent(val ele : GameElement, val updateEventMask: UpdateEventMask, timeStamp: Long = currentTimeMillis()) : GameEvent(timeStamp){
+
+
+    override val serialName: String = "EleUpd"
     override val serialized: ByteArray
-        get() {
+        init{
             val json = buildJsonObject {
                 put("type", serialName)
                 put("t", timeStamp)
@@ -81,7 +90,6 @@ class ElementUpdateEvent(val ele : GameElement, val updateEventMask: UpdateEvent
                 }
             }
 
-            return json.toString().toByteArray()
+            serialized = json.toString().toByteArray()
         }
-    override val serialName: String = "EleUpd"
 }

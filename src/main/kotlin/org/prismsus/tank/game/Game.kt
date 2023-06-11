@@ -222,6 +222,7 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
                 if (updatable is MovableElement && updatable.willMove(dt)) {
                     val colPolyAfterMove = updatable.colPolyAfterMove(dt)
                     val collideds = map.quadTree.collidedObjs(colPolyAfterMove)
+                    collideds.remove(updatable.colPoly)
                     for (collided in collideds) {
                         updatable.processCollision(map.collidableToEle[collided]!!)
                         map.collidableToEle[collided]!!.processCollision(updatable)
@@ -239,9 +240,9 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
                     val curAng = colPolyAfterMove.angleRotated
                     if (collideds.isEmpty() && (prevPos != curPos || prevAng != curAng)){
                         map.quadTree.remove(updatable.colPoly);
-                        updatable.updateByTime(dt)
+                        updatable.colPoly.becomeNonCopy(colPolyAfterMove)
                         map.quadTree.insert(updatable.colPoly)
-
+                        println("cur ang: ${updatable.colPoly.angleRotated}")
                         eventHistory.add(
                             ElementUpdateEvent(
                                 updatable,
