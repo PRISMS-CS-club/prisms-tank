@@ -80,6 +80,12 @@ open class ColRect (centerPos : DPos2, val size : DDim2) : ColPoly(arrayOf(
             val vec = value.toVec() - bottomMidPt.toVec()
             plusAssign(vec)
         }
+    var centerPt : DPos2
+        get() = ((topMidPt + bottomMidPt) / 2.0).toPt()
+        set(value){
+            val vec = value.toVec() - centerPt.toVec()
+            plusAssign(vec)
+        }
 
     override fun copy(): ColRect {
         val ret = ColRect(rotationCenter, size)

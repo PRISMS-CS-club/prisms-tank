@@ -16,7 +16,7 @@ class Tank(
 ) :
 
     MovableElement(
-        uid, hp, ColMultiPart((tankRectBox), (weaponProps.colPoly + DVec2(.0, tankRectBox.height / 2))!!)
+        uid, hp, ColMultiPart((tankRectBox), (weaponProps.colPoly + DVec2(.0, tankRectBox.height / 2)) as ColPoly)
     ) {
 
     var weapon: Weapon
@@ -103,15 +103,15 @@ class Tank(
         return leftTrackVelo errNE 0.0 || rightTrackVelo errNE 0.0
     }
 
-    override fun colPolyAfterMove(dt: Long): ColPoly {
+    override fun colPolyAfterMove(dt: Long): ColMultiPart {
         val before = colPoly.copy() as ColMultiPart
         updateByTime(dt)
-        val after = colPoly.copy()
+         val after = colPoly.copy()
         colPoly.becomeNonCopy(before)
         if (willMove(dt))
             assert(after != before)
         else assert(after == before)
-        return after as ColPoly
+        return after as ColMultiPart
     }
 
     companion object {

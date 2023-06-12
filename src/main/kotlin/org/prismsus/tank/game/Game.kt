@@ -48,7 +48,7 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
             map.addEle(tank)
             eventHistory.add(ElementCreateEvent(tank, gameCurMs))
             cidToTank[c.cid] = tank as Tank
-            tank.colPoly.checkRcenter()
+            tank.colPoly.checks()
         }
 
         val panel = map.quadTree.getCoordPanel(IDim2(1000, 1000))
@@ -223,7 +223,7 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
             for (updatable in map.timeUpdatables) {
                 if (updatable is MovableElement && updatable.willMove(dt)) {
                     if (updatable.colPoly is ColMultiPart)
-                        (updatable.colPoly as ColMultiPart).checkRcenter()
+                        (updatable.colPoly as ColMultiPart).checks()
                     val colPolyAfterMove = updatable.colPolyAfterMove(dt)
                     val collideds = map.quadTree.collidedObjs(colPolyAfterMove)
                     collideds.remove(updatable.colPoly)
@@ -240,7 +240,7 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
 
                     val prevPos = if (updatable.colPoly is ColMultiPart) (updatable.colPoly as ColMultiPart).baseColPoly.rotationCenter else  updatable.colPoly.rotationCenter
                     val prevAng = updatable.colPoly.angleRotated
-                    val curPos = if (colPolyAfterMove is ColMultiPart) (updatable.colPoly  as ColMultiPart).baseColPoly.rotationCenter else  colPolyAfterMove.rotationCenter
+                    val curPos = if (colPolyAfterMove is ColMultiPart) (colPolyAfterMove).baseColPoly.rotationCenter else  colPolyAfterMove.rotationCenter
                     val curAng = colPolyAfterMove.angleRotated
                     if (collideds.isEmpty() && (prevPos != curPos || prevAng != curAng)){
                         map.quadTree.remove(updatable.colPoly);

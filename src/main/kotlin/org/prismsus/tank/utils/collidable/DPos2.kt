@@ -54,7 +54,10 @@ data class DPos2(var x: Double, var y: Double) : Collidable, Comparable<DPos2>, 
         }
 
     override fun becomeNonCopy(other: Collidable) {
-        throw Exception("DPos2 cannot become non-copy")
+        if (other !is DPos2)
+            throw IllegalArgumentException("The two objects are not of the same type")
+        x = other.x
+        y = other.y
     }
 
     override var rotationCenter: DPos2

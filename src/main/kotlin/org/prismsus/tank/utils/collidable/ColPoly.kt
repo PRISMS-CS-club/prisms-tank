@@ -37,34 +37,12 @@ open class ColPoly(override var pts: Array<DPos2>) : Collidable {
             }
         }
     override var angleRotated = 0.0
-    override fun plus(shift: DVec2): ColPoly {
-//        rCenter = rCenter + shift
-        if (parentEle != null)
-            return parentEle!!.plus(shift)
-        return super.plus(shift) as ColPoly
-    }
-
-    override fun minus(shift: DVec2): ColPoly {
-        if (parentEle != null)
-            return parentEle!!.minus(shift)
-        rCenter.minusAssign(shift)
-        return super.minus(shift) as ColPoly
-    }
-
     override fun plusAssign(shift: DVec2) {
         if (parentEle != null)
             return parentEle!!.plusAssign(shift)
         rCenter.plusAssign(shift)
         super.plusAssign(shift)
     }
-
-    override fun minusAssign(shift: DVec2) {
-        if (parentEle != null)
-            parentEle!!.minusAssign(shift)
-        rCenter = rCenter - shift
-        super.minusAssign(shift)
-    }
-
 
     open val height : Double
         get() = pts.maxBy { it.y }!!.y - pts.minBy { it.y }!!.y
@@ -263,11 +241,10 @@ open class ColPoly(override var pts: Array<DPos2>) : Collidable {
     }
 
     override fun rotateAssign(radOffset: Double, center: DPos2): Collidable {
-        rCenter = rCenter.toVec().rotate(radOffset).toPt()
         if (parentEle != null){
-            parentEle!!.rotateAssign(radOffset, center)
-            return this
+            return parentEle!!.rotateAssign(radOffset, center)
         }
+        rCenter.rotateAssign(radOffset, center)
         return super.rotateAssign(radOffset, center)
     }
 
