@@ -10,7 +10,7 @@ public class RandomMovingBot implements GameBot<FutureController> {
 //                double trackMaxSpeed = c.getTankTrackMaxSpeed().get();
 //                double ltrackSpeed = (Math.random() - 1.0) * 2 * trackMaxSpeed;
 //                double rtrackSpeed = (Math.random() - 1.0) * 2 * trackMaxSpeed;
-                c.setLeftTrackSpeed(-1);
+                c.setLeftTrackSpeed(-.5);
                 c.setRightTrackSpeed(1);
             }
         } catch (InterruptedException e) {

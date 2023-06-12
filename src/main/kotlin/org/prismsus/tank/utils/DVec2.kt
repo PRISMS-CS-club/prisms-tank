@@ -292,6 +292,10 @@ data class DVec2(var x: Double, var y: Double) {
         return DPos2(x, y)
     }
 
+    fun abs() : DVec2 {
+        return DVec2(abs(x), abs(y))
+    }
+
     override fun hashCode(): Int {
         var result = x.hashCode()
         result = 31 * result + y.hashCode()

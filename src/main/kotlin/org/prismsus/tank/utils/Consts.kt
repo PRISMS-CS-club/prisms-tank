@@ -36,7 +36,8 @@ val INIT_RECT_WEAPON_RPOPS
 )
 
 
-val ELE_SERIAL_NAME_TO_CLASS = mapOf(
+val ELE_SERIAL_NAME_TO_CLASS
+    get() = mapOf(
     "BrkBlk" to BreakableBlock::class,
     "SldBlk" to SolidBlock::class,
 ) // element's serial name to its class

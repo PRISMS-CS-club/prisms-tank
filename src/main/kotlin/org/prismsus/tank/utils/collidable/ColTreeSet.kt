@@ -14,7 +14,7 @@ import kotlin.math.min
  * */
 class ColTreeSet(val dep: Int, val bound: ColAARect) {
     companion object {
-        const val MAX_OBJECT = 5
+        const val MAX_OBJECT = 4
         const val MAX_DEP = 8
     }
 
@@ -84,7 +84,7 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
         val tlShift = DVec2(offset, offset) * 10.0
         val subDim = (bound.size / 2.0)
         val topLeft = bound.topLeftPt - tlShift.xVec + tlShift.yVec
-        val quad2 = ColTreeSet(dep + 1, ColAARect.byTopLeft(topLeft, subDim))
+        val quad2 = ColTreeSet(dep + 1, ColAARect.byTopLeft(topLeft, subDim + tlShift * 2.0))
         val quad1 = ColTreeSet(dep + 1, ColAARect.byTopLeft(topLeft + (subDim.xVec - tlShift.xVec), subDim + tlShift * 2.0 ))
         val quad4 = ColTreeSet(dep + 1, ColAARect.byTopLeft(topLeft - (subDim.yVec - tlShift.yVec) + (subDim.xVec - tlShift.xVec), subDim + tlShift * 2.0))
         val quad3 = ColTreeSet(dep + 1, ColAARect.byTopLeft(topLeft - (subDim.yVec - tlShift.yVec), subDim + tlShift * 2.0 ))

@@ -215,8 +215,7 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
                     }
                 }
             }
-//            val dt = System.currentTimeMillis() - lastUpd
-            val dt = 1L
+            val dt = System.currentTimeMillis() - lastUpd
             lastUpd = System.currentTimeMillis()
             for (updatable in map.timeUpdatables) {
                 if (updatable is MovableElement && updatable.willMove(dt)) {
@@ -234,9 +233,9 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
                         continue
                     }
 
-                    val prevPos = updatable.colPoly.rotationCenter
+                    val prevPos = if (updatable.colPoly is ColMultiPart) (updatable.colPoly as ColMultiPart).baseColPoly.rotationCenter else  updatable.colPoly.rotationCenter
                     val prevAng = updatable.colPoly.angleRotated
-                    val curPos = colPolyAfterMove.rotationCenter
+                    val curPos = if (colPolyAfterMove is ColMultiPart) (updatable.colPoly  as ColMultiPart).baseColPoly.rotationCenter else  colPolyAfterMove.rotationCenter
                     val curAng = colPolyAfterMove.angleRotated
                     if (collideds.isEmpty() && (prevPos != curPos || prevAng != curAng)){
                         map.quadTree.remove(updatable.colPoly);
@@ -255,9 +254,6 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
                             )
                         )
                     }
-
-
-
                 } else {
                     updatable.updateByTime(dt)
                 }

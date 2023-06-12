@@ -40,30 +40,30 @@ open class ColPoly(override var pts: Array<DPos2>) : Collidable {
         }
     override var angleRotated = 0.0
     override fun plus(shift: DVec2): ColPoly {
-        rCenter = rCenter + shift
+//        rCenter = rCenter + shift
         if (parentEle != null)
             parentEle!!.plus(shift)
         return super.plus(shift) as ColPoly
     }
 
     override fun minus(shift: DVec2): ColPoly {
-        rCenter = rCenter - shift
         if (parentEle != null)
             parentEle!!.minus(shift)
+        rCenter = rCenter - shift
         return super.minus(shift) as ColPoly
     }
 
     override fun plusAssign(shift: DVec2) {
-        rCenter = rCenter + shift
         if (parentEle != null)
             parentEle!!.plusAssign(shift)
+        rCenter = rCenter + shift
         super.plusAssign(shift)
     }
 
     override fun minusAssign(shift: DVec2) {
-        rCenter = rCenter - shift
         if (parentEle != null)
             parentEle!!.minusAssign(shift)
+        rCenter = rCenter - shift
         super.minusAssign(shift)
     }
 
@@ -299,7 +299,8 @@ open class ColPoly(override var pts: Array<DPos2>) : Collidable {
      * union polygon, please copy it first.
      * */
     infix fun union(other: ColPoly): ColPoly? {
-        if (!collide(other)) return null
+        if (!collide(other))
+            return null
         if (enclose(other)) return ColPoly(pts.copyOf().map { it.copy() }
             .toTypedArray())
         if (other.enclose(this)) return ColPoly(other.pts.copyOf().map { it.copy() }
@@ -332,6 +333,7 @@ open class ColPoly(override var pts: Array<DPos2>) : Collidable {
             else
                 curPt = nextPt
         }
+
         return ColPoly(ret.toTypedArray())
     }
 

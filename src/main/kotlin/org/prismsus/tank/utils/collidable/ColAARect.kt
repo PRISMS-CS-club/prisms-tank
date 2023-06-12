@@ -6,7 +6,7 @@ import org.prismsus.tank.utils.*
 * Axis Aligned Rectangle Collision Box, cannot rotate, can make collision detection faster
 * */
 class ColAARect(centerPos : DPos2, size : DDim2) : ColRect(centerPos, size){
-    constructor(rect: ColRect) : this(rect.centerPos, rect.size)
+    constructor(rect: ColRect) : this(rect.rotationCenter, rect.size)
     companion object{
         fun byTopLeft(topLeft : DPos2, size : DDim2) : ColAARect {
             return ColAARect(ColRect.byTopLeft(topLeft, size))

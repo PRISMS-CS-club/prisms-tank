@@ -4,7 +4,7 @@ import org.prismsus.tank.utils.DDim2
 import org.prismsus.tank.utils.DVec2
 
 // TODO: More accurate ColRect representation
-open class ColRect (val centerPos : DPos2, val size : DDim2) : ColPoly(arrayOf(
+open class ColRect (centerPos : DPos2, val size : DDim2) : ColPoly(arrayOf(
     centerPos + DVec2(-size.x / 2.0, size.y / 2.0),
     centerPos + size / 2.0,
     centerPos + DVec2(size.x / 2.0, -size.y / 2.0),
@@ -36,63 +36,54 @@ open class ColRect (val centerPos : DPos2, val size : DDim2) : ColPoly(arrayOf(
         get() = pts[0]
         set(value){
             val vec = value.toVec() - topLeftPt.toVec()
-            pts.forEach { it += vec }
-            centerPos += vec
+            plusAssign(vec)
         }
     var topRightPt : DPos2
         get() = pts[1]
         set(value){
             val vec = value.toVec() - topRightPt.toVec()
-            pts.forEach { it += vec }
-            centerPos += vec
+            plusAssign(vec)
         }
     var bottomRightPt : DPos2
         get() = pts[2]
         set(value){
             val vec = value.toVec() - bottomRightPt.toVec()
-            pts.forEach { it += vec }
+            plusAssign(vec)
         }
     var bottomLeftPt : DPos2
         get() = pts[3]
         set(value){
             val vec = value.toVec() - bottomLeftPt.toVec()
-            pts.forEach { it += vec }
-            centerPos += vec
+            plusAssign(vec)
         }
     var leftMidPt : DPos2
         get() = ((topLeftPt.toVec() + bottomLeftPt.toVec()) / 2.0).toPt()
         set(value){
             val vec = value.toVec() - leftMidPt.toVec()
-            pts.forEach { it += vec }
+            plusAssign(vec)
         }
     var rightMidPt : DPos2
         get() = ((topRightPt.toVec() + bottomRightPt.toVec()) / 2.0).toPt()
         set(value){
             val vec = value.toVec() - rightMidPt.toVec()
-            pts.forEach { it += vec }
-            centerPos += vec
+            plusAssign(vec)
         }
     var topMidPt : DPos2
         get() = ((topLeftPt.toVec() + topRightPt.toVec()) / 2.0).toPt()
         set(value){
             val vec = value.toVec() - topMidPt.toVec()
-            pts.forEach { it += vec }
-            centerPos += vec
+            plusAssign(vec)
         }
     var bottomMidPt : DPos2
         get() = ((bottomLeftPt.toVec() + bottomRightPt.toVec()) / 2.0).toPt()
         set(value){
             val vec = value.toVec() - bottomMidPt.toVec()
-            pts.forEach { it += vec }
-            centerPos += vec
+            plusAssign(vec)
         }
 
     override fun copy(): ColRect {
-        val ang = angleRotated
-        val tmpTl = topLeftPt.rotate(-ang, rotationCenter)
-        val ret = byTopLeft(tmpTl, size)
-        ret.rotateAssign(ang)
-        ret.rCenter = rCenter.copy()
+        val ret = ColRect(rotationCenter, size)
+        ret.rotateAssign(angleRotated)
         return ret
     }
     override val height : Double

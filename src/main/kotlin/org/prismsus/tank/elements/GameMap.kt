@@ -137,7 +137,7 @@ class GameMap(val fileName: String) {
         height = jsonEle.jsonObject["y"]!!.jsonPrimitive.int
         val blPt = DPos2(-DOUBLE_PRECISION * 100, -DOUBLE_PRECISION * 100)
         quadTree =
-            ColTreeSet(5, ColAARect.byBottomLeft(blPt, DDim2(width.toDouble(), height.toDouble()) - blPt.toVec() * 2.0))
+            ColTreeSet(0, ColAARect.byBottomLeft(blPt, DDim2(width.toDouble(), height.toDouble()) + (blPt.toVec() * 2.0).abs()))
         blocks = Array(width) { Array(height) { null } }
         var tmpArr: JsonArray = jsonEle.jsonObject["map"]!!.jsonArray
         for (x in 0 until height) {
