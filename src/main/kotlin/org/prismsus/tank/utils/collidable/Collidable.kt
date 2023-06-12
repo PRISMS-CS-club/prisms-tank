@@ -66,8 +66,7 @@ interface Collidable {
      * @return The shifted object. Note that this operation will create a new collidable object
      * */
     operator fun plus(shift: DVec2): Collidable {
-        val ret = copy(); ret.plusAssign(shift)
-        return ret
+        return copy().apply { plusAssign(shift) }
     }
 
     infix fun shift(shift: DVec2): Collidable {
@@ -79,12 +78,12 @@ interface Collidable {
     }
 
     infix fun shiftTo(pt: DPos2): Collidable {
-        val shift = pt - pts[0]
+        val shift = pt - rotationCenter
         return plus(shift)
     }
 
     infix fun shiftToAssign(pt: DPos2) {
-        val shift = pt - pts[0]
+        val shift = pt - rotationCenter
         plusAssign(shift)
     }
     /**
@@ -223,11 +222,7 @@ interface Collidable {
      * @param other The other object to copy from.
      * */
     fun becomeCopy(other: Collidable) {
-        if (this.javaClass::class != other.javaClass::class) {
-            throw IllegalArgumentException("The two objects are not of the same type")
-        }
-        pts = other.pts.copyOf().map { it.copy() }.toTypedArray()
-        angleRotated = other.angleRotated
+        return becomeNonCopy(other.copy())
     }
 
     /**

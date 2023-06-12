@@ -17,6 +17,7 @@ class ColMultiPart(baseColPoly : ColPoly, vararg subColPolys : ColPoly) : ColPol
     val baseColPoly = baseColPoly
 
     val allPts : Array<DPos2>
+
     val subColPolys : Array<ColPoly> = subColPolys.toList().toTypedArray()
 
     init{
@@ -31,13 +32,49 @@ class ColMultiPart(baseColPoly : ColPoly, vararg subColPolys : ColPoly) : ColPol
         allPts = tmpArr.toTypedArray().treeDistinct().toTypedArray()
         baseColPoly.parentEle = this
         subColPolys.forEach { it.parentEle = this }
+        checkRcenter()
+    }
 
+    fun checkRcenter() {
+        var found = false
+        for (pt in allPts) {
+            if (pt === rCenter) {
+                found = true
+                break
+            }
+        }
+        if (!found){
+            assert(false)
+        }
+        found = false
+        for (pt in allPts) {
+            if (pt === baseColPoly.rCenter) {
+                found = true
+                break
+            }
+        }
+        if (!found){
+            assert(false)
+        }
+        found = false
+        for (sub in subColPolys) {
+            for (pt in allPts) {
+                if (pt === sub.rCenter) {
+                    found = true
+                    break
+                }
+            }
+            if (!found){
+                assert(false)
+            }
+        }
     }
 
     /**
      * By overaloding this function, [rotate], [rotateTo], [rotateAssignTo] ... will be available to use
      * */
     override fun rotateAssign(radOffset: Double, center: DPos2): ColMultiPart {
+        checkRcenter()
         angleRotated += radOffset
         for (pt in allPts) {
             pt.rotateAssign(radOffset, center)
@@ -46,54 +83,40 @@ class ColMultiPart(baseColPoly : ColPoly, vararg subColPolys : ColPoly) : ColPol
             sub.angleRotated += radOffset
         }
         baseColPoly.angleRotated += radOffset
+        checkRcenter()
         return this
     }
 
     override fun plusAssign(shift: DVec2) {
+        checkRcenter()
         for (pt in allPts) {
             pt.plusAssign(shift)
         }
+        checkRcenter()
     }
 
-    override fun minusAssign(shift: DVec2) {
-        for (pt in allPts) {
-            pt.minusAssign(shift)
-        }
-    }
+//    override fun minusAssign(shift: DVec2) {
+//        checkRcenter()
+//        for (pt in allPts) {
+//            pt.minusAssign(shift)
+//        }
+//        checkRcenter()
+//    }
+//
+//    override fun plus(shift: DVec2): ColPoly {
+//        checkRcenter()
+//        val newBase = ColPoly(baseColPoly.pts.copyOf().map { it.copy().shift(shift) as DPos2}.toTypedArray())
+//        val newSubs = subColPolys.map {
+//            ColPoly(it.pts.copyOf().map { it.copy().shift(shift) as DPos2 }.toTypedArray())
+//        }.toTypedArray()
+//        val ret = ColMultiPart(newBase, *newSubs)
+//        ret.angleRotated = angleRotated
+//        checkRcenter()
+//        return ret
+//    }
 
-    override fun plus(shift: DVec2): ColPoly {
-        val newBase = ColPoly(baseColPoly.pts.copyOf().map { it.copy().shift(shift) as DPos2}.toTypedArray())
-        val newSubs = subColPolys.map {
-            ColPoly(it.pts.copyOf().map { it.copy().shift(shift) as DPos2 }.toTypedArray())
-        }.toTypedArray()
-        val ret = ColMultiPart(newBase, *newSubs)
-        ret.angleRotated = angleRotated
-        return ret
-    }
-
-    override fun minus(shift: DVec2): ColPoly {
-        return plus(-shift)
-    }
-
-
-    override fun becomeCopy(other: Collidable) {
-        if (other !is ColMultiPart) {
-            throw IllegalArgumentException("ColMultiPart can only become ColMultiPart")
-        }
-        if (other === this) {
-            return
-        }
-        angleRotated = other.angleRotated
-        baseColPoly.becomeCopy(other.baseColPoly)
-        for (i in 0 until other.subColPolys.size) {
-            subColPolys[i].becomeCopy(other.subColPolys[i])
-        }
-        pts = other.pts.copyOf()
-        allPts.forEachIndexed() { i, pt ->
-            allPts[i].becomeCopy(other.allPts[i])
-        }
-    }
     override fun becomeNonCopy(other: Collidable) {
+        checkRcenter()
         if (other !is ColMultiPart) {
             throw IllegalArgumentException("ColMultiPart can only become ColMultiPart")
         }
@@ -108,14 +131,18 @@ class ColMultiPart(baseColPoly : ColPoly, vararg subColPolys : ColPoly) : ColPol
         for (i in 0 until other.subColPolys.size) {
             subColPolys[i].becomeNonCopy(other.subColPolys[i])
         }
+        rCenter = other.rCenter
         pts = other.pts.copyOf()
+        checkRcenter()
     }
 
     override fun copy(): ColMultiPart{
+        checkRcenter()
         val newBase = baseColPoly.copy() as ColPoly
         val newSubs = subColPolys.copyOf().map { it.copy() as ColPoly }.toTypedArray()
         val ret = ColMultiPart(newBase, *newSubs)
         ret.angleRotated = angleRotated
+        checkRcenter()
         return ret
     }
 

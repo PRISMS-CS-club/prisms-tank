@@ -29,11 +29,9 @@ open class ColPoly(override var pts: Array<DPos2>) : Collidable {
         set(value) {
             val diff = value - rCenter
             if (parentEle != null){
-                parentEle!!.plusAssign(diff)
-                rCenter = value
-                return
+                return parentEle!!.plusAssign(diff)
             }
-            rCenter = value
+            rCenter.plusAssign(diff)
             for (pt in pts) {
                 pt += diff
             }
@@ -42,21 +40,21 @@ open class ColPoly(override var pts: Array<DPos2>) : Collidable {
     override fun plus(shift: DVec2): ColPoly {
 //        rCenter = rCenter + shift
         if (parentEle != null)
-            parentEle!!.plus(shift)
+            return parentEle!!.plus(shift)
         return super.plus(shift) as ColPoly
     }
 
     override fun minus(shift: DVec2): ColPoly {
         if (parentEle != null)
-            parentEle!!.minus(shift)
-        rCenter = rCenter - shift
+            return parentEle!!.minus(shift)
+        rCenter.minusAssign(shift)
         return super.minus(shift) as ColPoly
     }
 
     override fun plusAssign(shift: DVec2) {
         if (parentEle != null)
-            parentEle!!.plusAssign(shift)
-        rCenter = rCenter + shift
+            return parentEle!!.plusAssign(shift)
+        rCenter.plusAssign(shift)
         super.plusAssign(shift)
     }
 
@@ -354,6 +352,13 @@ open class ColPoly(override var pts: Array<DPos2>) : Collidable {
             throw IllegalArgumentException("Cannot become a ColPoly from a ${other::class.simpleName}")
         rCenter = other.rCenter.copy()
         super.becomeCopy(other)
+    }
+
+    override fun becomeNonCopy(other: Collidable){
+        if (other !is ColPoly)
+            throw IllegalArgumentException("Cannot become a ColPoly from a ${other::class.simpleName}")
+        rCenter = other.rCenter
+        super.becomeNonCopy(other)
     }
 
     companion object {

@@ -86,7 +86,7 @@ class Tank(
 
         val pivotBaseLine = if (isInnerCircLeft()) Line(tankRectBox.rightMidPt, tankRectBox.leftMidPt)
         else Line(tankRectBox.leftMidPt, tankRectBox.rightMidPt)
-        val pivotPt = pivotBaseLine.atT(turningRad)
+        val pivotPt = pivotBaseLine.atT(turningRad + 1.0) // make sure that we're shifting start from the ending point of that pivotBaseLine
         val angSign = if (leftTrackVelo - rightTrackVelo > 0) -1 else 1
         val angVelo = abs(inVelo / turningRad)
         val angDisp = angVelo * ddt

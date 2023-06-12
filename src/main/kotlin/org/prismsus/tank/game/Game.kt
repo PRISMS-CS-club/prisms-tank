@@ -44,9 +44,11 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
             val tpanel = CoordPanel(IDim2(1, 1), IDim2(50, 50))
             tpanel.drawCollidable(tank.colPoly)
             tpanel.showFrame()
+            tpanel.showFrame()
             map.addEle(tank)
             eventHistory.add(ElementCreateEvent(tank, gameCurMs))
             cidToTank[c.cid] = tank as Tank
+            tank.colPoly.checkRcenter()
         }
 
         val panel = map.quadTree.getCoordPanel(IDim2(1000, 1000))
@@ -215,10 +217,13 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
                     }
                 }
             }
-            val dt = System.currentTimeMillis() - lastUpd
+//            val dt = System.currentTimeMillis() - lastUpd
+            val dt = 1L
             lastUpd = System.currentTimeMillis()
             for (updatable in map.timeUpdatables) {
                 if (updatable is MovableElement && updatable.willMove(dt)) {
+                    if (updatable.colPoly is ColMultiPart)
+                        (updatable.colPoly as ColMultiPart).checkRcenter()
                     val colPolyAfterMove = updatable.colPolyAfterMove(dt)
                     val collideds = map.quadTree.collidedObjs(colPolyAfterMove)
                     collideds.remove(updatable.colPoly)
