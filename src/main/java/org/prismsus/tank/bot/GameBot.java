@@ -4,10 +4,8 @@ import java.util.concurrent.ExecutionException;
 
 /**
  * GameBot is the interface for all bots. Your code should implement this interface.
- * @param <T> Type of controller you want to use. This should only be either {@link org.prismsus.tank.bot.Controller}
- *           or {@link org.prismsus.tank.bot.FutureController}.
  */
-public interface GameBot<T> {
+public interface GameBot {
     /**
      * Run the bot.
      *
@@ -17,6 +15,9 @@ public interface GameBot<T> {
      *                   through this controller, and all the commands for your bot can be sent through
      *                   this controller.
      */
-    public void loop(T controller) throws ExecutionException, InterruptedException;
+    default public void loop(FutureController controller) throws ExecutionException, InterruptedException{}
     // whenever there is an interruptedException, this function should return immediately.
+    default public void loop(Controller controller) throws ExecutionException, InterruptedException{}
+    public String getName();
+    public boolean isUseFutureController();
 }

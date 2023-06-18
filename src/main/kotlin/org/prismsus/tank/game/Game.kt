@@ -1,16 +1,11 @@
 package org.prismsus.tank.game
 
-import org.prismsus.tank.bot.FutureController
-import org.prismsus.tank.bot.GameBot
-import org.prismsus.tank.bot.RandomMovingBot
+import org.prismsus.tank.bot.*
 import org.prismsus.tank.elements.GameElement
 import org.prismsus.tank.elements.GameMap
 import org.prismsus.tank.elements.MovableElement
 import org.prismsus.tank.elements.Tank
-import org.prismsus.tank.event.ElementCreateEvent
-import org.prismsus.tank.event.ElementUpdateEvent
-import org.prismsus.tank.event.GameEvent
-import org.prismsus.tank.event.UpdateEventMask
+import org.prismsus.tank.event.*
 import org.prismsus.tank.game.OtherRequests.*
 import org.prismsus.tank.game.TankWeaponInfo.*
 import org.prismsus.tank.utils.*
@@ -22,9 +17,10 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.util.concurrent.PriorityBlockingQueue
 
-class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
-    val eventHistory = PriorityBlockingQueue<GameEvent>()
-    lateinit var controllers: Array<FutureController>
+class Game(val replayFile: File, vararg val bots: GameBot) {
+    val humanPlayerBots : Array<HumanPlayerBot> = bots.filterIsInstance<HumanPlayerBot>().toTypedArray()
+    val eventHistoryToSave = PriorityBlockingQueue<GameEvent>()
+    var controllers: Array<FutureController>
     val requestsQ = PriorityBlockingQueue<ControllerRequest<Any>>()
     val map = GameMap("default.json")
     val cidToTank = mutableMapOf<Long, Tank>()
@@ -40,13 +36,12 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
             val tank = Tank.byInitPos(nextUid, DPos2.ORIGIN)
             val tankPos = DPos2(4.5, 1.5)
             (tank.colPoly as ColMultiPart).baseColPoly.rotationCenter = tankPos
-//            (tank.colPoly as ColMultiPart).baseColPoly.rotateAssignDeg(20.0)
             val tpanel = CoordPanel(IDim2(1, 1), IDim2(50, 50))
             tpanel.drawCollidable(tank.colPoly)
             tpanel.showFrame()
             tpanel.showFrame()
             map.addEle(tank)
-            eventHistory.add(ElementCreateEvent(tank, gameCurMs))
+            eventHistoryToSave.add(ElementCreateEvent(tank, gameCurMs))
             cidToTank[c.cid] = tank as Tank
             tank.colPoly.checks()
         }
@@ -57,7 +52,10 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
         for ((i, bot) in bots.withIndex()) {
             botThs[i] =
                 Thread {
-                    bot.loop(controllers[i])
+                    if (bot.isUseFutureController)
+                        bot.loop(controllers[i])
+                    else
+                        bot.loop(Controller(controllers[i]))
                 }
             botThs[i]!!.start()
         }
@@ -66,11 +64,12 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
         }
         replayFile.appendText("[\n")
         replayTh.start()
-
-
         Runtime.getRuntime().addShutdownHook(Thread {
             stop()
         })
+        for (hbot in humanPlayerBots){
+            hbot.evtsToClnt.add(MapCreateEvent(map))
+        }
     }
 
     fun tankWeaponInfoHandler(req: ControllerRequest<Any>): Any {
@@ -153,11 +152,9 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
         try {
             while (true) {
                 Thread.sleep(100)
-                while(eventHistory.isNotEmpty()) {
-                    val curEvent = eventHistory.poll()
-                    replayFile.appendBytes(curEvent.serialized + ",\n".toByteArray(Charsets.UTF_8))
-//                    println("saved event: ${curEvent.serialized.toString(Charsets.UTF_8)}")
-//                    println("cur file size: ${replayFile.length()}")
+                while(eventHistoryToSave.isNotEmpty()) {
+                    val curEvent = eventHistoryToSave.poll()
+                    replayFile.appendBytes(curEvent.serializedBytes + ",\n".toByteArray(Charsets.UTF_8))
                 }
             }
         } catch (e: InterruptedException) {
@@ -193,6 +190,13 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
                 val target = req.params!!.first() as Double
                 cidToTank[req.cid]!!.rightTrackVelo = target
             }
+        }
+    }
+
+    fun processNewEvent(evt : GameEvent){
+        eventHistoryToSave.add(evt)
+        for (hbot in humanPlayerBots){
+            hbot.evtsToClnt.add(evt)
         }
     }
 
@@ -234,6 +238,9 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
 
                     if (collideds.isNotEmpty()) {
                         println("collision detected: ")
+                        val coordP = map.quadTree.getCoordPanel(IDim2(1000, 1000))
+                        coordP.showFrame()
+                        while(true){}
                         // restore to the original position
                         continue
                     }
@@ -247,7 +254,7 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
                         updatable.colPoly.becomeNonCopy(colPolyAfterMove)
                         map.quadTree.insert(updatable.colPoly)
                         println("cur ang: ${updatable.colPoly.angleRotated}")
-                        eventHistory.add(
+                        processNewEvent(
                             ElementUpdateEvent(
                                 updatable,
                                 UpdateEventMask.defaultFalse(
@@ -302,4 +309,3 @@ class Game(val replayFile: File, vararg val bots: GameBot<FutureController>) {
         }
     }
 }
-typealias FutureBot = GameBot<FutureController>

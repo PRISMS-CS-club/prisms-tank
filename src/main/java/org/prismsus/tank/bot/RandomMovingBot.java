@@ -2,7 +2,7 @@ package org.prismsus.tank.bot;
 
 import java.util.concurrent.ExecutionException;
 
-public class RandomMovingBot implements GameBot<FutureController> {
+public class RandomMovingBot implements GameBot {
     public void loop(FutureController c) throws ExecutionException, InterruptedException {
         try {
             while (!Thread.interrupted()) {
@@ -17,5 +17,14 @@ public class RandomMovingBot implements GameBot<FutureController> {
             // when the thread is interrupted, stop the bot
             return;
         }
+    }
+
+    @Override
+    public String getName() {
+        return "RandomMovingBot";
+    }
+    @Override
+    public boolean isUseFutureController() {
+        return true;
     }
 }

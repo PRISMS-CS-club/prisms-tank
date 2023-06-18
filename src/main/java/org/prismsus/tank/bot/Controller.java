@@ -8,7 +8,9 @@ import java.util.concurrent.ExecutionException;
 
 public class Controller {
     FutureController controller;
-
+    public Controller(FutureController controller) {
+        this.controller = controller;
+    }
     /**
      * Get all bot's visible blocks excluding empty blocks. The function returns a list of `Block` objects.
      * Bot's vision may be blocked by other opaque blocks.

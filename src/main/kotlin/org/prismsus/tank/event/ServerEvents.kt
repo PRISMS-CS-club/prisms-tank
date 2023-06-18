@@ -10,7 +10,9 @@ import java.lang.System.currentTimeMillis
  *                     of the game.
  */
 abstract class GameEvent(val timeStamp: Long = currentTimeMillis()) : Comparable<GameEvent> {
-    abstract val serialized : ByteArray
+    abstract val serializedBytes : ByteArray
+    open val serializedStr : String
+        get() = serializedBytes.toString(Charsets.UTF_8)
     abstract val serialName : String
     override fun compareTo(other: GameEvent): Int {
         return timeStamp.compareTo(other.timeStamp)
@@ -19,7 +21,7 @@ abstract class GameEvent(val timeStamp: Long = currentTimeMillis()) : Comparable
 
 
 class MapCreateEvent (val map : GameMap, timeStamp : Long = currentTimeMillis()) : GameEvent(timeStamp){
-    override val serialized: ByteArray
+    override val serializedBytes: ByteArray
         get() = map.serialized
     // TODO: implement, now set the timestamp to 0
     override val serialName : String = "MapCrt"
@@ -27,7 +29,7 @@ class MapCreateEvent (val map : GameMap, timeStamp : Long = currentTimeMillis())
 
 class ElementCreateEvent(val ele : GameElement, timeStamp : Long = currentTimeMillis()) : GameEvent(timeStamp){
     override val serialName: String = "EleCrt"
-    override val serialized: ByteArray
+    override val serializedBytes: ByteArray
         init{
             val json = buildJsonObject {
                 put("type", serialName)
@@ -46,7 +48,7 @@ class ElementCreateEvent(val ele : GameElement, timeStamp : Long = currentTimeMi
                 put("width", ele.colPoly.width)
                 put("height", ele.colPoly.height)
             }
-           serialized = json.toString().toByteArray()
+           serializedBytes = json.toString().toByteArray()
         }
 }
 
@@ -66,7 +68,7 @@ class ElementUpdateEvent(val ele : GameElement, val updateEventMask: UpdateEvent
 
 
     override val serialName: String = "EleUpd"
-    override val serialized: ByteArray
+    override val serializedBytes: ByteArray
         init{
             val json = buildJsonObject {
                 put("type", serialName)
@@ -90,6 +92,6 @@ class ElementUpdateEvent(val ele : GameElement, val updateEventMask: UpdateEvent
                 }
             }
 
-            serialized = json.toString().toByteArray()
+            serializedBytes = json.toString().toByteArray()
         }
 }
