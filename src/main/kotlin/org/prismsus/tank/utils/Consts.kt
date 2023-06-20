@@ -42,5 +42,5 @@ val ELE_SERIAL_NAME_TO_CLASS
     "SldBlk" to SolidBlock::class,
 ) // element's serial name to its class
 
-val DEF_TICKRATE : Int = 64
+val DEF_TICKRATE : Int = 128
 val DEF_MS_PER_LOOP : Long = round(1000.0 / DEF_TICKRATE).toLong()

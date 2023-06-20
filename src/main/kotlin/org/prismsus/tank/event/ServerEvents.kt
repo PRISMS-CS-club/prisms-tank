@@ -4,7 +4,10 @@ import org.prismsus.tank.elements.GameElement
 import org.prismsus.tank.elements.GameMap
 import org.prismsus.tank.elements.Tank
 import org.prismsus.tank.utils.collidable.ColMultiPart
+import org.prismsus.tank.utils.collidable.ColPoly
 import java.lang.System.currentTimeMillis
+import kotlin.math.PI
+
 /**
  * Base class for all events.
  * @property timeStamp Timestamp of the event. The timestamp is the number of milliseconds since the start
@@ -27,6 +30,13 @@ class MapCreateEvent (val map : GameMap, timeStamp : Long = currentTimeMillis())
     override val serialName : String = "MapCrt"
 }
 
+fun selectBaseColPoly(ele : GameElement) : ColPoly{
+    if (ele.colPoly is ColMultiPart)
+        return (ele.colPoly as ColMultiPart).baseColPoly
+    else
+        return ele.colPoly
+}
+
 class ElementCreateEvent(val ele : GameElement, timeStamp : Long = currentTimeMillis()) : GameEvent(timeStamp){
     override val serialName: String = "EleCrt"
     override val serializedBytes: ByteArray
@@ -38,17 +48,11 @@ class ElementCreateEvent(val ele : GameElement, timeStamp : Long = currentTimeMi
                 put("name", ele.serialName)
                 if (ele is Tank)
                     put("player", ele.playerName)
-                if (ele.colPoly is ColMultiPart)
-                    put("x", (ele.colPoly as ColMultiPart).baseColPoly.rotationCenter.x)
-                else
-                    put("x", ele.colPoly.rotationCenter.x)
-                if (ele.colPoly is ColMultiPart)
-                    put("y", (ele.colPoly as ColMultiPart).baseColPoly.rotationCenter.y)
-                else
-                    put("y", ele.colPoly.rotationCenter.y)
+                put("x", selectBaseColPoly(ele).rotationCenter.x)
+                put("y", selectBaseColPoly(ele).rotationCenter.y)
                 put("rad", ele.colPoly.angleRotated)
-                put("width", ele.colPoly.width)
-                put("height", ele.colPoly.height)
+                put("width", selectBaseColPoly(ele).width)
+                put("height", selectBaseColPoly(ele).height)
             }
            serializedBytes = json.toString().toByteArray()
         }
@@ -80,14 +84,10 @@ class ElementUpdateEvent(val ele : GameElement, val updateEventMask: UpdateEvent
                     put("hp", ele.hp)
                 }
                 if (updateEventMask.x) {
-                    if (ele.colPoly is ColMultiPart)
-                        put("x", (ele.colPoly as ColMultiPart).baseColPoly.rotationCenter.x)
-                    else put("x", ele.colPoly.rotationCenter.x)
+                    put("x", selectBaseColPoly(ele).rotationCenter.x)
                 }
                 if (updateEventMask.y) {
-                    if (ele.colPoly is ColMultiPart)
-                        put("y", (ele.colPoly as ColMultiPart).baseColPoly.rotationCenter.y)
-                    else put("y", ele.colPoly.rotationCenter.y)
+                    put("y", selectBaseColPoly(ele).rotationCenter.y)
                 }
                 if (updateEventMask.rad) {
                     put("rad", ele.colPoly.angleRotated)

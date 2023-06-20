@@ -27,9 +27,9 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
     val botThs: Array<Thread?> = Array(bots.size) { null }
     lateinit var replayTh: Thread
     val gameInitMs = System.currentTimeMillis()
-    val gameCurMs: Long
+    val elapsedGameMs: Long
         get() = System.currentTimeMillis() - gameInitMs
-
+    var lastGameLoopMs = elapsedGameMs
     init {
         controllers = Array(bots.size) { i -> FutureController(i.toLong(), requestsQ) }
         for ((i, c) in controllers.withIndex()) {
@@ -41,7 +41,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
             tpanel.showFrame()
             tpanel.showFrame()
             map.addEle(tank)
-            eventHistoryToSave.add(ElementCreateEvent(tank, gameCurMs))
+            eventHistoryToSave.add(ElementCreateEvent(tank, elapsedGameMs))
             cidToTank[c.cid] = tank
         }
 
@@ -178,7 +178,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
                 val bullet = cidToTank[req.cid]!!.weapon.fire()
                 if (bullet != null) {
                     map.addEle(bullet)
-                    processNewEvent(ElementCreateEvent(bullet, gameCurMs))
+                    processNewEvent(ElementCreateEvent(bullet, elapsedGameMs))
                 }
             }
 
@@ -200,84 +200,94 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
             hbot.evtsToClnt.add(evt)
         }
     }
+    fun handleRequests(){
+        while (!requestsQ.isEmpty()) {
+            val curReq = requestsQ.poll()
+            when (curReq.requestType) {
+                is TankWeaponInfo -> {
+                    val ret = tankWeaponInfoHandler(curReq)
+                    curReq.returnTo!!.complete(ret)
+                }
+                is OtherRequests -> {
+                    handleOtherRequests(curReq)
+                }
+                else -> {
+                    throw IllegalArgumentException("Invalid request type")
+                }
+            }
+        }
+    }
+
+    fun handleUpdatableElements() : ArrayList<GameElement>{
+        val dt = elapsedGameMs - lastGameLoopMs
+        println("dt = $dt")
+        val toRem = ArrayList<GameElement>()
+        for (updatable in map.timeUpdatables) {
+            if (updatable is MovableElement && updatable.willMove(dt)) {
+                if (updatable.colPoly is ColMultiPart)
+                    (updatable.colPoly as ColMultiPart).checks()
+                val colPolyAfterMove = updatable.colPolyAfterMove(dt)
+                val collideds = map.quadTree.collidedObjs(colPolyAfterMove)
+                collideds.remove(updatable.colPoly)
+                for (collided in collideds) {
+                    updatable.processCollision(map.collidableToEle[collided]!!)
+                    map.collidableToEle[collided]!!.processCollision(updatable)
+                }
+
+                if (updatable.removeStat == GameElement.RemoveStat.TO_REMOVE) {
+                    toRem.add(updatable)
+                }
+
+                if (collideds.isNotEmpty()) {
+                    println("collision detected: ")
+                    continue
+                }
+
+                val prevPos = if (updatable.colPoly is ColMultiPart) (updatable.colPoly as ColMultiPart).baseColPoly.rotationCenter else  updatable.colPoly.rotationCenter
+                val prevAng = updatable.colPoly.angleRotated
+                val curPos = if (colPolyAfterMove is ColMultiPart) (colPolyAfterMove).baseColPoly.rotationCenter else  colPolyAfterMove.rotationCenter
+                val curAng = colPolyAfterMove.angleRotated
+                if (collideds.isEmpty() && (prevPos != curPos || prevAng != curAng)){
+                    map.quadTree.remove(updatable.colPoly);
+                    updatable.colPoly.becomeNonCopy(colPolyAfterMove)
+                    map.quadTree.insert(updatable.colPoly)
+//                        println("cur ang: ${updatable.colPoly.angleRotated}")
+                    processNewEvent(
+                        ElementUpdateEvent(
+                            updatable,
+                            UpdateEventMask.defaultFalse(
+                                x = (prevPos.x errNE curPos.x),
+                                y = (prevPos.y errNE curPos.y),
+                                rad = (prevAng errNE curAng
+                                        )
+                            ), elapsedGameMs
+                        )
+                    )
+                }
+            } else {
+                updatable.updateByTime(dt)
+            }
+        }
+        return toRem
+    }
 
     fun start() {
-        var lastUpd = System.currentTimeMillis()
+        lastGameLoopMs = elapsedGameMs
         while (true) {
             // first handle all the requests, then move all the elements
-            while (!requestsQ.isEmpty()) {
-                val curReq = requestsQ.poll()
-                when (curReq.requestType) {
-                    is TankWeaponInfo -> {
-                        val ret = tankWeaponInfoHandler(curReq)
-                        curReq.returnTo!!.complete(ret)
-                    }
-
-                    is OtherRequests -> {
-                        handleOtherRequests(curReq)
-                    }
-
-                    else -> {
-                        throw IllegalArgumentException("Invalid request type")
-                    }
-                }
-            }
-//            val dt = System.currentTimeMillis() - lastUpd
-            val dt = 1L
-            lastUpd = System.currentTimeMillis()
-            val toRem = ArrayList<GameElement>()
-            for (updatable in map.timeUpdatables) {
-                if (updatable is MovableElement && updatable.willMove(dt)) {
-                    if (updatable.colPoly is ColMultiPart)
-                        (updatable.colPoly as ColMultiPart).checks()
-                    val colPolyAfterMove = updatable.colPolyAfterMove(dt)
-                    val collideds = map.quadTree.collidedObjs(colPolyAfterMove)
-                    collideds.remove(updatable.colPoly)
-                    for (collided in collideds) {
-                        updatable.processCollision(map.collidableToEle[collided]!!)
-                        map.collidableToEle[collided]!!.processCollision(updatable)
-                    }
-
-                    if (updatable.removeStat == GameElement.RemoveStat.TO_REMOVE) {
-                        toRem.add(updatable)
-                    }
-
-                    if (collideds.isNotEmpty()) {
-                        println("collision detected: ")
-                        continue
-                    }
-
-                    val prevPos = if (updatable.colPoly is ColMultiPart) (updatable.colPoly as ColMultiPart).baseColPoly.rotationCenter else  updatable.colPoly.rotationCenter
-                    val prevAng = updatable.colPoly.angleRotated
-                    val curPos = if (colPolyAfterMove is ColMultiPart) (colPolyAfterMove).baseColPoly.rotationCenter else  colPolyAfterMove.rotationCenter
-                    val curAng = colPolyAfterMove.angleRotated
-                    if (collideds.isEmpty() && (prevPos != curPos || prevAng != curAng)){
-                        map.quadTree.remove(updatable.colPoly);
-                        updatable.colPoly.becomeNonCopy(colPolyAfterMove)
-                        map.quadTree.insert(updatable.colPoly)
-//                        println("cur ang: ${updatable.colPoly.angleRotated}")
-                        processNewEvent(
-                            ElementUpdateEvent(
-                                updatable,
-                                UpdateEventMask.defaultFalse(
-                                    x = (prevPos.x errNE curPos.x),
-                                    y = (prevPos.y errNE curPos.y),
-                                    rad = (prevAng errNE curAng
-                                            )
-                                ), gameCurMs
-                            )
-                        )
-                    }
-                } else {
-                    updatable.updateByTime(dt)
-                }
-            }
-
+            val loopStartMs = elapsedGameMs
+            handleRequests()
+            val toRem = handleUpdatableElements()
             for (rem in toRem) {
                 map.remEle(rem)
-                processNewEvent(ElementRemoveEvent(rem.uid, gameCurMs))
+                processNewEvent(ElementRemoveEvent(rem.uid, elapsedGameMs))
             }
-
+            val loopEndMs = elapsedGameMs
+            val loopLen = loopEndMs - loopStartMs
+            println("cur loop len: $loopLen, slept for ${DEF_MS_PER_LOOP - loopLen}")
+            lastGameLoopMs = elapsedGameMs
+            if (loopLen < DEF_MS_PER_LOOP)
+                Thread.sleep(DEF_MS_PER_LOOP - loopLen)
         }
     }
 
