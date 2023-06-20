@@ -130,6 +130,13 @@ class GameMap(val fileName: String) {
         return ele
     }
 
+    fun scanAndRemEle(){
+        val toRem = gameEles.filter { it.removeStat == GameElement.RemoveStat.TO_REMOVE }
+        for (ele in toRem){
+            remEle(ele)
+        }
+    }
+
     init {
         val fileText = GameMap::class.java.getResource(fileName).readText()
         val jsonEle: JsonElement = Json.parseToJsonElement(fileText)

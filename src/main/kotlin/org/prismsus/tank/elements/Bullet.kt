@@ -8,6 +8,7 @@ import org.prismsus.tank.utils.errNE
 class Bullet(uid: Long, var speed: Double = INIT_BULLET_SPEED, override val colPoly: ColRect = INIT_BULLET_COLBOX.copy()) :
     MovableElement(uid, -1, colPoly) {
     constructor(uid: Long, props: BulletProps) : this(uid, props.speed, props.colBox)
+    // need to convert from m/s to m/ms
 
     override val serialName: String
         get() = "Blt"
@@ -19,7 +20,16 @@ class Bullet(uid: Long, var speed: Double = INIT_BULLET_SPEED, override val colP
     override fun colPolyAfterMove(dt: Long): ColRect {
         return colPoly.copy().apply { this += curVelo * dt.toDouble() }
     }
-}
+
+    override infix fun processCollision(other: GameElement): Boolean {
+        removeStat = RemoveStat.TO_REMOVE
+        return super.processCollision(other)
+    }
+
+    override fun updateByTime(dt: Long) {
+        super.updateByTime(dt)
+    }
+ }
 
 class BulletProps(val speed: Double = INIT_BULLET_SPEED, val colBox: ColRect = INIT_BULLET_COLBOX){
     fun copy() : BulletProps {

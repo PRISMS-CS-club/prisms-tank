@@ -1,11 +1,10 @@
 package org.prismsus.tank.elements
 
-import org.prismsus.tank.utils.DOUBLE_PRECISION
-import org.prismsus.tank.utils.DVec2
+import org.prismsus.tank.utils.*
 import org.prismsus.tank.utils.collidable.ColPoly
 import org.prismsus.tank.utils.collidable.DPos2
 import org.prismsus.tank.utils.collidable.ColRect
-import org.prismsus.tank.utils.nextUid
+import org.prismsus.tank.utils.collidable.Line
 
 open class Weapon(
     val damage : Int,
@@ -15,28 +14,21 @@ open class Weapon(
     val bulletProps : BulletProps,
     override val colPoly: ColPoly,
     override var belongTo: GameElement,
-    override var centerOffset: DVec2,
-    val firingPos : DPos2,
+    override var offsetFromParentCenter: DVec2,
+    val firingPosOffset : DVec2, // the relative position to fire the bullet, if y value is 1, it means that the bullet will be fired at the place with max y value
+                           // and the x value of the rotation center of the weapon
 ) : SubGameElement, TimeUpdatable {
     override val serialName: String
         get() = "Wep"
     var curCapacity : Int = maxCapacity
-    private var lastFireTime : Long = 0
+    protected var lastFireTime : Long = 0
 
-    fun fire() : Bullet? {
-        if (System.currentTimeMillis() - lastFireTime < minInterv) return null
-        val bullet = Bullet(nextUid, bulletProps)
-        bullet.colPoly.rotateTo(belongTo.colPoly.angleRotated)
-        bullet.colPoly.bottomMidPt = firingPos
-        bullet.curVelo = DVec2.byPolar(belongTo.colPoly.angleRotated, bulletProps.speed)
-        bullet.damage = damage
-        lastFireTime = System.currentTimeMillis()
-        curCapacity--
-        return bullet
+    open fun fire() : Bullet?{
+        throw NotImplementedError()
     }
 
     override fun updateByTime(dt: Long) {
-        curCapacity += (reloadRate * dt * 1000).toInt()
+        curCapacity += (reloadRate * dt / 1000).toInt()
     }
 }
 
@@ -48,10 +40,25 @@ class RectWeapon(
     bulletProps: BulletProps,
     colBox: ColRect,
     belongTo: GameElement,
-    centerOffset: DVec2 = DVec2(.0, belongTo.colPoly.height / 2.0),
-    firingPos : DPos2 =  colBox.topMidPt + centerOffset + DVec2(0.0,  DOUBLE_PRECISION * 100)
-) : Weapon(damage, minInterv, maxCapacity, reloadRate,  bulletProps, colBox, belongTo, centerOffset, firingPos)
+    offsetFromParentCenter: DVec2 = 1.0.toYvec(),
+    firingPos : DVec2 = 1.0.toYvec()
+) : Weapon(damage, minInterv, maxCapacity, reloadRate,  bulletProps, colBox, belongTo, offsetFromParentCenter, firingPos)
 {
+    override fun fire(): Bullet?
+        {
+            if (System.currentTimeMillis() - lastFireTime < minInterv) return null
+            val bullet = Bullet(nextUid, bulletProps)
+            bullet.colPoly.rotateAssignTo(colPoly.angleRotated)
+            val weaponYline = Line((colPoly as ColRect).rotationCenter, (colPoly).topMidPt)
+            val weaponXline = Line(colPoly.rotationCenter, (colPoly).rightMidPt)
+            bullet.colPoly.bottomMidPt = colPoly.rotationCenter + weaponYline.toVec() * firingPosOffset.y + weaponXline.toVec() * firingPosOffset.x
+            bullet.curVelo = DVec2.byPolar(bulletProps.speed / 1000.0, belongTo.colPoly.angleRotated)
+            bullet.damage = damage
+            lastFireTime = System.currentTimeMillis()
+            curCapacity--
+            return bullet
+        }
+
 }
 
 open class WeaponProps(
@@ -60,12 +67,12 @@ open class WeaponProps(
     val maxCapacity : Int,   // the maximum capacity of bullet in the weapon
     val reloadRate : Double, // the rate of refilling bullet to its max capacity
     val bulletProps: BulletProps,
-    val colPoly: ColPoly,
-    val centerOffset: DVec2,
-    val firingPos : DPos2
+    open val colPoly: ColPoly,
+    val offsetFromParentCenter: DVec2,
+    val firingPosOffset : DVec2
 ) {
     open fun toWeapon(belongTo: GameElement) : Weapon {
-        return Weapon(damage, minInterv, maxCapacity, reloadRate, bulletProps, colPoly, belongTo, centerOffset, firingPos)
+        return Weapon(damage, minInterv, maxCapacity, reloadRate, bulletProps, colPoly, belongTo, offsetFromParentCenter, firingPosOffset)
     }
 }
 
@@ -75,15 +82,16 @@ class RectWeaponProps(
     maxCapacity : Int,   // the maximum capacity of bullet in the weapon
     reloadRate : Double, // the rate of refilling bullet to its max capacity
     bulletProps: BulletProps,
-    val colBox: ColRect,
-    centerOffset: DVec2 = DVec2(.0, colBox.height / 2.0),
-    firingPos : DPos2 =  colBox.topMidPt + centerOffset + DVec2(0.0,  DOUBLE_PRECISION * 100)
-) : WeaponProps(damage, minInterv, maxCapacity, reloadRate, bulletProps, colBox, centerOffset, firingPos)
+    override val colPoly: ColRect,
+    offsetFromParentCenter: DVec2 = 1.0.toYvec(),
+    firingPosOffset : DVec2 = 1.1.toYvec()
+) : WeaponProps(damage, minInterv, maxCapacity, reloadRate, bulletProps, colPoly, offsetFromParentCenter, firingPosOffset)
 {
     override fun toWeapon(belongTo: GameElement) : RectWeapon {
-        return RectWeapon(damage, minInterv, maxCapacity, reloadRate, bulletProps, colBox, belongTo, centerOffset, firingPos)
+        colPoly.rotationCenter = belongTo.colPoly.rotationCenter + belongTo.colPoly.encAARectSize.yVec / 2.0 * offsetFromParentCenter.y + belongTo.colPoly.encAARectSize.xVec  / 2.0 * offsetFromParentCenter.x
+        return RectWeapon(damage, minInterv, maxCapacity, reloadRate, bulletProps, colPoly, belongTo, offsetFromParentCenter, firingPosOffset)
     }
     fun copy() : RectWeaponProps {
-        return RectWeaponProps(damage, minInterv, maxCapacity, reloadRate, bulletProps.copy(), colBox.copy(), centerOffset.copy(), firingPos.copy())
+        return RectWeaponProps(damage, minInterv, maxCapacity, reloadRate, bulletProps.copy(), colPoly.copy(), offsetFromParentCenter.copy(), firingPosOffset.copy())
     }
 }

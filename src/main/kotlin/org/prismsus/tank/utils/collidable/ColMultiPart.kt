@@ -105,26 +105,6 @@ class ColMultiPart(baseColPoly : ColPoly, vararg subColPolys : ColPoly) : ColPol
         checks()
     }
 
-//    override fun minusAssign(shift: DVec2) {
-//        checkRcenter()
-//        for (pt in allPts) {
-//            pt.minusAssign(shift)
-//        }
-//        checkRcenter()
-//    }
-//
-//    override fun plus(shift: DVec2): ColPoly {
-//        checkRcenter()
-//        val newBase = ColPoly(baseColPoly.pts.copyOf().map { it.copy().shift(shift) as DPos2}.toTypedArray())
-//        val newSubs = subColPolys.map {
-//            ColPoly(it.pts.copyOf().map { it.copy().shift(shift) as DPos2 }.toTypedArray())
-//        }.toTypedArray()
-//        val ret = ColMultiPart(newBase, *newSubs)
-//        ret.angleRotated = angleRotated
-//        checkRcenter()
-//        return ret
-//    }
-
     override fun becomeNonCopy(other: Collidable) {
         checks()
         if (other !is ColMultiPart) {

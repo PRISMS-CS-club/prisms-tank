@@ -2,6 +2,7 @@ package org.prismsus.tank.event
 import kotlinx.serialization.json.*
 import org.prismsus.tank.elements.GameElement
 import org.prismsus.tank.elements.GameMap
+import org.prismsus.tank.elements.Tank
 import org.prismsus.tank.utils.collidable.ColMultiPart
 import java.lang.System.currentTimeMillis
 /**
@@ -23,7 +24,6 @@ abstract class GameEvent(val timeStamp: Long = currentTimeMillis()) : Comparable
 class MapCreateEvent (val map : GameMap, timeStamp : Long = currentTimeMillis()) : GameEvent(timeStamp){
     override val serializedBytes: ByteArray
         get() = map.serialized
-    // TODO: implement, now set the timestamp to 0
     override val serialName : String = "MapCrt"
 }
 
@@ -36,6 +36,8 @@ class ElementCreateEvent(val ele : GameElement, timeStamp : Long = currentTimeMi
                 put("t", timeStamp)
                 put("uid", ele.uid)
                 put("name", ele.serialName)
+                if (ele is Tank)
+                    put("player", ele.playerName)
                 if (ele.colPoly is ColMultiPart)
                     put("x", (ele.colPoly as ColMultiPart).baseColPoly.rotationCenter.x)
                 else
@@ -92,6 +94,19 @@ class ElementUpdateEvent(val ele : GameElement, val updateEventMask: UpdateEvent
                 }
             }
 
+            serializedBytes = json.toString().toByteArray()
+        }
+}
+
+class ElementRemoveEvent(val uid : Long, timeStamp: Long = currentTimeMillis()) : GameEvent(timeStamp){
+    override val serialName: String = "EleRmv"
+    override val serializedBytes: ByteArray
+        init{
+            val json = buildJsonObject {
+                put("type", serialName)
+                put("t", timeStamp)
+                put("uid", uid)
+            }
             serializedBytes = json.toString().toByteArray()
         }
 }

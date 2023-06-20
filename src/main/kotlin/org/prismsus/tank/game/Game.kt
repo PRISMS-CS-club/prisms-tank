@@ -33,7 +33,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
     init {
         controllers = Array(bots.size) { i -> FutureController(i.toLong(), requestsQ) }
         for ((i, c) in controllers.withIndex()) {
-            val tank = Tank.byInitPos(nextUid, DPos2.ORIGIN)
+            val tank = Tank.byInitPos(nextUid, DPos2.ORIGIN, bots[i].name)
             val tankPos = DPos2(4.5, 1.5)
             (tank.colPoly as ColMultiPart).baseColPoly.rotationCenter = tankPos
             val tpanel = CoordPanel(IDim2(1, 1), IDim2(50, 50))
@@ -42,8 +42,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
             tpanel.showFrame()
             map.addEle(tank)
             eventHistoryToSave.add(ElementCreateEvent(tank, gameCurMs))
-            cidToTank[c.cid] = tank as Tank
-            tank.colPoly.checks()
+            cidToTank[c.cid] = tank
         }
 
         val panel = map.quadTree.getCoordPanel(IDim2(1000, 1000))
@@ -177,8 +176,10 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
 
             SHOOT -> {
                 val bullet = cidToTank[req.cid]!!.weapon.fire()
-                if (bullet != null)
+                if (bullet != null) {
                     map.addEle(bullet)
+                    processNewEvent(ElementCreateEvent(bullet, gameCurMs))
+                }
             }
 
             SET_LTRACK_SPEED -> {
@@ -224,6 +225,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
 //            val dt = System.currentTimeMillis() - lastUpd
             val dt = 1L
             lastUpd = System.currentTimeMillis()
+            val toRem = ArrayList<GameElement>()
             for (updatable in map.timeUpdatables) {
                 if (updatable is MovableElement && updatable.willMove(dt)) {
                     if (updatable.colPoly is ColMultiPart)
@@ -236,12 +238,12 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
                         map.collidableToEle[collided]!!.processCollision(updatable)
                     }
 
+                    if (updatable.removeStat == GameElement.RemoveStat.TO_REMOVE) {
+                        toRem.add(updatable)
+                    }
+
                     if (collideds.isNotEmpty()) {
                         println("collision detected: ")
-                        val coordP = map.quadTree.getCoordPanel(IDim2(1000, 1000))
-                        coordP.showFrame()
-                        while(true){}
-                        // restore to the original position
                         continue
                     }
 
@@ -253,7 +255,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
                         map.quadTree.remove(updatable.colPoly);
                         updatable.colPoly.becomeNonCopy(colPolyAfterMove)
                         map.quadTree.insert(updatable.colPoly)
-                        println("cur ang: ${updatable.colPoly.angleRotated}")
+//                        println("cur ang: ${updatable.colPoly.angleRotated}")
                         processNewEvent(
                             ElementUpdateEvent(
                                 updatable,
@@ -270,6 +272,12 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
                     updatable.updateByTime(dt)
                 }
             }
+
+            for (rem in toRem) {
+                map.remEle(rem)
+                processNewEvent(ElementRemoveEvent(rem.uid, gameCurMs))
+            }
+
         }
     }
 

@@ -9,6 +9,7 @@ import kotlin.math.sign
 
 class Tank(
     uid: Long,
+    val playerName: String,
     val weaponProps: WeaponProps,
     val trackMaxSpeed: Double = INIT_TANK_TRACK_SPEED,
     hp: Int = INIT_TANK_HP,
@@ -16,14 +17,10 @@ class Tank(
 ) :
 
     MovableElement(
-        uid, hp, ColMultiPart((tankRectBox), (weaponProps.colPoly + DVec2(.0, tankRectBox.height / 2)) as ColPoly)
+        uid, hp, ColMultiPart((tankRectBox), (weaponProps.colPoly))
     ) {
 
-    var weapon: Weapon
-
-    init {
-        weapon = weaponProps.toWeapon(this)
-    }
+    var weapon: Weapon = weaponProps.toWeapon(this)
 
     var leftTrackVelo: Double = .0
         set(value) {
@@ -60,7 +57,6 @@ class Tank(
     var outVelo: Double
         get() = if (isInnerCircLeft()) rightTrackVelo else leftTrackVelo
         set(value) {}
-
     override fun updateByTime(dt: Long) {
         val ddt = dt / 1000.0 // convert to second
         if (leftTrackVelo errEQ 0.0 && rightTrackVelo errEQ 0.0) return
@@ -68,8 +64,6 @@ class Tank(
             // the tank is moving straight
             val shiftVal = DVec2.byPolar(1.0, colPoly.angleRotated) * leftTrackVelo * ddt
             colPoly += shiftVal
-//            weapon.colPoly += shiftVal
-//            tankRectBox += shiftVal
             return
         }
         if (abs(leftTrackVelo) errEQ abs(rightTrackVelo)) {
@@ -79,26 +73,23 @@ class Tank(
             val angVelo = abs(leftTrackVelo / .5)
             val angDisp = angVelo * ddt
             colPoly.rotateAssign(angDisp * angSign, tankRectBox.rotationCenter)
-//            tankRectBox.rotateAssignTo(angDisp * angSign, tankRectBox.rotationCenter)
-//            weapon.colPoly.rotateAssignTo(colPoly.angleRotated, tankRectBox.rotationCenter)
             return
         }
 
         val pivotBaseLine = if (isInnerCircLeft()) Line(tankRectBox.rightMidPt, tankRectBox.leftMidPt)
         else Line(tankRectBox.leftMidPt, tankRectBox.rightMidPt)
-        val pivotPt = pivotBaseLine.atT(turningRad + 1.0) // make sure that we're shifting start from the ending point of that pivotBaseLine
+        val pivotPt =
+            pivotBaseLine.atT(turningRad + 1.0) // make sure that we're shifting start from the ending point of that pivotBaseLine
         val angSign = if (leftTrackVelo - rightTrackVelo > 0) -1 else 1
         val angVelo = abs(inVelo / turningRad)
         val angDisp = angVelo * ddt
         colPoly.rotateAssign(angDisp * angSign, pivotPt)
-//        tankRectBox.rotateAssignTo(colPoly.angleRotated, pivotPt)
-//        weapon.colPoly.rotateAssignTo(colPoly.angleRotated, pivotPt)
     }
 
     override val serialName: String
         get() = "Tk"
 
-    override fun willMove(dt: Long) : Boolean {
+    override fun willMove(dt: Long): Boolean {
         if (dt == 0.toLong()) return false
         return leftTrackVelo errNE 0.0 || rightTrackVelo errNE 0.0
     }
@@ -106,7 +97,7 @@ class Tank(
     override fun colPolyAfterMove(dt: Long): ColMultiPart {
         val before = colPoly.copy() as ColMultiPart
         updateByTime(dt)
-         val after = colPoly.copy()
+        val after = colPoly.copy()
         colPoly.becomeNonCopy(before)
         if (willMove(dt))
             assert(after != before)
@@ -118,14 +109,16 @@ class Tank(
         fun byInitPos(
             uid: Long,
             initPos: DPos2,
+            playerName: String,
             weaponProps: WeaponProps = INIT_RECT_WEAPON_RPOPS.copy(),
             trackMaxSpeed: Double = INIT_TANK_TRACK_SPEED,
             hp: Int = INIT_TANK_HP,
             rectBox: ColRect = INIT_TANK_COLBOX.copy()
         ): Tank {
             rectBox.rotationCenter = initPos.copy()
-            weaponProps.colPoly.rotationCenter = initPos.copy()
-            return Tank(uid, weaponProps, trackMaxSpeed, hp, rectBox)
+            weaponProps.colPoly.rotationCenter =
+                initPos + weaponProps.offsetFromParentCenter.xVec * rectBox.size.x / 2.0 + weaponProps.offsetFromParentCenter.yVec * rectBox.size.y / 2.0
+            return Tank(uid, playerName, weaponProps, trackMaxSpeed, hp, rectBox)
         }
     }
 }

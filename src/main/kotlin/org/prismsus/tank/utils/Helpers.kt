@@ -1,5 +1,6 @@
 package org.prismsus.tank.utils
 
+import org.prismsus.tank.utils.collidable.DPos2
 import java.util.TreeSet
 import kotlin.math.PI
 
@@ -58,4 +59,28 @@ public fun <T> Array<out T>.treeDistinctBy(selector: (T) -> Comparable<*>?) : Li
         trSet.add(it)
     }
     return trSet.toList()
+}
+
+fun Int.toXvec() : IVec2 {
+    return IVec2(this, 0)
+}
+
+fun Int.toYvec() : IVec2 {
+    return IVec2(0, this)
+}
+
+operator fun Int.times(other: IVec2): IVec2 {
+    return IVec2(this * other.x, this * other.y)
+}
+
+fun Double.toXvec() : DVec2 {
+    return DVec2(this, 0.0)
+}
+
+fun Double.toYvec() : DVec2 {
+    return DVec2(0.0, this)
+}
+
+operator fun Double.times(other: DVec2): DVec2 {
+    return DVec2(this * other.x, this * other.y)
 }
