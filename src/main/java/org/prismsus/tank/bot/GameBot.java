@@ -15,9 +15,9 @@ public interface GameBot {
      *                   through this controller, and all the commands for your bot can be sent through
      *                   this controller.
      */
-    default public void loop(FutureController controller) throws ExecutionException, InterruptedException{}
+    default void loop(FutureController controller) throws ExecutionException, InterruptedException {}
     // whenever there is an interruptedException, this function should return immediately.
-    default public void loop(Controller controller) throws ExecutionException, InterruptedException{}
-    public String getName();
-    public boolean isUseFutureController();
+    default void loop(Controller controller) throws ExecutionException, InterruptedException {}
+    String getName();
+    boolean isUseFutureController();
 }

@@ -7,16 +7,16 @@ abstract class MovableElement(uid: Long, hp: Int, colPoly: ColPoly) :
     GameElement(uid, hp, colPoly), TimeUpdatable {
 
     constructor(other : MovableElement) : this(other.uid, other.hp, other.colPoly) {
-        curVelo = other.curVelo
-        curAngV = other.curAngV
+        velocity = other.velocity
+        angVelocity = other.angVelocity
     }
-    var curVelo: DVec2 = DVec2(.0, .0)
-    var curAngV: Double = .0
+    var velocity: DVec2 = DVec2(.0, .0)
+    var angVelocity: Double = .0
 
     override fun updateByTime(dt: Long) {
-        colPoly += curVelo * dt.toDouble()
+        colPoly += velocity * dt.toDouble()
         // center is the intersection of two diagonals
-        colPoly.rotateAssign(curAngV * dt.toDouble())
+        colPoly.rotateAssign(angVelocity * dt.toDouble())
     }
     abstract fun colPolyAfterMove(dt : Long) : ColPoly
     abstract fun willMove(dt : Long) : Boolean

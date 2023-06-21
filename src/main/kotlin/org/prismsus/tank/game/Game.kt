@@ -36,10 +36,10 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
             val tank = Tank.byInitPos(nextUid, DPos2.ORIGIN, bots[i].name)
             val tankPos = DPos2(4.5, 1.5)
             (tank.colPoly as ColMultiPart).baseColPoly.rotationCenter = tankPos
-            val tpanel = CoordPanel(IDim2(1, 1), IDim2(50, 50))
-            tpanel.drawCollidable(tank.colPoly)
-            tpanel.showFrame()
-            tpanel.showFrame()
+            val tPanel = CoordPanel(IDim2(1, 1), IDim2(50, 50))
+            tPanel.drawCollidable(tank.colPoly)
+            tPanel.showFrame()
+            tPanel.showFrame()
             map.addEle(tank)
             eventHistoryToSave.add(ElementCreateEvent(tank, elapsedGameMs))
             cidToTank[c.cid] = tank

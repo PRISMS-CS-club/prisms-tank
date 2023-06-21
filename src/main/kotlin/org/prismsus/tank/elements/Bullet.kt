@@ -18,7 +18,7 @@ class Bullet(uid: Long, var speed: Double = INIT_BULLET_SPEED, override val colP
     }
 
     override fun colPolyAfterMove(dt: Long): ColRect {
-        return colPoly.copy().apply { this += curVelo * dt.toDouble() }
+        return colPoly.copy().apply { this += velocity * dt.toDouble() }
     }
 
     override infix fun processCollision(other: GameElement): Boolean {

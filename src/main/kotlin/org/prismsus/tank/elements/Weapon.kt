@@ -2,7 +2,6 @@ package org.prismsus.tank.elements
 
 import org.prismsus.tank.utils.*
 import org.prismsus.tank.utils.collidable.ColPoly
-import org.prismsus.tank.utils.collidable.DPos2
 import org.prismsus.tank.utils.collidable.ColRect
 import org.prismsus.tank.utils.collidable.Line
 
@@ -52,7 +51,7 @@ class RectWeapon(
             val weaponYline = Line((colPoly as ColRect).rotationCenter, (colPoly).topMidPt)
             val weaponXline = Line(colPoly.rotationCenter, (colPoly).rightMidPt)
             bullet.colPoly.bottomMidPt = colPoly.rotationCenter + weaponYline.toVec() * firingPosOffset.y + weaponXline.toVec() * firingPosOffset.x
-            bullet.curVelo = DVec2.byPolar(bulletProps.speed / 1000.0, belongTo.colPoly.angleRotated)
+            bullet.velocity = DVec2.byPolar(bulletProps.speed / 1000.0, belongTo.colPoly.angleRotated)
             bullet.damage = damage
             lastFireTime = System.currentTimeMillis()
             curCapacity--
