@@ -1,6 +1,8 @@
 package org.prismsus.tank.game
 
 interface ControllerRequestTypes {
+    val seialName : String
+        get() = ""
 }
 
 /**
@@ -31,7 +33,10 @@ enum class TankWeaponInfo : ControllerRequestTypes {
 enum class OtherRequests : ControllerRequestTypes{
     GET_VISIBLE_ELEMENTS,
     GET_VISITED_ELEMENTS,
-    SHOOT,
-    SET_LTRACK_SPEED,
-    SET_RTRACK_SPEED,
+    SHOOT{
+        override val seialName: String = "shoot" },
+    SET_LTRACK_SPEED{
+        override val seialName: String = "lTrack" },
+    SET_RTRACK_SPEED{
+        override val seialName: String = "rTrack" },
 }

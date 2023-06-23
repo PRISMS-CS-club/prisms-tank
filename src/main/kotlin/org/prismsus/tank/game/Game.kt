@@ -32,6 +32,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
     var lastGameLoopMs = elapsedGameMs
     init {
         controllers = Array(bots.size) { i -> FutureController(i.toLong(), requestsQ) }
+        processNewEvent(MapCreateEvent(map))
         for ((i, c) in controllers.withIndex()) {
             val tank = Tank.byInitPos(nextUid, DPos2.ORIGIN, bots[i].name)
             val tankPos = DPos2(4.5, 1.5)
@@ -41,7 +42,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
             tPanel.showFrame()
             tPanel.showFrame()
             map.addEle(tank)
-            eventHistoryToSave.add(ElementCreateEvent(tank, elapsedGameMs))
+            processNewEvent(ElementCreateEvent(tank, elapsedGameMs))
             cidToTank[c.cid] = tank
         }
 
@@ -66,9 +67,6 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
         Runtime.getRuntime().addShutdownHook(Thread {
             stop()
         })
-        for (hbot in humanPlayerBots){
-            hbot.evtsToClnt.add(MapCreateEvent(map))
-        }
     }
 
     fun tankWeaponInfoHandler(req: ControllerRequest<Any>): Any {
@@ -322,7 +320,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
 
             println(Paths.get(replayFile.path.toString()).toAbsolutePath())
             replayFile.createNewFile()
-            val game = Game(replayFile, RandomMovingBot())
+            val game = Game(replayFile, HumanPlayerBot("tzyt", "ws://localhost:114514"))
             game.start()
         }
     }

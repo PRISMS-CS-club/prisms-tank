@@ -1,18 +1,17 @@
 package org.prismsus.tank.bot
 import okhttp3.*
-import org.prismsus.tank.elements.GameElement
 import org.prismsus.tank.event.GameEvent
-import org.prismsus.tank.event.UserInputEvent
+import org.prismsus.tank.event.GUIrequestEvent
+import org.prismsus.tank.game.ControllerRequest
+import org.prismsus.tank.game.OtherRequests
 import java.lang.Thread.interrupted
-import java.util.LinkedList
-import java.util.Queue
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 
 class HumanPlayerBot(private val name : String, val url : String): GameBot {
     val webSockRequest = Request.Builder().url(url).build()
     val webSockClnt = OkHttpClient()
-    val evtsFromClnt : BlockingQueue<UserInputEvent> = LinkedBlockingQueue()
+    val evtsFromClnt : BlockingQueue<GUIrequestEvent> = LinkedBlockingQueue()
     val evtsToClnt : BlockingQueue<GameEvent> = LinkedBlockingQueue()
     val webSockListener : WebSocketListener
         get() = object : WebSocketListener() {
@@ -20,7 +19,7 @@ class HumanPlayerBot(private val name : String, val url : String): GameBot {
                 println("Opened connection to $name")
             }
             override fun onMessage(webSocket: WebSocket, text: String) {
-                evtsFromClnt.add(UserInputEvent(text))
+                evtsFromClnt.add(GUIrequestEvent(text))
             }
             override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
                 println("Closing connection to $name")
@@ -48,16 +47,17 @@ class HumanPlayerBot(private val name : String, val url : String): GameBot {
 
     override fun loop(controller: FutureController) {
         while(true){
-            while(evtsFromClnt.isNotEmpty()){
-                val evt = evtsFromClnt.poll()
-                evt.shoot?.run{
-                    controller.shoot()
+            if (evtsFromClnt.isEmpty()) continue
+            val evt = evtsFromClnt.poll()
+            when(evt.funName){
+                "lTrack" -> {
+                    controller.requestsQ.add(ControllerRequest(controller.cid, null, OtherRequests.SET_LTRACK_SPEED, arrayOf(evt.params[0] as Int), evt.time))
                 }
-                evt.ltrackSpeed?.run{
-                    controller.setLeftTrackSpeed(this)
+                "rTrack" -> {
+                    controller.requestsQ.add(ControllerRequest(controller.cid, null, OtherRequests.SET_RTRACK_SPEED, arrayOf(evt.params[0] as Int), evt.time))
                 }
-                evt.rtrackSpeed?.run{
-                    controller.setRightTrackSpeed(this)
+                "shoot" -> {
+                    controller.requestsQ.add(ControllerRequest(controller.cid, null, OtherRequests.SHOOT, null, evt.time))
                 }
             }
         }
