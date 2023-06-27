@@ -15,7 +15,12 @@ repositories {
     mavenCentral()
 }
 
+
+
 dependencies {
+    def ktor_version = "2.3.1"
+    def logback_version = "1.4.8"
+    def kotlin_version = "1.8.10"
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.2")
     implementation 'junit:junit:4.13.1'
@@ -28,10 +33,15 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-reflect:1.8.21"
     implementation(platform("com.squareup.okhttp3:okhttp-bom:4.10.0"))
     // define any required OkHttp artifacts without version
-    implementation("com.squareup.okhttp3:okhttp")
-    implementation("com.squareup.okhttp3:logging-interceptor")
-    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+    // define ktor_version
 
+    implementation("io.ktor:ktor-server-core:$ktor_version")
+    implementation("io.ktor:ktor-server-netty:$ktor_version")
+    implementation("io.ktor:ktor-server-websockets:$ktor_version")
+    testImplementation("io.ktor:ktor-server-test-host:$ktor_version")
+    implementation("ch.qos.logback:logback-classic:$logback_version")
+    testImplementation("io.ktor:ktor-server-test-host:$ktor_version")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 }
 
 test {

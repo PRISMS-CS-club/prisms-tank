@@ -8,6 +8,7 @@ import org.prismsus.tank.elements.Tank
 import org.prismsus.tank.event.*
 import org.prismsus.tank.game.OtherRequests.*
 import org.prismsus.tank.game.TankWeaponInfo.*
+import org.prismsus.tank.networkings.GUIcommunicator
 import org.prismsus.tank.utils.*
 import org.prismsus.tank.utils.collidable.ColMultiPart
 import org.prismsus.tank.utils.collidable.DPos2
@@ -32,7 +33,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
     var lastGameLoopMs = elapsedGameMs
     init {
         controllers = Array(bots.size) { i -> FutureController(i.toLong(), requestsQ) }
-        processNewEvent(MapCreateEvent(map))
+        processNewEvent(MapCreateEvent(map, elapsedGameMs))
         for ((i, c) in controllers.withIndex()) {
             val tank = Tank.byInitPos(nextUid, DPos2.ORIGIN, bots[i].name)
             val tankPos = DPos2(4.5, 1.5)
@@ -218,7 +219,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
 
     fun handleUpdatableElements() : ArrayList<GameElement>{
         val dt = elapsedGameMs - lastGameLoopMs
-        println("dt = $dt")
+//        println("dt = $dt")
         val toRem = ArrayList<GameElement>()
         for (updatable in map.timeUpdatables) {
             if (updatable is MovableElement && updatable.willMove(dt)) {
@@ -282,7 +283,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
             }
             val loopEndMs = elapsedGameMs
             val loopLen = loopEndMs - loopStartMs
-            println("cur loop len: $loopLen, slept for ${DEF_MS_PER_LOOP - loopLen}")
+//            println("cur loop len: $loopLen, slept for ${DEF_MS_PER_LOOP - loopLen}")
             lastGameLoopMs = elapsedGameMs
             if (loopLen < DEF_MS_PER_LOOP)
                 Thread.sleep(DEF_MS_PER_LOOP - loopLen)
@@ -299,6 +300,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
         println("done")
         // interrupt the replay saver
         print("closing replay saver thread...")
+        replayTh!!.interrupt()
         replayTh!!.interrupt()
         println("done")
         // write the ending ] and close the replay file
@@ -320,7 +322,10 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
 
             println(Paths.get(replayFile.path.toString()).toAbsolutePath())
             replayFile.createNewFile()
-            val game = Game(replayFile, HumanPlayerBot("tzyt", "ws://localhost:114514"))
+            val communicator = GUIcommunicator(1)
+            communicator.start()
+            val players = communicator.humanPlayerBots.get()
+            val game = Game(replayFile, *players.toTypedArray())
             game.start()
         }
     }

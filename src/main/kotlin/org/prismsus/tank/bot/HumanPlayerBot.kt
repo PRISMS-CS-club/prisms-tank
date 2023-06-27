@@ -1,50 +1,32 @@
 package org.prismsus.tank.bot
-import okhttp3.*
+import io.ktor.websocket.*
 import org.prismsus.tank.event.GameEvent
 import org.prismsus.tank.event.GUIrequestEvent
 import org.prismsus.tank.game.ControllerRequest
 import org.prismsus.tank.game.OtherRequests
+import org.prismsus.tank.networkings.WebSocketListener
 import java.lang.Thread.interrupted
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 
-class HumanPlayerBot(private val name : String, val url : String): GameBot {
-    val webSockRequest = Request.Builder().url(url).build()
-    val webSockClnt = OkHttpClient()
+class HumanPlayerBot(private val name : String, val webSockSession : DefaultWebSocketSession): GameBot {
     val evtsFromClnt : BlockingQueue<GUIrequestEvent> = LinkedBlockingQueue()
     val evtsToClnt : BlockingQueue<GameEvent> = LinkedBlockingQueue()
     val webSockListener : WebSocketListener
-        get() = object : WebSocketListener() {
-            override fun onOpen(webSocket: WebSocket, response: Response) {
+        get() = object : WebSocketListener {
+            override fun onOpen() {
                 println("Opened connection to $name")
             }
-            override fun onMessage(webSocket: WebSocket, text: String) {
+            override fun onMessage(text: String) {
                 evtsFromClnt.add(GUIrequestEvent(text))
             }
-            override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
+            override fun onClose() {
                 println("Closing connection to $name")
             }
-            override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+            override fun onError(error: Throwable) {
                 println("Failed to connect to $name")
             }
         }
-    val webSock : WebSocket = webSockClnt.newWebSocket(webSockRequest, webSockListener)
-    val evtSendTh = Thread{
-        while(true){
-            while(evtsToClnt.isNotEmpty() && !interrupted()){
-                val evt = evtsToClnt.poll()
-                webSock.send(evt.serializedStr)
-            }
-        }
-    }
-    init{
-        Runtime.getRuntime().addShutdownHook(Thread{
-            webSock.close(1000, "Shutting down")
-            evtSendTh.interrupt() }
-        )
-        evtSendTh.start()
-    }
-
     override fun loop(controller: FutureController) {
         while(true){
             if (evtsFromClnt.isEmpty()) continue
