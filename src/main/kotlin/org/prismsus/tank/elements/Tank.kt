@@ -66,16 +66,18 @@ class Tank(
         if (leftTrackVelo errEQ 0.0 && rightTrackVelo errEQ 0.0) return
         if (leftTrackVelo errEQ rightTrackVelo) {
             // the tank is moving straight
-            val shiftVal = DVec2.byPolar(1.0, colPoly.angleRotated) * leftTrackVelo * ddt
-            colPoly += shiftVal
+            val dirVec = (tankRectBox.topMidPt - tankRectBox.bottomMidPt).norm()
+            velocity = dirVec * leftTrackVelo
+            val disp = velocity * ddt
+            colPoly += disp
             return
         }
         if (abs(leftTrackVelo) errEQ abs(rightTrackVelo)) {
             // the tank is rotating in place, left and right track speed must have different sign
             // meaing that the rotation center is the rotation center of the tank
             val angSign = if (rightTrackVelo > 0) 1 else -1
-            val angVelo = abs(leftTrackVelo / .5)
-            val angDisp = angVelo * ddt
+            angVelocity = abs(leftTrackVelo / .5)
+            val angDisp = angVelocity * ddt
             colPoly.rotateAssign(angDisp * angSign, tankRectBox.rotationCenter)
             return
         }
@@ -86,8 +88,8 @@ class Tank(
             pivotBaseLine.atT(outerTurningRad)
         // change to outerTurningRad - based, this will prevent the situation where inner velocity is zero
         val angSign = if (leftTrackVelo - rightTrackVelo > 0) -1 else 1
-        val angVelo = abs(outVelo / outerTurningRad)
-        val angDisp = angVelo * ddt
+        angVelocity = abs(outVelo / outerTurningRad)
+        val angDisp = angVelocity * ddt
         colPoly.rotateAssign(angDisp * angSign, pivotPt)
     }
 

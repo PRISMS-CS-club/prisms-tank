@@ -22,7 +22,7 @@ val INIT_RECT_WEAPON_COLBOX
 // default value is the colPoly for Block at (0,0) in the map
 val INIT_BULLET_SPEED: Double = 13.0
 val INIT_BULLET_COLBOX: ColRect
-    get() = ColRect(DPos2(.0, .0), DDim2(.2, .2))
+    get() = ColRect(DPos2(.0, .0), DDim2(.08, .08))
 val INIT_BULLET_PROP: BulletProps
     get() = BulletProps(INIT_BULLET_SPEED, INIT_BULLET_COLBOX)
 val INIT_RECT_WEAPON_RPOPS

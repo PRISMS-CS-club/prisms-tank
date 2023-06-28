@@ -18,6 +18,8 @@ import java.nio.file.Paths
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.concurrent.PriorityBlockingQueue
+import kotlin.math.PI
+
 class Game(val replayFile: File, vararg val bots: GameBot) {
     val humanPlayerBots : Array<HumanPlayerBot> = bots.filterIsInstance<HumanPlayerBot>().toTypedArray()
     val eventHistoryToSave = PriorityBlockingQueue<GameEvent>()
@@ -174,7 +176,9 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
             }
 
             FIRE -> {
-                val bullet = cidToTank[req.cid]!!.weapon.fire()
+                val tk = cidToTank[req.cid]!!
+                val tankWeaponDirAng = tk.colPoly.angleRotated + PI / 2
+                val bullet = tk.weapon.fire(tankWeaponDirAng)
                 if (bullet != null) {
                     map.addEle(bullet)
                     processNewEvent(ElementCreateEvent(bullet, elapsedGameMs))

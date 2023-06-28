@@ -5,6 +5,7 @@ import org.prismsus.tank.utils.collidable.ColPoly
 import org.prismsus.tank.utils.collidable.ColRect
 import org.prismsus.tank.utils.collidable.Line
 
+// TODO: set the direction to launch bullet as one properties
 open class Weapon(
     val damage : Int,
     val minInterv : Int,     // the minimum interval between two fires, in ms
@@ -22,7 +23,7 @@ open class Weapon(
     var curCapacity : Int = maxCapacity
     protected var lastFireTime : Long = 0
 
-    open fun fire() : Bullet?{
+    open fun fire(bulletMovementAng : Double = belongTo.colPoly.angleRotated, bulletOrientationAng : Double = belongTo.colPoly.angleRotated) : Bullet?{
         throw NotImplementedError()
     }
 
@@ -43,15 +44,15 @@ class RectWeapon(
     firingPos : DVec2 = 1.0.toYvec()
 ) : Weapon(damage, minInterv, maxCapacity, reloadRate,  bulletProps, colBox, belongTo, offsetFromParentCenter, firingPos)
 {
-    override fun fire(): Bullet?
+    override fun fire(bulletMovementAng : Double, bulletOrientationAng: Double): Bullet?
         {
             if (System.currentTimeMillis() - lastFireTime < minInterv) return null
             val bullet = Bullet(nextUid, bulletProps)
-            bullet.colPoly.rotateAssignTo(colPoly.angleRotated)
+            bullet.colPoly.rotateAssignTo(bulletOrientationAng)
             val weaponYline = Line((colPoly as ColRect).rotationCenter, (colPoly).topMidPt)
             val weaponXline = Line(colPoly.rotationCenter, (colPoly).rightMidPt)
             bullet.colPoly.bottomMidPt = colPoly.rotationCenter + weaponYline.toVec() * firingPosOffset.y + weaponXline.toVec() * firingPosOffset.x
-            bullet.velocity = DVec2.byPolar(bulletProps.speed / 1000.0, belongTo.colPoly.angleRotated)
+            bullet.velocity = DVec2.byPolar(bulletProps.speed / 1000.0, bulletMovementAng)
             bullet.damage = damage
             lastFireTime = System.currentTimeMillis()
             curCapacity--

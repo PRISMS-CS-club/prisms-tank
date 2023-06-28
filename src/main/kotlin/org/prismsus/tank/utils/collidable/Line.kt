@@ -86,8 +86,8 @@ class Line(override var pts : Array<DPos2>) : Collidable, Comparable<Line> {
         }
 
         // check if the slope is infinity
-        val infCnt: Int = if (isVerti()) 1 else 0 +
-                if (other.isVerti()) 1 else 0
+        val infCnt: Int = (if (isVerti()) 1 else 0) +
+                (if (other.isVerti()) 1 else 0)
 
         if (infCnt == 2) {
             // both lines are vertical
