@@ -1,11 +1,9 @@
 package org.prismsus.tank
+
 import org.junit.jupiter.api.Test
 import org.prismsus.tank.utils.*
 import org.junit.jupiter.api.Assertions.*
-import org.prismsus.tank.utils.collidable.ColPoly
-import org.prismsus.tank.utils.collidable.DPos2
-import org.prismsus.tank.utils.collidable.Line
-import org.prismsus.tank.utils.collidable.ColRect
+import org.prismsus.tank.utils.collidable.*
 import java.awt.Color
 import java.awt.Graphics2D
 import kotlin.random.Random
@@ -55,8 +53,8 @@ class ColPolyTest {
         var testNum = 0
         // test if two same ColPoly.byTopLeftes can intersect
         println("t${++testNum}")
-        var box1 : ColPoly = ColRect.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
-        var box2 : ColPoly = ColRect.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
+        var box1 : Collidable = ColRect.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
+        var box2 : Collidable = ColRect.byTopLeft(Pos.ORIGIN, DDim2(1.0, 1.0))
         assertTrue(box1.collide(box2) && box2.collide(box1))
         println("pass")
 

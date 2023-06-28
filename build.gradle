@@ -1,9 +1,9 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.8.10'
+    id 'org.jetbrains.kotlin.jvm' version '1.8.21'
 //    id 'org.jetbrains.kotlin.multiplatform' version '1.8.10'
     id 'java'
 
-    id 'org.jetbrains.kotlin.plugin.serialization' version '1.8.10'
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.8.21'
 
 }
 
@@ -20,8 +20,8 @@ repositories {
 dependencies {
     def ktor_version = "2.3.1"
     def logback_version = "1.4.8"
-    def kotlin_version = "1.8.10"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    def kotlin_version = "1.8.21"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.2")
     implementation 'junit:junit:4.13.1'
     implementation 'org.junit.jupiter:junit-jupiter:5.8.1'

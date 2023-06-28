@@ -1,4 +1,4 @@
-package org.prismsus.tank.elements.tests
+package org.prismsus.tank
 
 import org.junit.jupiter.api.Test
 import org.prismsus.tank.elements.GameMap
