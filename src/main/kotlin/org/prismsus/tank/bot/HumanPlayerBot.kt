@@ -5,7 +5,6 @@ import org.prismsus.tank.event.GUIrequestEvent
 import org.prismsus.tank.game.ControllerRequest
 import org.prismsus.tank.game.OtherRequests
 import org.prismsus.tank.networkings.WebSocketListener
-import java.lang.Thread.interrupted
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 
@@ -38,8 +37,8 @@ class HumanPlayerBot(private val name : String, val webSockSession : DefaultWebS
                 "rTrack" -> {
                     controller.requestsQ.add(ControllerRequest(controller.cid, null, OtherRequests.SET_RTRACK_SPEED, arrayOf(evt.params[0] as Double), evt.timeStamp))
                 }
-                "shoot" -> {
-                    controller.requestsQ.add(ControllerRequest(controller.cid, null, OtherRequests.SHOOT, null, evt.timeStamp))
+                "fire" -> {
+                    controller.requestsQ.add(ControllerRequest(controller.cid, null, OtherRequests.FIRE, null, evt.timeStamp))
                 }
             }
         }

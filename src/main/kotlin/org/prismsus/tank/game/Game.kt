@@ -8,7 +8,7 @@ import org.prismsus.tank.elements.Tank
 import org.prismsus.tank.event.*
 import org.prismsus.tank.game.OtherRequests.*
 import org.prismsus.tank.game.TankWeaponInfo.*
-import org.prismsus.tank.networkings.GUIcommunicator
+import org.prismsus.tank.networkings.GuiCommunicator
 import org.prismsus.tank.utils.*
 import org.prismsus.tank.utils.collidable.ColMultiPart
 import org.prismsus.tank.utils.collidable.DPos2
@@ -26,7 +26,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
     val map = GameMap("default.json")
     val cidToTank = mutableMapOf<Long, Tank>()
     val botThs: Array<Thread?> = Array(bots.size) { null }
-    lateinit var replayTh: Thread
+    var replayTh: Thread
     val gameInitMs = System.currentTimeMillis()
     val elapsedGameMs: Long
         get() = System.currentTimeMillis() - gameInitMs
@@ -38,17 +38,17 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
             val tank = Tank.byInitPos(nextUid, DPos2.ORIGIN, bots[i].name)
             val tankPos = DPos2(4.5, 1.5)
             (tank.colPoly as ColMultiPart).baseColPoly.rotationCenter = tankPos
-            val tPanel = CoordPanel(IDim2(1, 1), IDim2(50, 50))
-            tPanel.drawCollidable(tank.colPoly)
-            tPanel.showFrame()
-            tPanel.showFrame()
+//            val tPanel = CoordPanel(IDim2(1, 1), IDim2(50, 50))
+//            tPanel.drawCollidable(tank.colPoly)
+//            tPanel.showFrame()
+//            tPanel.showFrame()
             map.addEle(tank)
             processNewEvent(ElementCreateEvent(tank, elapsedGameMs))
             cidToTank[c.cid] = tank
         }
 
-        val panel = map.quadTree.getCoordPanel(IDim2(1000, 1000))
-        panel.showFrame()
+//        val panel = map.quadTree.getCoordPanel(IDim2(1000, 1000))
+//        panel.showFrame()
 
         for ((i, bot) in bots.withIndex()) {
             botThs[i] =
@@ -173,7 +173,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
                 req.returnTo!!.complete(ArrayList<GameElement>())
             }
 
-            SHOOT -> {
+            FIRE -> {
                 val bullet = cidToTank[req.cid]!!.weapon.fire()
                 if (bullet != null) {
                     map.addEle(bullet)
@@ -322,7 +322,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
 
             println(Paths.get(replayFile.path.toString()).toAbsolutePath())
             replayFile.createNewFile()
-            val communicator = GUIcommunicator(1)
+            val communicator = GuiCommunicator(1)
             communicator.start()
             val players = communicator.humanPlayerBots.get()
             val game = Game(replayFile, *players.toTypedArray())

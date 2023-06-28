@@ -36,7 +36,7 @@ public class FutureController {
     }
 
     void shoot() {
-        requestsQ.add(new ControllerRequest<>(cid, null, OtherRequests.SHOOT));
+        requestsQ.add(new ControllerRequest<>(cid, null, OtherRequests.FIRE));
     }
 
     Future<ArrayList<?>> getTankAndWeaponInfos(TankWeaponInfo... type) {

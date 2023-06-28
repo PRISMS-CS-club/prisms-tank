@@ -33,8 +33,8 @@ enum class TankWeaponInfo : ControllerRequestTypes {
 enum class OtherRequests : ControllerRequestTypes{
     GET_VISIBLE_ELEMENTS,
     GET_VISITED_ELEMENTS,
-    SHOOT{
-        override val seialName: String = "shoot" },
+    FIRE{
+        override val seialName: String = "fire" },
     SET_LTRACK_SPEED{
         override val seialName: String = "lTrack" },
     SET_RTRACK_SPEED{
