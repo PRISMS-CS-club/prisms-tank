@@ -13,7 +13,11 @@ data class DPos2(var x: Double, var y: Double) : Collidable, Comparable<DPos2>, 
     override operator fun plus(shift: DVec2): DPos2 {
         return DPos2(x + shift.x, y + shift.y)
     }
-
+    init{
+        assert(!x.isNaN() && !y.isNaN()){
+            "DPos2: NaN"
+        }
+    }
     override operator fun plusAssign(shift: DVec2) {
         x += shift.x
         y += shift.y

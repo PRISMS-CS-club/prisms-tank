@@ -70,8 +70,9 @@ class ColMultiPart(baseColPoly : ColPoly, vararg subColPolys : ColPoly) : ColPol
         }
 
         if (baseColPoly is ColRect){
-            if (baseColPoly.centerPt != baseColPoly.rotationCenter)
+            if (baseColPoly.centerPt != baseColPoly.rotationCenter) {
                 assert(false)
+            }
         }
         for (sub in subColPolys){
             if (sub is ColRect && sub.centerPt != sub.rotationCenter){

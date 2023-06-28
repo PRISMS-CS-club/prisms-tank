@@ -40,12 +40,16 @@ class Tank(
     * If the return value is negative, means the center of rotation is in the body of tank
     * Assume the distance between two tracks is 1
     * */
-    var turningRad: Double
+    val innerTurningRad: Double
         get() {
             val trackDis = 1.0
             return trackDis * inVelo / (outVelo - inVelo)
         }
-        set(value) {}
+    val outerTurningRad: Double
+        get() {
+            val trackDis = 1.0
+            return trackDis * outVelo / (outVelo - inVelo)
+        }
 
     fun isInnerCircLeft(): Boolean {
         return abs(leftTrackVelo) < abs(rightTrackVelo)
@@ -79,9 +83,10 @@ class Tank(
         val pivotBaseLine = if (isInnerCircLeft()) Line(tankRectBox.rightMidPt, tankRectBox.leftMidPt)
         else Line(tankRectBox.leftMidPt, tankRectBox.rightMidPt)
         val pivotPt =
-            pivotBaseLine.atT(turningRad + 1.0) // make sure that we're shifting start from the ending point of that pivotBaseLine
+            pivotBaseLine.atT(outerTurningRad)
+        // change to outerTurningRad - based, this will prevent the situation where inner velocity is zero
         val angSign = if (leftTrackVelo - rightTrackVelo > 0) -1 else 1
-        val angVelo = abs(inVelo / turningRad)
+        val angVelo = abs(outVelo / outerTurningRad)
         val angDisp = angVelo * ddt
         colPoly.rotateAssign(angDisp * angSign, pivotPt)
     }

@@ -7,22 +7,25 @@ import io.ktor.server.routing.*
 import io.ktor.websocket.*
 import java.time.*
 import io.ktor.server.websocket.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.prismsus.tank.bot.HumanPlayerBot
 import java.util.concurrent.CompletableFuture
 
-class GuiCommunicator(val clntCnt : Int){
-    fun start(){
-        embeddedServer(Netty, port = 1145){
+class GuiCommunicator(val clntCnt: Int) {
+    fun start() {
+        embeddedServer(Netty, port = 1145) {
             module()
         }.start(wait = false)
     }
-    fun Application.module(){
+
+    fun Application.module() {
         configureSockets()
         configureRouting()
     }
 
-    fun Application.configureSockets(){
+    fun Application.configureSockets() {
         install(WebSockets) {
             pingPeriod = Duration.ofSeconds(15)
             timeout = Duration.ofSeconds(15)
@@ -30,37 +33,45 @@ class GuiCommunicator(val clntCnt : Int){
             masking = false
         }
     }
-    fun Application.configureRouting(){
+
+    fun Application.configureRouting() {
         val logger = log
-        routing{
+        routing {
             webSocket("/") {
-                if (m_humanPlayerBots.size >= clntCnt){
+                if (m_humanPlayerBots.size >= clntCnt) {
                     close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Too many clients"))
                     return@webSocket
                 }
-                val newBot = HumanPlayerBot( "bot[${m_humanPlayerBots.size}]",this)
+                val newBot = HumanPlayerBot("bot[${m_humanPlayerBots.size}]", this)
                 m_humanPlayerBots.add(newBot)
                 if (m_humanPlayerBots.size == clntCnt) {
                     humanPlayerBots.complete(m_humanPlayerBots)
                 }
-                launch {
-                    for (frame in incoming){
-                        frame as Frame.Text
-                        val msg = frame.readText()
-                        println("Received: $msg")
-                        newBot.webSockListener.onMessage(msg)
+
+                GlobalScope.launch() {
+                    while (true) {
+                        if (newBot.evtsToClnt.isEmpty()) {
+//                            Thread.sleep(20)
+                            continue
+                        }
+                        val evt = newBot.evtsToClnt.poll()
+                        println("Sent: ${evt.serializedStr}")
+                        send(evt.serializedStr)
                     }
+                }.start()
+
+                for (frame in incoming) {
+                    frame as Frame.Text
+                    val msg = frame.readText()
+                    println("Received: $msg")
+                    newBot.webSockListener.onMessage(msg)
                 }
-                while(true){
-                    if (newBot.evtsToClnt.isEmpty())
-                        continue
-                    val evt = newBot.evtsToClnt.poll()
-                    println("Sent: ${evt.serializedStr}")
-                    send(evt.serializedStr)
-                }
+
+
             }
         }
     }
-    private val m_humanPlayerBots : ArrayList<HumanPlayerBot> = ArrayList<HumanPlayerBot>()
-    val humanPlayerBots : CompletableFuture<ArrayList<HumanPlayerBot>> = CompletableFuture<ArrayList<HumanPlayerBot>>()
+
+    private val m_humanPlayerBots: ArrayList<HumanPlayerBot> = ArrayList<HumanPlayerBot>()
+    val humanPlayerBots: CompletableFuture<ArrayList<HumanPlayerBot>> = CompletableFuture<ArrayList<HumanPlayerBot>>()
 }

@@ -6,10 +6,10 @@
   "map":
   [
     "SldBlk", "SldBlk", "SldBlk", "SldBlk", "SldBlk", "SldBlk",
-    "SldBlk", "",     "",     "BrkBlk", "",     "SldBlk",
-    "SldBlk", "",     "BrkBlk", "BrkBlk", "",     "SldBlk",
-    "SldBlk", "",     "BrkBlk", "BrkBlk", "",     "SldBlk",
-    "SldBlk", "",     "BrkBlk", "",     "",     "SldBlk",
+    "SldBlk", "",     "",     "", "",     "SldBlk",
+    "SldBlk", "",     "", "", "",     "SldBlk",
+    "SldBlk", "",     "", "", "",     "SldBlk",
+    "SldBlk", "",     "", "",     "",     "SldBlk",
     "SldBlk", "SldBlk", "SldBlk", "SldBlk", "SldBlk", "SldBlk"
   ]
 }

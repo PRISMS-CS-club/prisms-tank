@@ -10,6 +10,7 @@ import org.prismsus.tank.game.OtherRequests.*
 import org.prismsus.tank.game.TankWeaponInfo.*
 import org.prismsus.tank.networkings.GuiCommunicator
 import org.prismsus.tank.utils.*
+import org.prismsus.tank.utils.nextUid
 import org.prismsus.tank.utils.collidable.ColMultiPart
 import org.prismsus.tank.utils.collidable.DPos2
 import java.io.File
@@ -17,7 +18,6 @@ import java.nio.file.Paths
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.concurrent.PriorityBlockingQueue
-
 class Game(val replayFile: File, vararg val bots: GameBot) {
     val humanPlayerBots : Array<HumanPlayerBot> = bots.filterIsInstance<HumanPlayerBot>().toTypedArray()
     val eventHistoryToSave = PriorityBlockingQueue<GameEvent>()
