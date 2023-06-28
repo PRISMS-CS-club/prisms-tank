@@ -4,17 +4,16 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 fun parseTimeStamp(str : String) : Long {
-    val json = Json.parseToJsonElement(str)
-    return json.jsonObject["t"]!!.jsonPrimitive.long
+    val scan = Scanner(str)
+    return scan.nextFloat().toLong()
 }
 
 class GUIrequestEvent(override val serializedStr : String) : GameEvent(parseTimeStamp(serializedStr)){
     val funName : String
     val params : Array<*>
-    val time : Long
     init{
         val scan = Scanner(serializedStr)
-        time = scan.nextLong()
+        scan.next() // skip timestamp
         funName = scan.next()
         val tmpParam = ArrayList<Any>()
         while(scan.hasNext()){

@@ -45,18 +45,20 @@ class GUIcommunicator(val clntCnt : Int){
                 val newBot = HumanPlayerBot( "bot[${m_humanPlayerBots.size}]",this)
                 m_humanPlayerBots.add(newBot)
                 launch {
-                    incoming.consumeEach {
-                        frame ->
+                    for (frame in incoming){
                         frame as Frame.Text
                         val msg = frame.readText()
+                        println("Received: $msg")
                         newBot.webSockListener.onMessage(msg)
                     }
                 }
                 while(true){
-                    for (evt in newBot.evtsToClnt){
-                        println("Sent: ${evt.serializedStr}")
-                        send(evt.serializedStr)
-                    }
+                    if (newBot.evtsToClnt.isEmpty())
+                        continue
+                    val evt = newBot.evtsToClnt.poll()
+                    println("Sent: ${evt.serializedStr}")
+                    send(evt.serializedStr)
+
                 }
             }
         }

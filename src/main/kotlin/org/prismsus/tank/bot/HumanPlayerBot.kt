@@ -33,13 +33,13 @@ class HumanPlayerBot(private val name : String, val webSockSession : DefaultWebS
             val evt = evtsFromClnt.poll()
             when(evt.funName){
                 "lTrack" -> {
-                    controller.requestsQ.add(ControllerRequest(controller.cid, null, OtherRequests.SET_LTRACK_SPEED, arrayOf(evt.params[0] as Int), evt.time))
+                    controller.requestsQ.add(ControllerRequest(controller.cid, null, OtherRequests.SET_LTRACK_SPEED, arrayOf(evt.params[0] as Double), evt.timeStamp))
                 }
                 "rTrack" -> {
-                    controller.requestsQ.add(ControllerRequest(controller.cid, null, OtherRequests.SET_RTRACK_SPEED, arrayOf(evt.params[0] as Int), evt.time))
+                    controller.requestsQ.add(ControllerRequest(controller.cid, null, OtherRequests.SET_RTRACK_SPEED, arrayOf(evt.params[0] as Double), evt.timeStamp))
                 }
                 "shoot" -> {
-                    controller.requestsQ.add(ControllerRequest(controller.cid, null, OtherRequests.SHOOT, null, evt.time))
+                    controller.requestsQ.add(ControllerRequest(controller.cid, null, OtherRequests.SHOOT, null, evt.timeStamp))
                 }
             }
         }
