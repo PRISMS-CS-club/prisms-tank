@@ -12,7 +12,7 @@ public class RandomMovingBot implements GameBot {
 //                double trackMaxSpeed = c.getTankTrackMaxSpeed().get();
 //                double ltrackSpeed = (Math.random() - 1.0) * 2 * trackMaxSpeed;
 //                double rtrackSpeed = (Math.random() - 1.0) * 2 * trackMaxSpeed;
-                c.shoot();
+                c.fire();
             }
         } catch (InterruptedException e) {
             // when the thread is interrupted, stop the bot
@@ -26,7 +26,7 @@ public class RandomMovingBot implements GameBot {
     }
 
     @Override
-    public boolean isUseFutureController() {
+    public boolean isFutureController() {
         return true;
     }
 }

@@ -1,4 +1,5 @@
 package org.prismsus.tank.event
+
 import kotlinx.serialization.json.*
 import org.prismsus.tank.elements.GameElement
 import org.prismsus.tank.elements.GameMap
@@ -6,7 +7,6 @@ import org.prismsus.tank.elements.Tank
 import org.prismsus.tank.utils.collidable.ColMultiPart
 import org.prismsus.tank.utils.collidable.ColPoly
 import java.lang.System.currentTimeMillis
-import kotlin.math.PI
 
 /**
  * Base class for all events.
@@ -31,10 +31,10 @@ class MapCreateEvent (val map : GameMap, timeStamp : Long = currentTimeMillis())
 }
 
 fun selectBaseColPoly(ele : GameElement) : ColPoly{
-    if (ele.colPoly is ColMultiPart)
-        return (ele.colPoly as ColMultiPart).baseColPoly
+    return if (ele.colPoly is ColMultiPart)
+        (ele.colPoly as ColMultiPart).baseColPoly
     else
-        return ele.colPoly
+        ele.colPoly
 }
 
 class ElementCreateEvent(val ele : GameElement, timeStamp : Long = currentTimeMillis()) : GameEvent(timeStamp){

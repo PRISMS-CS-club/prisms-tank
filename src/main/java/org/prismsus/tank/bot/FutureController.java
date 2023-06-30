@@ -35,7 +35,7 @@ public class FutureController {
         return ret.thenApply((Object it) -> (List<GameElement>) it);
     }
 
-    void shoot() {
+    void fire() {
         requestsQ.add(new ControllerRequest<>(cid, null, OtherRequests.FIRE));
     }
 

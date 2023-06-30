@@ -25,11 +25,7 @@ class Bullet(uid: Long, var speed: Double = INIT_BULLET_SPEED, override val colP
         removeStat = RemoveStat.TO_REMOVE
         return super.processCollision(other)
     }
-
-    override fun updateByTime(dt: Long) {
-        super.updateByTime(dt)
-    }
- }
+}
 
 class BulletProps(val speed: Double = INIT_BULLET_SPEED, val colBox: ColRect = INIT_BULLET_COLBOX){
     fun copy() : BulletProps {

@@ -26,8 +26,8 @@ class ColMultiPart(baseColPoly : ColPoly, vararg subColPolys : ColPoly) : ColPol
         subColPolys.forEach { tmpArr.addAll(it.pts) }
         tmpArr.addAll(pts)
         for (sub in subColPolys)
-            tmpArr.add(sub.rCenter)
-        tmpArr.add(baseColPoly.rCenter)
+            tmpArr.add(sub.rotationCenter)
+        tmpArr.add(baseColPoly.rotationCenter)
         tmpArr.add(rCenter)
         allPts = tmpArr.toTypedArray().treeDistinct().toTypedArray()
         baseColPoly.parentEle = this
@@ -48,7 +48,7 @@ class ColMultiPart(baseColPoly : ColPoly, vararg subColPolys : ColPoly) : ColPol
         }
         found = false
         for (pt in allPts) {
-            if (pt === baseColPoly.rCenter) {
+            if (pt === baseColPoly.rotationCenter) {
                 found = true
                 break
             }
@@ -59,7 +59,7 @@ class ColMultiPart(baseColPoly : ColPoly, vararg subColPolys : ColPoly) : ColPol
         found = false
         for (sub in subColPolys) {
             for (pt in allPts) {
-                if (pt === sub.rCenter) {
+                if (pt === sub.rotationCenter) {
                     found = true
                     break
                 }
@@ -82,7 +82,7 @@ class ColMultiPart(baseColPoly : ColPoly, vararg subColPolys : ColPoly) : ColPol
     }
 
     /**
-     * By overaloding this function, [rotate], [rotateTo], [rotateAssignTo] ... will be available to use
+     * By overloading this function, [rotate], [rotateTo], [rotateAssignTo] ... will be available to use
      * */
     override fun rotateAssign(radOffset: Double, center: DPos2): ColMultiPart {
         checks()

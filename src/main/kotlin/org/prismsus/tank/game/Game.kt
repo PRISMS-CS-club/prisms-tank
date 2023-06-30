@@ -55,7 +55,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
         for ((i, bot) in bots.withIndex()) {
             botThs[i] =
                 Thread {
-                    if (bot.isUseFutureController)
+                    if (bot.isFutureController)
                         bot.loop(controllers[i])
                     else
                         bot.loop(Controller(controllers[i]))
@@ -72,7 +72,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
         })
     }
 
-    fun tankWeaponInfoHandler(req: ControllerRequest<Any>): Any {
+    private fun tankWeaponInfoHandler(req: ControllerRequest<Any>): Any {
         when (req.requestType) {
             TANK_HP -> {
                 return cidToTank[req.cid]!!.hp
@@ -147,7 +147,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
         }
     }
 
-    fun replaySaver() {
+    private fun replaySaver() {
         // read from eventHistory, save to file
         try {
             while (true) {
@@ -162,7 +162,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
         }
     }
 
-    fun handleOtherRequests(req: ControllerRequest<Any>) {
+    private fun handleOtherRequests(req: ControllerRequest<Any>) {
         when (req.requestType) {
             GET_VISIBLE_ELEMENTS -> {
                 // TODO: implement limited visibility
@@ -197,13 +197,13 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
         }
     }
 
-    fun processNewEvent(evt : GameEvent){
+    private fun processNewEvent(evt : GameEvent){
         eventHistoryToSave.add(evt)
         for (hbot in humanPlayerBots){
             hbot.evtsToClnt.add(evt)
         }
     }
-    fun handleRequests(){
+    private fun handleRequests(){
         while (!requestsQ.isEmpty()) {
             val curReq = requestsQ.poll()
             when (curReq.requestType) {
@@ -221,7 +221,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
         }
     }
 
-    fun handleUpdatableElements() : ArrayList<GameElement>{
+    private fun handleUpdatableElements() : ArrayList<GameElement>{
         val dt = elapsedGameMs - lastGameLoopMs
 //        println("dt = $dt")
         val toRem = ArrayList<GameElement>()
@@ -248,7 +248,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
 
                 val prevPos = if (updatable.colPoly is ColMultiPart) (updatable.colPoly as ColMultiPart).baseColPoly.rotationCenter else  updatable.colPoly.rotationCenter
                 val prevAng = updatable.colPoly.angleRotated
-                val curPos = if (colPolyAfterMove is ColMultiPart) (colPolyAfterMove).baseColPoly.rotationCenter else  colPolyAfterMove.rotationCenter
+                val curPos = if (colPolyAfterMove is ColMultiPart) (colPolyAfterMove).baseColPoly.rotationCenter else colPolyAfterMove.rotationCenter
                 val curAng = colPolyAfterMove.angleRotated
                 if (collideds.isEmpty() && (prevPos != curPos || prevAng != curAng)){
                     map.quadTree.remove(updatable.colPoly);
@@ -261,8 +261,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
                             UpdateEventMask.defaultFalse(
                                 x = (prevPos.x errNE curPos.x),
                                 y = (prevPos.y errNE curPos.y),
-                                rad = (prevAng errNE curAng
-                                        )
+                                rad = (prevAng errNE curAng)
                             ), elapsedGameMs
                         )
                     )

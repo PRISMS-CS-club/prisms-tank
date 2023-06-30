@@ -46,7 +46,7 @@ class HumanPlayerBot(private val name : String, val webSockSession : DefaultWebS
     override fun getName(): String {
         return name
     }
-    override fun isUseFutureController(): Boolean {
+    override fun isFutureController(): Boolean {
         return true
     }
 }

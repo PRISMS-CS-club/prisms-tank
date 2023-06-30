@@ -55,12 +55,10 @@ class Tank(
         return abs(leftTrackVelo) < abs(rightTrackVelo)
     }
 
-    var inVelo: Double
+    val inVelo: Double
         get() = if (isInnerCircLeft()) leftTrackVelo else rightTrackVelo
-        set(value) {}
-    var outVelo: Double
+    val outVelo: Double
         get() = if (isInnerCircLeft()) rightTrackVelo else leftTrackVelo
-        set(value) {}
     override fun updateByTime(dt: Long) {
         val ddt = dt / 1000.0 // convert to second
         if (leftTrackVelo errEQ 0.0 && rightTrackVelo errEQ 0.0) return
@@ -74,7 +72,7 @@ class Tank(
         }
         if (abs(leftTrackVelo) errEQ abs(rightTrackVelo)) {
             // the tank is rotating in place, left and right track speed must have different sign
-            // meaing that the rotation center is the rotation center of the tank
+            // meaning that the rotation center is the rotation center of the tank
             val angSign = if (rightTrackVelo > 0) 1 else -1
             angVelocity = abs(leftTrackVelo / .5)
             val angDisp = angVelocity * ddt

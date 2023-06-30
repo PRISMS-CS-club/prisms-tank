@@ -49,9 +49,9 @@ class RectWeapon(
             if (System.currentTimeMillis() - lastFireTime < minInterv) return null
             val bullet = Bullet(nextUid, bulletProps)
             bullet.colPoly.rotateAssignTo(bulletOrientationAng)
-            val weaponYline = Line((colPoly as ColRect).rotationCenter, (colPoly).topMidPt)
-            val weaponXline = Line(colPoly.rotationCenter, (colPoly).rightMidPt)
-            bullet.colPoly.bottomMidPt = colPoly.rotationCenter + weaponYline.toVec() * firingPosOffset.y + weaponXline.toVec() * firingPosOffset.x
+            val weaponYLine = Line((colPoly as ColRect).rotationCenter, (colPoly).topMidPt)
+            val weaponXLine = Line(colPoly.rotationCenter, (colPoly).rightMidPt)
+            bullet.colPoly.bottomMidPt = colPoly.rotationCenter + weaponYLine.toVec() * firingPosOffset.y + weaponXLine.toVec() * firingPosOffset.x
             bullet.velocity = DVec2.byPolar(bulletProps.speed / 1000.0, bulletMovementAng)
             bullet.damage = damage
             lastFireTime = System.currentTimeMillis()

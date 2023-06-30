@@ -1,7 +1,7 @@
 package org.prismsus.tank.game
 
 interface ControllerRequestTypes {
-    val seialName : String
+    val serialName : String
         get() = ""
 }
 
@@ -34,9 +34,9 @@ enum class OtherRequests : ControllerRequestTypes{
     GET_VISIBLE_ELEMENTS,
     GET_VISITED_ELEMENTS,
     FIRE{
-        override val seialName: String = "fire" },
+        override val serialName: String = "fire" },
     SET_LTRACK_SPEED{
-        override val seialName: String = "lTrack" },
+        override val serialName: String = "lTrack" },
     SET_RTRACK_SPEED{
-        override val seialName: String = "rTrack" },
+        override val serialName: String = "rTrack" },
 }

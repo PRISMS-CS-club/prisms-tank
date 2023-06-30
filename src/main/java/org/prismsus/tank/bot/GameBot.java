@@ -19,5 +19,5 @@ public interface GameBot {
     // whenever there is an interruptedException, this function should return immediately.
     default void loop(Controller controller) throws ExecutionException, InterruptedException {}
     String getName();
-    boolean isUseFutureController();
+    boolean isFutureController();
 }

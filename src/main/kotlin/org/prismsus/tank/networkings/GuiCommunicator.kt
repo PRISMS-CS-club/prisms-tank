@@ -7,6 +7,7 @@ import io.ktor.server.routing.*
 import io.ktor.websocket.*
 import java.time.*
 import io.ktor.server.websocket.*
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -34,6 +35,7 @@ class GuiCommunicator(val clntCnt: Int) {
         }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     fun Application.configureRouting() {
         val logger = log
         routing {
@@ -42,7 +44,13 @@ class GuiCommunicator(val clntCnt: Int) {
                     close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Too many clients"))
                     return@webSocket
                 }
-                val newBot = HumanPlayerBot("bot[${m_humanPlayerBots.size}]", this)
+                val name = incoming.receive().data.toString(Charsets.UTF_8)
+                if(name == "") {
+                    // TODO (add player in observer mode)
+                    close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Empty name"))
+                    return@webSocket
+                }
+                val newBot = HumanPlayerBot(name, this)
                 m_humanPlayerBots.add(newBot)
                 if (m_humanPlayerBots.size == clntCnt) {
                     humanPlayerBots.complete(m_humanPlayerBots)
@@ -55,7 +63,7 @@ class GuiCommunicator(val clntCnt: Int) {
                             continue
                         }
                         val evt = newBot.evtsToClnt.poll()
-                        println("Sent: ${evt.serializedStr}")
+//                        println("Sent: ${evt.serializedStr}")
                         send(evt.serializedStr)
                     }
                 }.start()
@@ -63,11 +71,9 @@ class GuiCommunicator(val clntCnt: Int) {
                 for (frame in incoming) {
                     frame as Frame.Text
                     val msg = frame.readText()
-                    println("Received: $msg")
+//                    println("Received: $msg")
                     newBot.webSockListener.onMessage(msg)
                 }
-
-
             }
         }
     }
