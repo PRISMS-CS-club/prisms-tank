@@ -242,7 +242,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
                 }
 
                 if (collideds.isNotEmpty()) {
-                    println("collision detected: ")
+//                    println("collision detected: ")
                     continue
                 }
 
@@ -328,7 +328,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
             val communicator = GuiCommunicator(1)
             communicator.start()
             val players = communicator.humanPlayerBots.get()
-            val game = Game(replayFile, *players.toTypedArray())
+            val game = Game(replayFile, RandomMovingBot(), *players.toTypedArray())
             game.start()
         }
     }
