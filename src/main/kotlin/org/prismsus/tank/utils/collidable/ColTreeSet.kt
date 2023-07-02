@@ -175,6 +175,10 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
         ret.addAll(cols) // all unsplittable collidable objects
         if (belongTo != null) {
             ret.addAll(belongTo.possibleCollision(col))
+        } else {
+        // add all the cols in the smallest square that can fit the col
+            ret.clear()
+            ret.addAll(allSubCols)
         }
         return ret
     }
