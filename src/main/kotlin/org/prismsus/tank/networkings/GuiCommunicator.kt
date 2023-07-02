@@ -40,16 +40,18 @@ class GuiCommunicator(val clntCnt: Int) {
         val logger = log
         routing {
             webSocket("/") {
-                if (m_humanPlayerBots.size >= clntCnt) {
-                    close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Too many clients"))
-                    return@webSocket
-                }
+
                 val name = incoming.receive().data.toString(Charsets.UTF_8)
-                if(name == "") {
+                if (name == "") {
                     // TODO (add player in observer mode)
                     close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Empty name"))
                     return@webSocket
+                } else if (m_humanPlayerBots.size >= clntCnt) {
+                    close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Too many clients"))
+                    return@webSocket
                 }
+
+
                 val newBot = HumanPlayerBot(name, this)
                 m_humanPlayerBots.add(newBot)
                 if (m_humanPlayerBots.size == clntCnt) {

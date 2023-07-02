@@ -20,7 +20,7 @@ val INIT_RECT_WEAPON_COLBOX
 
 // this value can be modified by shifting the colPoly by the position of the block
 // default value is the colPoly for Block at (0,0) in the map
-val INIT_BULLET_SPEED: Double = 13.0
+val INIT_BULLET_SPEED: Double = 8.0
 val INIT_BULLET_COLBOX: ColRect
     get() = ColRect(DPos2(.0, .0), DDim2(.08, .08))
 val INIT_BULLET_PROP: BulletProps
@@ -44,3 +44,5 @@ val ELE_SERIAL_NAME_TO_CLASS
 
 val DEF_TICKRATE : Int = 128
 val DEF_MS_PER_LOOP : Long = round(1000.0 / DEF_TICKRATE).toLong()
+
+val EVT_NUM_DIGIT : Int = 3 // for any floating points transmitted by event, the number of digits after decimal point

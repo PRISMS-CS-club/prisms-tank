@@ -38,7 +38,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
         processNewEvent(MapCreateEvent(map, elapsedGameMs))
         for ((i, c) in controllers.withIndex()) {
             val tank = Tank.byInitPos(nextUid, DPos2.ORIGIN, bots[i].name)
-            val tankPos = DPos2(4.5, 1.5)
+            val tankPos = map.getUnoccupiedRandPos(tank.colPoly)!!
             (tank.colPoly as ColMultiPart).baseColPoly.rotationCenter = tankPos
 //            val tPanel = CoordPanel(IDim2(1, 1), IDim2(50, 50))
 //            tPanel.drawCollidable(tank.colPoly)
@@ -242,7 +242,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
                 }
 
                 if (collideds.isNotEmpty()) {
-//                    println("collision detected: ")
+                    println("collision detected, collided with ${collideds.toTypedArray().contentToString()} ")
                     continue
                 }
 
@@ -282,6 +282,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
             val toRem = handleUpdatableElements()
             for (rem in toRem) {
                 map.remEle(rem)
+                println("removing element ${rem}")
                 processNewEvent(ElementRemoveEvent(rem.uid, elapsedGameMs))
             }
             val loopEndMs = elapsedGameMs
@@ -328,7 +329,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
             val communicator = GuiCommunicator(1)
             communicator.start()
             val players = communicator.humanPlayerBots.get()
-            val game = Game(replayFile, RandomMovingBot(), *players.toTypedArray())
+            val game = Game(replayFile, *players.toTypedArray())
             game.start()
         }
     }

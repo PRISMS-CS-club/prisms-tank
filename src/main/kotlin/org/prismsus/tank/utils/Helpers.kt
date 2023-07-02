@@ -21,6 +21,22 @@ fun Double.toModPosAngle() : Double{
     return angle % (2 * PI)
 }
 
+fun Double.toFixed(digit: Int) : FixedPoint {
+    return FixedPoint(this, digit)
+}
+
+fun Double.toEvtFixed() : FixedPoint {
+    return FixedPoint(this, EVT_NUM_DIGIT)
+}
+
+fun Float.toFixed(digit: Int) : FixedPoint {
+    return FixedPoint(this.toDouble(), digit)
+}
+
+fun Float.toEvtFixed() : FixedPoint {
+    return FixedPoint(this.toDouble(), EVT_NUM_DIGIT)
+}
+
 infix fun Double.errEQ(other : Double) : Boolean {
     return Math.abs(this - other) < DOUBLE_PRECISION
 }
@@ -28,6 +44,7 @@ infix fun Double.errEQ(other : Double) : Boolean {
 infix fun Double.errNE(other : Double) : Boolean {
     return Math.abs(this - other) >= DOUBLE_PRECISION
 }
+
 
 public fun <T> Iterable<T>.treeDistinct() : List<T> {
     val trSet = TreeSet<T>()

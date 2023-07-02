@@ -4,9 +4,10 @@ import kotlinx.serialization.json.*
 import org.prismsus.tank.elements.GameElement
 import org.prismsus.tank.elements.GameMap
 import org.prismsus.tank.elements.Tank
-import org.prismsus.tank.utils.FixedPoint
 import org.prismsus.tank.utils.collidable.ColMultiPart
 import org.prismsus.tank.utils.collidable.ColPoly
+import org.prismsus.tank.utils.toEvtFixed
+import org.prismsus.tank.utils.toFixed
 import java.lang.System.currentTimeMillis
 
 /**
@@ -49,11 +50,11 @@ class ElementCreateEvent(val ele : GameElement, timeStamp : Long = currentTimeMi
                 put("name", ele.serialName)
                 if (ele is Tank)
                     put("player", ele.playerName)
-                put("x", FixedPoint(selectBaseColPoly(ele).rotationCenter.x, 3))
-                put("y", FixedPoint(selectBaseColPoly(ele).rotationCenter.y, 3))
-                put("rad", FixedPoint(ele.colPoly.angleRotated, 3))
-                put("width", FixedPoint(selectBaseColPoly(ele).width, 3))
-                put("height", FixedPoint(selectBaseColPoly(ele).height, 3))
+                put("x", selectBaseColPoly(ele).rotationCenter.x.toEvtFixed())
+                put("y", selectBaseColPoly(ele).rotationCenter.y.toEvtFixed())
+                put("rad", ele.colPoly.angleRotated.toEvtFixed())
+                put("width", selectBaseColPoly(ele).width.toEvtFixed())
+                put("height", selectBaseColPoly(ele).height.toEvtFixed())
             }
            serializedBytes = json.toString().toByteArray()
         }
@@ -85,13 +86,13 @@ class ElementUpdateEvent(val ele : GameElement, val updateEventMask: UpdateEvent
                     put("hp", ele.hp)
                 }
                 if (updateEventMask.x) {
-                    put("x", FixedPoint(selectBaseColPoly(ele).rotationCenter.x, 3))
+                    put("x", selectBaseColPoly(ele).rotationCenter.x.toEvtFixed())
                 }
                 if (updateEventMask.y) {
-                    put("y", FixedPoint(selectBaseColPoly(ele).rotationCenter.y, 3))
+                    put("y", selectBaseColPoly(ele).rotationCenter.y.toEvtFixed())
                 }
                 if (updateEventMask.rad) {
-                    put("rad", FixedPoint(ele.colPoly.angleRotated, 3))
+                    put("rad", selectBaseColPoly(ele).angleRotated.toEvtFixed())
                 }
             }
 
