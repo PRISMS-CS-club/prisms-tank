@@ -179,15 +179,12 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
             FIRE -> {
                 val tk = cidToTank[req.cid]!!
                 val tankWeaponDirAng = tk.colPoly.angleRotated + PI / 2
-                map.quadTree.checkColsInBound()
                 val bullet = tk.weapon.fire(tankWeaponDirAng)
-                map.quadTree.checkColsInBound()
 
                 if (bullet != null) {
                     if (map.quadTree.allSubCols.contains(bullet.colPoly))
                         assert(false)
                     map.addEle(bullet)
-                    println("bullet added")
                     processNewEvent(ElementCreateEvent(bullet, elapsedGameMs))
                 }
             }
@@ -236,7 +233,6 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
         val toRem = ArrayList<GameElement>()
         for (updatable in map.timeUpdatables) {
             if (updatable is MovableElement && updatable.willMove(dt)) {
-                map.quadTree.checkColsInBound()
                 if (updatable.colPoly is ColMultiPart)
                     (updatable.colPoly as ColMultiPart).checks()
                 val colPolyAfterMove = updatable.colPolyAfterMove(dt)
@@ -279,7 +275,6 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
                 val curPos =
                     if (colPolyAfterMove is ColMultiPart) (colPolyAfterMove).baseColPoly.rotationCenter else colPolyAfterMove.rotationCenter
                 val curAng = colPolyAfterMove.angleRotated
-                map.quadTree.checkColsInBound()
                 if (collideds.isEmpty() && (prevPos != curPos || prevAng != curAng)) {
                     map.quadTree.remove(updatable.colPoly);
                     updatable.colPoly.becomeNonCopy(colPolyAfterMove)
@@ -301,7 +296,6 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
                 updatable.updateByTime(dt)
             }
         }
-        map.quadTree.checkColsInBound()
         return toRem
     }
 
@@ -309,7 +303,6 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
         lastGameLoopMs = elapsedGameMs
         while (true) {
             // first handle all the requests, then move all the elements
-            map.quadTree.checkColsInBound()
             val loopStartMs = elapsedGameMs
             handleRequests()
             val toRem = handleUpdatableElements()
@@ -365,7 +358,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
             val communicator = GuiCommunicator(1)
             communicator.start()
             val players = communicator.humanPlayerBots.get()
-            val game = Game(replayFile, *players.toTypedArray())
+            val game = Game(replayFile, RandomMovingBot(), RandomMovingBot(), *players.toTypedArray())
             game.start()
         }
     }

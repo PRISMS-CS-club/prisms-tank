@@ -44,11 +44,9 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
         }
     val allSubCols: ArrayList<Collidable>
         get() {
-            checkColsInBound()
             val res = ArrayList<Collidable>()
             subTrees?.forEach { res.addAll(it.allSubCols) }
             res.addAll(cols)
-            checkColsInBound()
             return res
         }
     val allSubPartitionLines: ArrayList<Line>
@@ -84,20 +82,17 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
      * this node and the collidables stored in the subtrees.
      * */
     fun clearAll() {
-        checkColsInBound()
         cols.clear()
         for (i in 0..3) {
             subTrees?.get(i)?.clearAll()
         }
         subTrees = null
-        checkColsInBound()
     }
 
     /**
      * When one node exceeds the max object number, split it into four subtrees
      * */
     private fun split() {
-        checkColsInBound()
         // make each of the four subtrees slightly larger than bound.size / 2
         // so that there will be no gap between the four subtrees
         val offset = DOUBLE_PRECISION * 100.0
@@ -109,7 +104,6 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
         val quad4 = ColTreeSet(dep + 1, ColAARect.byTopLeft(topLeft - (subDim.yVec - tlShift.yVec) + (subDim.xVec - tlShift.xVec), subDim + tlShift * 2.0))
         val quad3 = ColTreeSet(dep + 1, ColAARect.byTopLeft(topLeft - (subDim.yVec - tlShift.yVec), subDim + tlShift * 2.0 ))
         subTrees = arrayOf(quad1, quad2, quad3, quad4)
-        checkColsInBound()
     }
 
 
@@ -118,15 +112,12 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
      *  if none of the subtrees can completely contain the AARect or this node have not been splitted, return null
      * */
     fun subTreeBelongTo(box: ColAARect): ColTreeSet? {
-        checkColsInBound()
         return subTrees?.let {
             for (sub in it) {
                 if (sub.bound.enclose(box)) {
-                    checkColsInBound()
                     return sub
                 }
             }
-            checkColsInBound()
             return null
         }
     }
@@ -136,11 +127,9 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
      * @param col The object to be inserted.
      */
     fun insert(col: Collidable) {
-        checkColsInBound()
         val belongTo = subTreeBelongTo(col.encAARect)
         if (belongTo != null) {
             belongTo.insert(col)
-            checkColsInBound()
             return
         }
         if (!bound.enclose(col))
@@ -160,30 +149,25 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
                 cols.remove(c)
             }
         }
-        checkColsInBound()
     }
 
     fun corespondingAARect(col : Collidable) : ColAARect{
-        checkColsInBound()
         val belongTo = subTreeBelongTo(col.encAARect)
         if (belongTo != null) {
             return belongTo.corespondingAARect(col)
         }
-        checkColsInBound()
         return bound
     }
 
     private fun removeInEntireTree(col: Collidable){
-        checkColsInBound()
         if (cols.contains(col)){
             cols.remove(col)
-            checkColsInBound()
             return
         }
-        for (sub in subTrees!!){
-            sub.removeInEntireTree(col)
-        }
-        checkColsInBound()
+        if (subTrees != null)
+            for (sub in subTrees!!){
+                sub.removeInEntireTree(col)
+            }
     }
 
     /**
@@ -191,11 +175,9 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
      * @param col The object to be removed.
      */
     fun remove(col: Collidable) {
-        checkColsInBound()
         val belongTo = subTreeBelongTo(col.encAARect)
         if (belongTo != null) {
             belongTo.remove(col)
-            checkColsInBound()
             return
         }
 
@@ -204,7 +186,6 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
         if (!allSubCols.contains(col))
             throw Exception("ColTreeSet.remove: the collidable to be removed is not in the tree")
         removeInEntireTree(col)
-        checkColsInBound()
     }
 
     fun toShapes(coordTransform: (DPos2) -> DPos2 = { it }, shapeModifier: (Shape) -> Unit = { it }): ArrayList<Shape> {
@@ -219,7 +200,6 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
 
 
     infix fun possibleCollision(col: Collidable): ArrayList<Collidable> {
-        checkColsInBound()
         val belongTo = subTreeBelongTo(col.encAARect)
         val ret = ArrayList<Collidable>()
         ret.addAll(cols) // all unsplittable collidable objects
@@ -230,7 +210,6 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
             ret.clear()
             ret.addAll(allSubCols)
         }
-        checkColsInBound()
         return ret
     }
 
@@ -239,7 +218,6 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
     }
 
     infix fun collidedObjs(col: Collidable): ArrayList<Collidable> {
-        checkColsInBound()
         val possible = possibleCollision(col)
         val ret = ArrayList<Collidable>()
         for (c in possible) {
@@ -247,7 +225,6 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
                 ret.add(c)
             }
         }
-        checkColsInBound()
         return ret
     }
 

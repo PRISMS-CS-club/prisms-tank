@@ -47,7 +47,7 @@ class RectWeapon(
     override fun fire(bulletMovementAng : Double, bulletOrientationAng: Double): Bullet?
         {
             if (System.currentTimeMillis() - lastFireTime < minInterv) return null
-            val bullet = Bullet(nextUid, bulletProps)
+            val bullet = Bullet(nextUid, bulletProps.copy())
             bullet.colPoly.rotateAssignTo(bulletOrientationAng)
             val weaponYLine = Line((colPoly as ColRect).rotationCenter, (colPoly).topMidPt)
             val weaponXLine = Line(colPoly.rotationCenter, (colPoly).rightMidPt)
