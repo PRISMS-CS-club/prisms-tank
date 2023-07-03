@@ -126,14 +126,13 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
      * Insert a new collidable object into the quad-tree.
      * @param col The object to be inserted.
      */
-    fun insert(col: Collidable) {
+    fun insert(col: Collidable) : Boolean{
+        if (!(bound enclose col))
+            return false
         val belongTo = subTreeBelongTo(col.encAARect)
         if (belongTo != null) {
-            belongTo.insert(col)
-            return
+            return belongTo.insert(col)
         }
-        if (!bound.enclose(col))
-            assert(false)
         cols.add(col)
         if (cols.size > MAX_OBJECT && dep < MAX_DEP) {
             split()
@@ -149,6 +148,7 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
                 cols.remove(c)
             }
         }
+        return true
     }
 
     fun corespondingAARect(col : Collidable) : ColAARect{

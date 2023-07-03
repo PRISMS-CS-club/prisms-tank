@@ -1,5 +1,6 @@
 package org.prismsus.tank.game
 
+import kotlinx.coroutines.GlobalScope
 import org.prismsus.tank.bot.*
 import org.prismsus.tank.elements.GameElement
 import org.prismsus.tank.elements.GameMap
@@ -19,6 +20,7 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.util.concurrent.PriorityBlockingQueue
 import kotlin.math.PI
+import kotlinx.coroutines.launch
 
 class Game(val replayFile: File, vararg val bots: GameBot) {
     val humanPlayerBots: Array<HumanPlayerBot> = bots.filterIsInstance<HumanPlayerBot>().toTypedArray()
@@ -334,13 +336,13 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
         println("done")
         // delete the trailing comma
         val fileContent = replayFile.readText().toMutableList()
-        fileContent.removeAt(fileContent.lastIndex)
+        if (fileContent.lastIndex >= 1)
+            fileContent.removeAt(fileContent.lastIndex - 1)
         replayFile.writeText(fileContent.joinToString(""))
         // write the ending ] and close the replay file
         println("saving replay file...")
         replayFile.appendText("]")
         println("replay file saved")
-
     }
 
 
@@ -358,8 +360,9 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
             val communicator = GuiCommunicator(1)
             communicator.start()
             val players = communicator.humanPlayerBots.get()
-            val game = Game(replayFile, RandomMovingBot(), RandomMovingBot(), *players.toTypedArray())
+            val game = Game(replayFile, RandomMovingBot() ,*players.toTypedArray())
             game.start()
+
         }
     }
 }
