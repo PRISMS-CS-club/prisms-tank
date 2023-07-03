@@ -13,16 +13,16 @@ abstract class GameElement(val uid : Long, var hp : Int = -1, open val colPoly :
     /**
      * called when detect two objects intersect with each other
      * @param other the other game element
-     * @return whether the collision happened
+     * @return whether the hp of the [GameElement] is changed
      */
     open infix fun processCollision(other : GameElement) : Boolean {
         if (other.uid in noCollisionElementIds) return false
         if (hp == -1 || other !is Bullet) return false
-        hp -= other.hp
+        hp -= other.damage
         if (hp <= 0) {
             removeStat = RemoveStat.TO_REMOVE
         }
-        return true
+        return other.damage > 0
     }
 
     override fun hashCode(): Int {

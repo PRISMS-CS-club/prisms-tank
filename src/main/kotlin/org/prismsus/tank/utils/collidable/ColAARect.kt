@@ -71,12 +71,7 @@ class ColAARect(centerPos : DPos2, size : DDim2) : ColRect(centerPos, size){
         if (other is ColAARect){
             return maxX > other.maxX && minX < other.minX && maxY > other.maxY && minY < other.minY
         }
-        for (pt in other.pts){
-            if (pt.x < maxX && pt.x > minX && pt.y < maxY && pt.y > minY){
-                return true
-            }
-        }
-        return false
+        return enclose(other.encAARect)
     }
 
     override fun intersectPts(other: Collidable): Array<DPos2> {

@@ -8,8 +8,8 @@ import kotlin.math.round
 const val DOUBLE_PRECISION: Double = 1e-8
 
 // constants for game configuration and default values
-val DEF_BLOCK_HP: Int = 20
-val INIT_TANK_HP: Int = 100
+val DEF_BLOCK_HP: Int = 50
+val INIT_TANK_HP: Int = 150
 val INIT_TANK_TRACK_SPEED: Double = 3.0
 val INIT_TANK_COLBOX: ColRect
     get() = ColRect(DPos2(.0, .0), DDim2(.6, .6))
@@ -27,7 +27,7 @@ val INIT_BULLET_PROP: BulletProps
     get() = BulletProps(INIT_BULLET_SPEED, INIT_BULLET_COLBOX)
 val INIT_RECT_WEAPON_RPOPS
     get() = RectWeaponProps(
-    15,
+    10,
     300,
     20,
     3.0,

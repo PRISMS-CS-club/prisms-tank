@@ -61,11 +61,9 @@ class GameMap(val fileName: String) {
         // randome shuffle the value from emptyBlkCenters
         val randPoses = emptyBlkCenters ; randPoses.shuffle()
         for (pos in randPoses){
-            val emptyAArect = ColAARect(pos, DEF_BLOCK_COLBOX.size)
-            if (emptyAArect.size.x < box.encAARectSize.x || emptyAArect.size.y < box.encAARectSize.y) {
-                continue
-            }
-            if (quadTree collide box)
+            val boxAtpos = box.copy()
+            boxAtpos.rotationCenter = pos
+            if (quadTree collide boxAtpos)
                 continue
             return pos
         }
@@ -98,6 +96,12 @@ class GameMap(val fileName: String) {
                 throw Exception("failed to add movable element")
             }
         }
+
+        if (ele is Block){
+            assert(blocks[ele.pos.x][ele.pos.y] == null, {"block already exists at ${ele.pos}"})
+            blocks[ele.pos.x][ele.pos.y] = ele
+        }
+
         return ele
     }
 
@@ -127,6 +131,12 @@ class GameMap(val fileName: String) {
                 throw Exception("failed to remove movable element")
             }
         }
+
+        if (ele is Block){
+            assert(blocks[ele.pos.x][ele.pos.y] == ele, {"block does not exist at ${ele.pos}"})
+            blocks[ele.pos.x][ele.pos.y] = null
+        }
+
         return ele
     }
 
@@ -163,13 +173,13 @@ class GameMap(val fileName: String) {
                 if (eleType.isSubclassOf(Block::class)) {
                     ele = eleType.constructors.first().call(nextUid, pos)
                 }
-
-                blocks[x][y] = ele
+                
                 ele?.run {
                     addEle(ele)
                 }
             }
         }
+        gameMap = this
     }
 
     val serialized: ByteArray

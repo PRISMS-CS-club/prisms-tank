@@ -21,7 +21,7 @@ import java.util.concurrent.PriorityBlockingQueue
 import kotlin.math.PI
 
 class Game(val replayFile: File, vararg val bots: GameBot) {
-    val humanPlayerBots : Array<HumanPlayerBot> = bots.filterIsInstance<HumanPlayerBot>().toTypedArray()
+    val humanPlayerBots: Array<HumanPlayerBot> = bots.filterIsInstance<HumanPlayerBot>().toTypedArray()
     val eventHistoryToSave = PriorityBlockingQueue<GameEvent>()
     var controllers: Array<FutureController>
     val requestsQ = PriorityBlockingQueue<ControllerRequest<Any>>()
@@ -33,12 +33,13 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
     val elapsedGameMs: Long
         get() = System.currentTimeMillis() - gameInitMs
     var lastGameLoopMs = elapsedGameMs
+
     init {
         controllers = Array(bots.size) { i -> FutureController(i.toLong(), requestsQ) }
         processNewEvent(MapCreateEvent(map, elapsedGameMs))
         for ((i, c) in controllers.withIndex()) {
             val tank = Tank.byInitPos(nextUid, DPos2.ORIGIN, bots[i].name)
-            val tankPos = DPos2(4.5, 1.5)
+            val tankPos = map.getUnoccupiedRandPos(tank.colPoly)!!
             (tank.colPoly as ColMultiPart).baseColPoly.rotationCenter = tankPos
 //            val tPanel = CoordPanel(IDim2(1, 1), IDim2(50, 50))
 //            tPanel.drawCollidable(tank.colPoly)
@@ -152,7 +153,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
         try {
             while (true) {
                 Thread.sleep(100)
-                while(eventHistoryToSave.isNotEmpty()) {
+                while (eventHistoryToSave.isNotEmpty()) {
                     val curEvent = eventHistoryToSave.poll()
                     replayFile.appendBytes(curEvent.serializedBytes + ",\n".toByteArray(Charsets.UTF_8))
                 }
@@ -178,9 +179,15 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
             FIRE -> {
                 val tk = cidToTank[req.cid]!!
                 val tankWeaponDirAng = tk.colPoly.angleRotated + PI / 2
+                map.quadTree.checkColsInBound()
                 val bullet = tk.weapon.fire(tankWeaponDirAng)
+                map.quadTree.checkColsInBound()
+
                 if (bullet != null) {
+                    if (map.quadTree.allSubCols.contains(bullet.colPoly))
+                        assert(false)
                     map.addEle(bullet)
+                    println("bullet added")
                     processNewEvent(ElementCreateEvent(bullet, elapsedGameMs))
                 }
             }
@@ -197,13 +204,14 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
         }
     }
 
-    private fun processNewEvent(evt : GameEvent){
+    private fun processNewEvent(evt: GameEvent) {
         eventHistoryToSave.add(evt)
-        for (hbot in humanPlayerBots){
+        for (hbot in humanPlayerBots) {
             hbot.evtsToClnt.add(evt)
         }
     }
-    private fun handleRequests(){
+
+    private fun handleRequests() {
         while (!requestsQ.isEmpty()) {
             val curReq = requestsQ.poll()
             when (curReq.requestType) {
@@ -211,9 +219,11 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
                     val ret = tankWeaponInfoHandler(curReq)
                     curReq.returnTo!!.complete(ret)
                 }
+
                 is OtherRequests -> {
                     handleOtherRequests(curReq)
                 }
+
                 else -> {
                     throw IllegalArgumentException("Invalid request type")
                 }
@@ -221,20 +231,38 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
         }
     }
 
-    private fun handleUpdatableElements() : ArrayList<GameElement>{
+    private fun handleUpdatableElements(): ArrayList<GameElement> {
         val dt = elapsedGameMs - lastGameLoopMs
-//        println("dt = $dt")
         val toRem = ArrayList<GameElement>()
         for (updatable in map.timeUpdatables) {
             if (updatable is MovableElement && updatable.willMove(dt)) {
+                map.quadTree.checkColsInBound()
                 if (updatable.colPoly is ColMultiPart)
                     (updatable.colPoly as ColMultiPart).checks()
                 val colPolyAfterMove = updatable.colPolyAfterMove(dt)
                 val collideds = map.quadTree.collidedObjs(colPolyAfterMove)
                 collideds.remove(updatable.colPoly)
+                val prevHp = updatable.hp
+                var curHp = updatable.hp
                 for (collided in collideds) {
-                    updatable.processCollision(map.collidableToEle[collided]!!)
-                    map.collidableToEle[collided]!!.processCollision(updatable)
+                    val otherGe = map.collidableToEle[collided]!!
+                    updatable.processCollision(otherGe)
+                    curHp = updatable.hp
+                    val hpChanged = otherGe.processCollision(updatable)
+                    if (hpChanged) {
+                        processNewEvent(
+                            ElementUpdateEvent(
+                                otherGe,
+                                UpdateEventMask.defaultFalse(
+                                    hp = true
+                                ),
+                                elapsedGameMs
+                            )
+                        )
+                        if (otherGe.removeStat == GameElement.RemoveStat.TO_REMOVE) {
+                            toRem.add(otherGe)
+                        }
+                    }
                 }
 
                 if (updatable.removeStat == GameElement.RemoveStat.TO_REMOVE) {
@@ -242,16 +270,17 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
                 }
 
                 if (collideds.isNotEmpty()) {
-//                    println(map.quadTree.collidedObjs(colPolyAfterMove).toTypedArray().contentToString())
-//                    println("collision detected, collided with ${collideds.toTypedArray().contentToString()} ")
                     continue
                 }
 
-                val prevPos = if (updatable.colPoly is ColMultiPart) (updatable.colPoly as ColMultiPart).baseColPoly.rotationCenter else  updatable.colPoly.rotationCenter
+                val prevPos =
+                    if (updatable.colPoly is ColMultiPart) (updatable.colPoly as ColMultiPart).baseColPoly.rotationCenter else updatable.colPoly.rotationCenter
                 val prevAng = updatable.colPoly.angleRotated
-                val curPos = if (colPolyAfterMove is ColMultiPart) (colPolyAfterMove).baseColPoly.rotationCenter else colPolyAfterMove.rotationCenter
+                val curPos =
+                    if (colPolyAfterMove is ColMultiPart) (colPolyAfterMove).baseColPoly.rotationCenter else colPolyAfterMove.rotationCenter
                 val curAng = colPolyAfterMove.angleRotated
-                if (collideds.isEmpty() && (prevPos != curPos || prevAng != curAng)){
+                map.quadTree.checkColsInBound()
+                if (collideds.isEmpty() && (prevPos != curPos || prevAng != curAng)) {
                     map.quadTree.remove(updatable.colPoly);
                     updatable.colPoly.becomeNonCopy(colPolyAfterMove)
                     map.quadTree.insert(updatable.colPoly)
@@ -262,7 +291,8 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
                             UpdateEventMask.defaultFalse(
                                 x = (prevPos.x errNE curPos.x),
                                 y = (prevPos.y errNE curPos.y),
-                                rad = (prevAng errNE curAng)
+                                rad = (prevAng errNE curAng),
+                                hp = (prevHp != curHp)
                             ), elapsedGameMs
                         )
                     )
@@ -271,6 +301,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
                 updatable.updateByTime(dt)
             }
         }
+        map.quadTree.checkColsInBound()
         return toRem
     }
 
@@ -278,6 +309,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
         lastGameLoopMs = elapsedGameMs
         while (true) {
             // first handle all the requests, then move all the elements
+            map.quadTree.checkColsInBound()
             val loopStartMs = elapsedGameMs
             handleRequests()
             val toRem = handleUpdatableElements()
@@ -306,8 +338,11 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
         // interrupt the replay saver
         print("closing replay saver thread...")
         replayTh!!.interrupt()
-        replayTh!!.interrupt()
         println("done")
+        // delete the trailing comma
+        val fileContent = replayFile.readText().toMutableList()
+        fileContent.removeAt(fileContent.lastIndex)
+        replayFile.writeText(fileContent.joinToString(""))
         // write the ending ] and close the replay file
         println("saving replay file...")
         replayFile.appendText("]")
