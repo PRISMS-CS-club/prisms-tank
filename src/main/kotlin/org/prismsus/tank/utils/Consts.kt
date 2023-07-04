@@ -8,9 +8,10 @@ import kotlin.math.round
 const val DOUBLE_PRECISION: Double = 1e-8
 
 // constants for game configuration and default values
-val DEF_BLOCK_HP: Int = 50
-val INIT_TANK_HP: Int = 150
-val INIT_TANK_TRACK_SPEED: Double = 3.0
+const val DEF_BLOCK_HP: Int = 50
+const val INIT_TANK_HP: Int = 150
+const val INIT_TANK_TRACK_SPEED: Double = 3.0
+const val INIT_TANK_VIS_RANGE : Double = 4.0
 val INIT_TANK_COLBOX: ColRect
     get() = ColRect(DPos2(.0, .0), DDim2(.6, .6))
 val DEF_BLOCK_COLBOX: ColRect
@@ -42,7 +43,7 @@ val ELE_SERIAL_NAME_TO_CLASS
     "SldBlk" to SolidBlock::class,
 ) // element's serial name to its class
 
-val DEF_TICKRATE : Int = 128
+const val DEF_TICKRATE : Int = 128
 val DEF_MS_PER_LOOP : Long = round(1000.0 / DEF_TICKRATE).toLong()
 
-val EVT_NUM_DIGIT : Int = 3 // for any floating points transmitted by event, the number of digits after decimal point
+const val EVT_NUM_DIGIT : Int = 3 // for any floating points transmitted by event, the number of digits after decimal point

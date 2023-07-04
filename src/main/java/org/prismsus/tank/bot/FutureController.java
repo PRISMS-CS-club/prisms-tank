@@ -1,5 +1,6 @@
 package org.prismsus.tank.bot;
 
+import org.prismsus.tank.elements.Block;
 import org.prismsus.tank.elements.GameElement;
 import org.prismsus.tank.game.ControllerRequest;
 import org.prismsus.tank.game.TankWeaponInfo;
@@ -13,6 +14,7 @@ import java.util.concurrent.PriorityBlockingQueue;
 import org.prismsus.tank.utils.collidable.ColPoly;
 import org.prismsus.tank.utils.collidable.ColRect;
 import org.prismsus.tank.utils.collidable.DPos2;
+import org.prismsus.tank.utils.IVec2;
 
 public class FutureController {
     public int curAPICallCnt = 114514;
@@ -33,6 +35,26 @@ public class FutureController {
         CompletableFuture<Object> ret = new CompletableFuture<>();
         requestsQ.add(new ControllerRequest<>(cid, ret, OtherRequests.GET_VISITED_ELEMENTS));
         return ret.thenApply((Object it) -> (List<GameElement>) it);
+    }
+
+    Future<Block> checkBlockAt(IVec2 pos){
+        CompletableFuture<Object> ret = new CompletableFuture<>();
+
+        requestsQ.add(new ControllerRequest<>(cid, ret, OtherRequests.CHECK_BLOCK_AT, new IVec2[]{pos} ));
+        // convert type if non-null
+        return ret.thenApply((Object it) -> {
+            if (it == null) return null;
+            else return (Block) it;
+        });
+    }
+
+    Future<ArrayList<GameElement>> checkCollidingGameEles(){
+        CompletableFuture<Object> ret = new CompletableFuture<>();
+        requestsQ.add(new ControllerRequest<>(cid, ret, OtherRequests.CHECK_COLLIDING_GAME_ELES));
+        return ret.thenApply((Object it) -> {
+            if (it == null) return null;
+            else return (ArrayList<GameElement>) it;
+        });
     }
 
     void fire() {
@@ -141,6 +163,12 @@ public class FutureController {
     Future<Double> getBulletSpeed(){
         CompletableFuture<Object> ret = new CompletableFuture<>();
         requestsQ.add(new ControllerRequest<>(cid, ret, TankWeaponInfo.BULLET_SPEED));
+        return ret.thenApply((Object it) -> (Double) it);
+    }
+
+    Future<Double> getTankVisibleRange(){
+        CompletableFuture<Object> ret = new CompletableFuture<>();
+        requestsQ.add(new ControllerRequest<>(cid, ret, TankWeaponInfo.TANK_VIS_RANGE));
         return ret.thenApply((Object it) -> (Double) it);
     }
 

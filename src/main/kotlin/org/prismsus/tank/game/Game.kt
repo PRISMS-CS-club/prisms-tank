@@ -20,14 +20,14 @@ import java.time.LocalTime
 import java.util.concurrent.PriorityBlockingQueue
 import kotlin.math.PI
 
-class Game(val replayFile: File, vararg val bots: GameBot) {
+class Game(val replayFile: File, val map : GameMap, vararg val bots: GameBot) {
     val humanPlayerBots: Array<HumanPlayerBot> = bots.filterIsInstance<HumanPlayerBot>().toTypedArray()
     val eventHistoryToSave = PriorityBlockingQueue<GameEvent>()
     var controllers: Array<FutureController>
     val requestsQ = PriorityBlockingQueue<ControllerRequest<Any>>()
-    val map = GameMap("default.json")
     val cidToTank = mutableMapOf<Long, Tank?>()
     val tankToCid = mutableMapOf<Tank, Long>()
+    val lastCollidedEle = mutableMapOf<GameElement, ArrayList<GameElement>>()
     val botThs: Array<Thread?> = Array(bots.size) { null }
     var replayTh: Thread
     val gameInitMs = System.currentTimeMillis()
@@ -77,9 +77,10 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
     }
 
     private fun tankWeaponInfoHandler(req: ControllerRequest<Any>): Any {
+        val tk = cidToTank[req.cid]!!
         when (req.requestType) {
             TANK_HP -> {
-                return cidToTank[req.cid]!!.hp
+                return tk.hp
             }
 
             TANK_MAX_HP -> {
@@ -88,51 +89,55 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
             }
 
             TANK_LTRACK_SPEED -> {
-                return cidToTank[req.cid]!!.leftTrackVelo
+                return tk.leftTrackVelo
             }
 
             TANK_RTRACK_SPEED -> {
-                return cidToTank[req.cid]!!.rightTrackVelo
+                return tk.rightTrackVelo
             }
 
             TANK_TRACK_MAX_SPEED -> {
-                return cidToTank[req.cid]!!.trackMaxSpeed
+                return tk.trackMaxSpeed
             }
 
             TANK_COLBOX -> {
-                return cidToTank[req.cid]!!.tankRectBox
+                return tk.tankRectBox
             }
 
             TANK_POS -> {
-                return cidToTank[req.cid]!!.colPoly.rotationCenter
+                return tk.colPoly.rotationCenter
             }
 
             TANK_ANGLE -> {
-                return cidToTank[req.cid]!!.colPoly.angleRotated
+                return tk.colPoly.angleRotated
+            }
+
+            TANK_VIS_RANGE -> {
+                return tk.visibleRange
             }
 
             WEAPON_RELOAD_RATE_PER_SEC -> {
-                return cidToTank[req.cid]!!.weapon.reloadRate
+                return tk.weapon.reloadRate
             }
 
             WEAPON_MAX_CAPACITY -> {
-                return cidToTank[req.cid]!!.weapon.maxCapacity
+                return tk.weapon.maxCapacity
             }
 
             WEAPON_CUR_CAPACITY -> {
-                return cidToTank[req.cid]!!.weapon.curCapacity
+                return tk.weapon.curCapacity
             }
 
             WEAPON_DAMAGE -> {
-                return cidToTank[req.cid]!!.weapon.damage
+                return tk.weapon.damage
             }
 
             WEAPON_COLBOX -> {
-                return cidToTank[req.cid]!!.weapon.colPoly
+                return tk.weapon.colPoly
             }
 
             COMBINED_COLBOX -> {
-                return cidToTank[req.cid]!!.colPoly
+                return tk.colPoly
             }
 
             BULLET_COLBOX -> {
@@ -167,10 +172,33 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
     }
 
     private fun handleOtherRequests(req: ControllerRequest<Any>) {
+        val tk = cidToTank[req.cid]!!
         when (req.requestType) {
             GET_VISIBLE_ELEMENTS -> {
                 // TODO: implement limited visibility
                 val ret = ArrayList(map.gameEles)
+                ret.removeIf { ele ->
+                    val dis = ele.colPoly.rotationCenter.dis(tk.colPoly.rotationCenter)
+                    dis > tk.visibleRange
+                }
+                req.returnTo!!.complete(ret)
+            }
+
+            CHECK_BLOCK_AT -> {
+                val pos = req.params!!.first() as IPos2
+                if (tk.colPoly.rotationCenter.dis(pos.toDPos2()) > tk.visibleRange) {
+                    req.returnTo!!.complete(null)
+                    return
+                }
+                val ret = map.blocks[pos.x][pos.y]
+                req.returnTo!!.complete(ret)
+            }
+
+            CHECK_COLLIDING_GAME_ELES -> {
+                val ret = lastCollidedEle[tk]?.filter {
+                    val dis = it.colPoly.rotationCenter.dis(tk.colPoly.rotationCenter)
+                    dis <= tk.visibleRange
+                }
                 req.returnTo!!.complete(ret)
             }
 
@@ -180,7 +208,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
             }
 
             FIRE -> {
-                val tk = cidToTank[req.cid]!!
+
                 val tankWeaponDirAng = tk.colPoly.angleRotated + PI / 2
                 val bullet = tk.weapon.fire(tankWeaponDirAng)
 
@@ -248,6 +276,8 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
                 for (collided in collideds) {
                     val otherGe = map.collidableToEle[collided]!!
                     updatable.processCollision(otherGe)
+                    lastCollidedEle.getOrPut(updatable) { ArrayList() }.add(otherGe)
+                    lastCollidedEle.getOrPut(otherGe) { ArrayList() }.add(updatable)
                     curHp = updatable.hp
                     val hpChanged = otherGe.processCollision(updatable)
                     if (hpChanged) {
@@ -300,6 +330,9 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
             } else {
                 updatable.updateByTime(dt)
             }
+        }
+        for (entry in lastCollidedEle) {
+            lastCollidedEle[entry.key] = entry.value.distinct() as ArrayList<GameElement>
         }
         return ArrayList(toRemove.distinct())
     }
@@ -370,7 +403,8 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
             val communicator = GuiCommunicator(1)
             communicator.start()
             val players = communicator.humanPlayerBots.get()
-            val game = Game(replayFile, RandomMovingBot(), RandomMovingBot() ,*players.toTypedArray())
+            val randBots = Array(0){RandomMovingBot()}
+            val game = Game(replayFile, GameMap("15x15.json"), *randBots,*players.toTypedArray())
             game.start()
 
         }

@@ -18,6 +18,7 @@ enum class TankWeaponInfo : ControllerRequestTypes {
     TANK_COLBOX,
     TANK_POS,
     TANK_ANGLE,
+    TANK_VIS_RANGE,
 
     // weapon related
     WEAPON_RELOAD_RATE_PER_SEC,
@@ -33,6 +34,8 @@ enum class TankWeaponInfo : ControllerRequestTypes {
 enum class OtherRequests : ControllerRequestTypes{
     GET_VISIBLE_ELEMENTS,
     GET_VISITED_ELEMENTS,
+    CHECK_BLOCK_AT,
+    CHECK_COLLIDING_GAME_ELES,
     FIRE{
         override val serialName: String = "fire" },
     SET_LTRACK_SPEED{

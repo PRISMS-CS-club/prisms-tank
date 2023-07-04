@@ -1,5 +1,7 @@
 package org.prismsus.tank.utils
 
+import org.prismsus.tank.utils.collidable.DPos2
+
 /**
  * A 2D vector with integer components.
  * @property x The x component.
@@ -110,6 +112,10 @@ data class IVec2(var x: Int, var y: Int) {
 
     fun toDVec2(): DVec2 {
         return DVec2(x.toDouble(), y.toDouble())
+    }
+
+    fun toDPos2(): DPos2 {
+        return DPos2(x.toDouble(), y.toDouble())
     }
 
     override fun toString(): String {

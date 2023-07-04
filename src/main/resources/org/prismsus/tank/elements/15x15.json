@@ -1,0 +1,24 @@
+{
+  "type" : "MapCrt",
+  "t" : 0,
+  "x": 15,
+  "y": 15,
+  "map":
+  [
+    "SldBlk", "SldBlk", "SldBlk", "SldBlk", "SldBlk", "SldBlk","SldBlk", "SldBlk", "SldBlk", "SldBlk", "SldBlk", "SldBlk","SldBlk", "SldBlk", "SldBlk",
+    "SldBlk", "","BrkBlk","","","","SldBlk","","","","","","","","SldBlk",
+    "SldBlk", "","SldBlk","","","SldBlk","","SldBlk","","","","","","","SldBlk",
+    "SldBlk", "","BrkBlk","","","","","","","","","","","","SldBlk",
+    "SldBlk", "","","","","","","","","","","","","","SldBlk",
+    "SldBlk", "","","","","","","BrkBlk","","","SldBlk","","","","SldBlk",
+    "SldBlk", "","","","BrkBlk","","","","","","","","","","SldBlk",
+    "SldBlk", "SldBlk","","","","","","","BrkBlk","","","","","","SldBlk",
+    "SldBlk", "","","BrkBlk","BrkBlk","","","","BrkBlk","","","","","","SldBlk",
+    "SldBlk", "","","","","","","","","","","","","","SldBlk",
+    "SldBlk", "","","","","","","","BrkBlk","","","","","","SldBlk",
+    "SldBlk", "","","SldBlk","","","","","","","","","","","SldBlk",
+    "SldBlk", "","","","","","","","","","","BrkBlk","","","SldBlk",
+    "SldBlk", "","","","SldBlk","","","","","","","BrkBlk","","","SldBlk",
+    "SldBlk", "SldBlk", "SldBlk", "SldBlk", "SldBlk", "SldBlk","SldBlk", "SldBlk", "SldBlk", "SldBlk", "SldBlk", "SldBlk","SldBlk", "SldBlk", "SldBlk"
+  ]
+}

@@ -10,10 +10,11 @@ import kotlin.math.sign
 class Tank(
     uid: Long,
     val playerName: String,
-    weaponProps: WeaponProps,
+    val weaponProps: WeaponProps,
     val trackMaxSpeed: Double = INIT_TANK_TRACK_SPEED,
     hp: Int = INIT_TANK_HP,
-    val tankRectBox: ColRect = INIT_TANK_COLBOX.copy(),
+    val tankRectBox: ColRect = INIT_TANK_COLBOX,
+    val visibleRange : Double = INIT_TANK_VIS_RANGE,
 ) : MovableElement(
         uid, hp, ColMultiPart((tankRectBox), (weaponProps.colPoly))
     ) {
