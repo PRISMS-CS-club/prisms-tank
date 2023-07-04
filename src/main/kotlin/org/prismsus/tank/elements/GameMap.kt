@@ -71,8 +71,6 @@ class GameMap(val fileName: String) {
     }
 
     fun addEle(ele: GameElement): GameElement {
-        if (quadTree.size != gameEles.size)
-            assert(quadTree.size == gameEles.size, {"quad tree size: ${quadTree.size}, gameEles size: ${gameEles.size}"})
         collidableToEle[ele.colPoly] = ele
         if (!gameEles.add(ele)) {
             throw Exception("failed to add game element")
@@ -147,8 +145,8 @@ class GameMap(val fileName: String) {
     }
 
     fun scanAndRemEle(){
-        val toRem = gameEles.filter { it.removeStat == GameElement.RemoveStat.TO_REMOVE }
-        for (ele in toRem){
+        val toRemove = gameEles.filter { it.removeStat == GameElement.RemoveStat.TO_REMOVE }
+        for (ele in toRemove){
             remEle(ele)
         }
     }

@@ -18,7 +18,7 @@ class GUIrequestEvent(override val serializedStr : String) : GameEvent(parseTime
         val tmpParam = ArrayList<Any>()
         while(scan.hasNext()){
             if (scan.hasNextLong())
-                tmpParam.add(scan.nextInt())
+                tmpParam.add(scan.nextLong())
             else if (scan.hasNextDouble())
                 tmpParam.add(scan.nextDouble())
             else

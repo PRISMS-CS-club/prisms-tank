@@ -11,7 +11,7 @@ import kotlin.math.min
 /**
  * collection of collidables, implemented by a quad tree
  *
- * */
+ */
 class ColTreeSet(val dep: Int, val bound: ColAARect) {
     companion object {
         const val MAX_OBJECT = 4
@@ -44,11 +44,9 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
         }
     val allSubCols: ArrayList<Collidable>
         get() {
-            val res = ArrayList<Collidable>()
+            val res: ArrayList<Collidable> = cols.clone() as ArrayList<Collidable>
             subTrees?.forEach { res.addAll(it.allSubCols) }
-            res.addAll(cols)
-            if (res.size != size)
-                assert(res.size == size, { "allSubCols=${res.size}, size=$size" })
+            assert(res.size == size) { "allSubCols=${res.size}, size=$size" }
             return res
         }
     val allSubPartitionLines: ArrayList<Line>
@@ -95,6 +93,10 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
      * When one node exceeds the max object number, split it into four subtrees
      * */
     private fun split() {
+        if(subTrees != null) {
+            // only split when this node have not been split
+            return
+        }
         // make each of the four subtrees slightly larger than bound.size / 2
         // so that there will be no gap between the four subtrees
         val offset = DOUBLE_PRECISION * 100.0
@@ -127,24 +129,26 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
     /**
      * Insert a new collidable object into the quad-tree.
      * @param col The object to be inserted.
+     * @return true if the insertion is successful, false otherwise.
      */
-    fun insert(col: Collidable) : Boolean{
+    fun insert(col: Collidable) : Boolean {
         if (!(bound enclose col))
             return false
         val belongTo = subTreeBelongTo(col.encAARect)
         if (belongTo != null) {
-            val ret = belongTo.insert(col)
-            if (ret) size++
-            return ret
+            assert(belongTo.insert(col))
+            size++
+            return true
         }
         cols.add(col)
-        if (cols.size > MAX_OBJECT && dep < MAX_DEP) {
+        size++
+        if(this.subTrees == null && cols.size > MAX_OBJECT && dep < MAX_DEP) {
             split()
             val toRemove = ArrayList<Collidable>()
             for (c in cols) {
                 val belongTo = subTreeBelongTo(c.encAARect)
                 if (belongTo != null) {
-                    belongTo.insert(c)
+                    assert(belongTo.insert(c))
                     toRemove.add(c)
                 }
             }
@@ -152,7 +156,6 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
                 cols.remove(c)
             }
         }
-        size++
         return true
     }
 
@@ -164,35 +167,27 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
         return bound
     }
 
-    private fun removeInEntireTree(col: Collidable){
-        if (cols.contains(col)){
-            cols.remove(col)
-            return
-        }
-        if (subTrees != null)
-            for (sub in subTrees!!){
-                sub.removeInEntireTree(col)
-            }
-    }
-
     /**
      * Remove one collidable object from the collision quad-tree.
      * @param col The object to be removed.
+     * @return True if the object is successfully removed, false if the object is not found.
      */
-    fun remove(col: Collidable) {
+    fun remove(col: Collidable): Boolean {
         val belongTo = subTreeBelongTo(col.encAARect)
         if (belongTo != null) {
-            belongTo.remove(col)
+            if(!belongTo.remove(col)) {
+                println("remove failed")
+                throw Exception()
+            }
             size--
-            return
+            return true
         }
-
-        // now reached the bottom most layer of the tree (the smallest AArect to enclose col)
-
-        if (!allSubCols.contains(col))
-            throw Exception("ColTreeSet.remove: the collidable to be removed is not in the tree")
-        size--
-        removeInEntireTree(col)
+        if (cols.contains(col)) {
+            cols.remove(col)
+            size--
+            return true
+        }
+        return false
     }
 
     fun toShapes(coordTransform: (DPos2) -> DPos2 = { it }, shapeModifier: (Shape) -> Unit = { it }): ArrayList<Shape> {

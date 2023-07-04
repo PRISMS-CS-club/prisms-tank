@@ -8,7 +8,7 @@ import kotlin.math.round
 /**
  * Fixed point number representing `digit` times 10 to the power of `power`.
  */
-class FixedPoint(private var number: Double, val digit: Int): Number() {
+class FixedPoint(private var number: Double, digit: Int): Number() {
     init{
         number = BigDecimal(number).setScale(digit, RoundingMode.HALF_EVEN).toDouble()
     }

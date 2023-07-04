@@ -1,6 +1,6 @@
-package org.prismsus.tank.utils.collidable
+package org.prismsus.tank
 
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import org.prismsus.tank.utils.DDim2
 import org.prismsus.tank.utils.collidable.ColRect
 import org.prismsus.tank.utils.collidable.DPos2

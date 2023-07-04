@@ -1,6 +1,5 @@
 package org.prismsus.tank.game
 
-import kotlinx.coroutines.GlobalScope
 import org.prismsus.tank.bot.*
 import org.prismsus.tank.elements.GameElement
 import org.prismsus.tank.elements.GameMap
@@ -20,7 +19,6 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.util.concurrent.PriorityBlockingQueue
 import kotlin.math.PI
-import kotlinx.coroutines.launch
 
 class Game(val replayFile: File, vararg val bots: GameBot) {
     val humanPlayerBots: Array<HumanPlayerBot> = bots.filterIsInstance<HumanPlayerBot>().toTypedArray()
@@ -237,7 +235,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
 
     private fun handleUpdatableElements(): ArrayList<GameElement> {
         val dt = elapsedGameMs - lastGameLoopMs
-        val toRem = ArrayList<GameElement>()
+        val toRemove = ArrayList<GameElement>()
         for (updatable in map.timeUpdatables) {
             if (updatable is MovableElement && updatable.willMove(dt)) {
                 if (updatable.colPoly is ColMultiPart)
@@ -263,13 +261,13 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
                             )
                         )
                         if (otherGe.removeStat == GameElement.RemoveStat.TO_REMOVE) {
-                            toRem.add(otherGe)
+                            toRemove.add(otherGe)
                         }
                     }
                 }
 
                 if (updatable.removeStat == GameElement.RemoveStat.TO_REMOVE) {
-                    toRem.add(updatable)
+                    toRemove.add(updatable)
                 }
 
                 if (collideds.isNotEmpty()) {
@@ -283,7 +281,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
                     if (colPolyAfterMove is ColMultiPart) (colPolyAfterMove).baseColPoly.rotationCenter else colPolyAfterMove.rotationCenter
                 val curAng = colPolyAfterMove.angleRotated
                 if (collideds.isEmpty() && (prevPos != curPos || prevAng != curAng)) {
-                    map.quadTree.remove(updatable.colPoly);
+                    assert(map.quadTree.remove(updatable.colPoly))
                     updatable.colPoly.becomeNonCopy(colPolyAfterMove)
                     map.quadTree.insert(updatable.colPoly)
 //                        println("cur ang: ${updatable.colPoly.angleRotated}")
@@ -303,7 +301,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
                 updatable.updateByTime(dt)
             }
         }
-        return ArrayList(toRem.distinct())
+        return ArrayList(toRemove.distinct())
     }
 
     fun start() {
@@ -312,10 +310,10 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
             // first handle all the requests, then move all the elements
             val loopStartMs = elapsedGameMs
             handleRequests()
-            val toRem = handleUpdatableElements()
-            for (rem in toRem) {
+            val toRemove = handleUpdatableElements()
+            for (rem in toRemove) {
                 map.remEle(rem)
-                if (rem is Tank){
+                if (rem is Tank) {
                     val cid = tankToCid[rem]!!
                     val bot = bots[cid.toInt()]
                     cidToTank.remove(cid)
@@ -344,7 +342,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
         println("done")
         // interrupt the replay saver
         print("closing replay saver thread...")
-        replayTh!!.interrupt()
+        replayTh.interrupt()
         println("done")
         // delete the trailing comma
         val fileContent = replayFile.readText().toMutableList()

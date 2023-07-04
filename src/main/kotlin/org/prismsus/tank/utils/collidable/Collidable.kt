@@ -249,7 +249,6 @@ interface Collidable {
             val x = maxX - minX
             val y = maxY - minY
             return DDim2(x, y)
-            return DDim2(x, y)
         }
 
     val minX: Double
@@ -263,7 +262,6 @@ interface Collidable {
 
     val maxX: Double
         get() {
-
             var ret = Double.NEGATIVE_INFINITY
             for (pt in pts) {
                 ret = max(ret, pt.x)
