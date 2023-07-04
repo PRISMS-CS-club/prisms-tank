@@ -20,7 +20,7 @@ import java.time.LocalTime
 import java.util.concurrent.PriorityBlockingQueue
 import kotlin.math.PI
 
-class Game(val replayFile: File, val map : GameMap, vararg val bots: GameBot) {
+class Game(val replayFile: File, val map: GameMap, vararg val bots: GameBot) {
     val humanPlayerBots: Array<HumanPlayerBot> = bots.filterIsInstance<HumanPlayerBot>().toTypedArray()
     val eventHistoryToSave = PriorityBlockingQueue<GameEvent>()
     var controllers: Array<FutureController>
@@ -109,7 +109,8 @@ class Game(val replayFile: File, val map : GameMap, vararg val bots: GameBot) {
             }
 
             TANK_ANGLE -> {
-                return tk.colPoly.angleRotated
+                // add because when angle=0, the tank is facing up
+                return (tk.colPoly.angleRotated + PI / 2) % (2 * PI)
             }
 
             TANK_VIS_RANGE -> {
@@ -175,13 +176,30 @@ class Game(val replayFile: File, val map : GameMap, vararg val bots: GameBot) {
         val tk = cidToTank[req.cid]!!
         when (req.requestType) {
             GET_VISIBLE_ELEMENTS -> {
-                // TODO: implement limited visibility
-                val ret = ArrayList(map.gameEles)
-                ret.removeIf { ele ->
-                    val dis = ele.colPoly.rotationCenter.dis(tk.colPoly.rotationCenter)
-                    dis > tk.visibleRange
-                }
-                req.returnTo!!.complete(ret)
+                req.returnTo!!.complete(
+                    ArrayList(map.gameEles).filter {
+                        val dis = it.colPoly.rotationCenter.dis(tk.colPoly.rotationCenter)
+                        dis <= tk.visibleRange && it != tk
+                    }
+                )
+            }
+
+            GET_VISIBLE_TANKS -> {
+                req.returnTo!!.complete(
+                    ArrayList(map.tanks).filter {
+                        val dis = it.colPoly.rotationCenter.dis(tk.colPoly.rotationCenter)
+                        dis <= tk.visibleRange && it != tk
+                    }
+                )
+            }
+
+            GET_VISIBLE_BULLETS -> {
+                req.returnTo!!.complete(
+                    ArrayList(map.bullets).filter {
+                        val dis = it.colPoly.rotationCenter.dis(tk.colPoly.rotationCenter)
+                        dis <= tk.visibleRange
+                    }
+                )
             }
 
             CHECK_BLOCK_AT -> {
@@ -332,7 +350,7 @@ class Game(val replayFile: File, val map : GameMap, vararg val bots: GameBot) {
             }
         }
         for (entry in lastCollidedEle) {
-            lastCollidedEle[entry.key] = entry.value.distinct() as ArrayList<GameElement>
+            lastCollidedEle[entry.key] = ArrayList(entry.value.distinct())
         }
         return ArrayList(toRemove.distinct())
     }
@@ -403,8 +421,9 @@ class Game(val replayFile: File, val map : GameMap, vararg val bots: GameBot) {
             val communicator = GuiCommunicator(1)
             communicator.start()
             val players = communicator.humanPlayerBots.get()
-            val randBots = Array(0){RandomMovingBot()}
-            val game = Game(replayFile, GameMap("15x15.json"), *randBots,*players.toTypedArray())
+            val randBots = Array(1) { RandomMovingBot() }
+            val aimingBots = Array(1) { TankAimingBot() }
+            val game = Game(replayFile, GameMap("15x15.json"), *aimingBots, *randBots, *players.toTypedArray())
             game.start()
 
         }

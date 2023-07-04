@@ -33,6 +33,8 @@ enum class TankWeaponInfo : ControllerRequestTypes {
 
 enum class OtherRequests : ControllerRequestTypes{
     GET_VISIBLE_ELEMENTS,
+    GET_VISIBLE_TANKS,
+    GET_VISIBLE_BULLETS,
     GET_VISITED_ELEMENTS,
     CHECK_BLOCK_AT,
     CHECK_COLLIDING_GAME_ELES,

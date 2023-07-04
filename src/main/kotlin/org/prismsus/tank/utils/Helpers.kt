@@ -13,12 +13,18 @@ fun Double.toRad() : Double {
     return this * PI / 180.0
 }
 
+// to positive angle in radians
 fun Double.toModPosAngle() : Double{
     var angle = this
-    while (angle < 0){
-        angle += 2 * PI
-    }
-    return angle % (2 * PI)
+    angle %= 2 * PI
+    if (angle < 0) angle += 2 * PI
+    return angle
+}
+
+fun Double.toModAngle() : Double {
+    var angle = this
+    angle %= 2 * PI
+    return if (angle > PI) angle - 2 * PI else angle
 }
 
 fun Double.toFixed(digit: Int) : FixedPoint {

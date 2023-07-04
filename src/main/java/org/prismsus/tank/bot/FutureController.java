@@ -1,7 +1,9 @@
 package org.prismsus.tank.bot;
 
 import org.prismsus.tank.elements.Block;
+import org.prismsus.tank.elements.Bullet;
 import org.prismsus.tank.elements.GameElement;
+import org.prismsus.tank.elements.Tank;
 import org.prismsus.tank.game.ControllerRequest;
 import org.prismsus.tank.game.TankWeaponInfo;
 import org.prismsus.tank.game.OtherRequests;
@@ -31,6 +33,19 @@ public class FutureController {
         requestsQ.add(new ControllerRequest<>(cid, ret, OtherRequests.GET_VISIBLE_ELEMENTS));
         return ret.thenApply((Object it) -> (List<GameElement>) it);
     }
+
+    Future<List<Tank>> getVisibleTanks() {
+        CompletableFuture<Object> ret = new CompletableFuture<>();
+        requestsQ.add(new ControllerRequest<>(cid, ret, OtherRequests.GET_VISIBLE_TANKS));
+        return ret.thenApply((Object it) -> (List<Tank>) it);
+    }
+
+    Future<List<Bullet>> getVisibleBullets(){
+        CompletableFuture<Object> ret = new CompletableFuture<>();
+        requestsQ.add(new ControllerRequest<>(cid, ret, OtherRequests.GET_VISIBLE_BULLETS));
+        return ret.thenApply((Object it) -> (List<Bullet>) it);
+    }
+
     Future<List<GameElement>> getVisitedElements() {
         CompletableFuture<Object> ret = new CompletableFuture<>();
         requestsQ.add(new ControllerRequest<>(cid, ret, OtherRequests.GET_VISITED_ELEMENTS));
