@@ -28,7 +28,8 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
     var controllers: Array<FutureController>
     val requestsQ = PriorityBlockingQueue<ControllerRequest<Any>>()
     val map = GameMap("default.json")
-    val cidToTank = mutableMapOf<Long, Tank>()
+    val cidToTank = mutableMapOf<Long, Tank?>()
+    val tankToCid = mutableMapOf<Tank, Long>()
     val botThs: Array<Thread?> = Array(bots.size) { null }
     var replayTh: Thread
     val gameInitMs = System.currentTimeMillis()
@@ -50,6 +51,8 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
             map.addEle(tank)
             processNewEvent(ElementCreateEvent(tank, elapsedGameMs))
             cidToTank[c.cid] = tank
+            tankToCid[tank] = c.cid
+            game = this
         }
 
 //        val panel = map.quadTree.getCoordPanel(IDim2(1000, 1000))
@@ -213,6 +216,8 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
     private fun handleRequests() {
         while (!requestsQ.isEmpty()) {
             val curReq = requestsQ.poll()
+            if (curReq.cid !in cidToTank)
+                continue
             when (curReq.requestType) {
                 is TankWeaponInfo -> {
                     val ret = tankWeaponInfoHandler(curReq)
@@ -298,7 +303,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
                 updatable.updateByTime(dt)
             }
         }
-        return toRem
+        return ArrayList(toRem.distinct())
     }
 
     fun start() {
@@ -310,7 +315,14 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
             val toRem = handleUpdatableElements()
             for (rem in toRem) {
                 map.remEle(rem)
-//                println("removing element ${rem}")
+                if (rem is Tank){
+                    val cid = tankToCid[rem]!!
+                    val bot = bots[cid.toInt()]
+                    cidToTank.remove(cid)
+                    tankToCid.remove(rem)
+                    if (bot !is HumanPlayerBot)
+                        botThs[cid.toInt()]!!.interrupt()
+                }
                 processNewEvent(ElementRemoveEvent(rem.uid, elapsedGameMs))
             }
             val loopEndMs = elapsedGameMs
@@ -360,7 +372,7 @@ class Game(val replayFile: File, vararg val bots: GameBot) {
             val communicator = GuiCommunicator(1)
             communicator.start()
             val players = communicator.humanPlayerBots.get()
-            val game = Game(replayFile, RandomMovingBot() ,*players.toTypedArray())
+            val game = Game(replayFile, RandomMovingBot(), RandomMovingBot() ,*players.toTypedArray())
             game.start()
 
         }

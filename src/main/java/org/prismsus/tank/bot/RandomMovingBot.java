@@ -8,7 +8,7 @@ public class RandomMovingBot implements GameBot {
             c.setLeftTrackSpeed(-.2);
             c.setRightTrackSpeed(1);
             while (!Thread.interrupted()) {
-                Thread.sleep(100);
+                Thread.sleep(200);
 //                double trackMaxSpeed = c.getTankTrackMaxSpeed().get();
 //                double ltrackSpeed = (Math.random() - 1.0) * 2 * trackMaxSpeed;
 //                double rtrackSpeed = (Math.random() - 1.0) * 2 * trackMaxSpeed;

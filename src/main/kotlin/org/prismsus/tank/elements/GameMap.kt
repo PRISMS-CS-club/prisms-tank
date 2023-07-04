@@ -71,11 +71,15 @@ class GameMap(val fileName: String) {
     }
 
     fun addEle(ele: GameElement): GameElement {
+        if (quadTree.size != gameEles.size)
+            assert(quadTree.size == gameEles.size, {"quad tree size: ${quadTree.size}, gameEles size: ${gameEles.size}"})
         collidableToEle[ele.colPoly] = ele
         if (!gameEles.add(ele)) {
             throw Exception("failed to add game element")
         }
-        quadTree.insert(ele.colPoly)
+        if (!quadTree.insert(ele.colPoly)){
+            throw Exception("failed to insert into quad tree")
+        }
         if (ele is Tank) {
             if (!tanks.add(ele)) {
                 throw Exception("failed to add tank")
@@ -106,6 +110,8 @@ class GameMap(val fileName: String) {
     }
 
     fun remEle(ele: GameElement): GameElement {
+        if (quadTree.size != gameEles.size)
+            assert(quadTree.size == gameEles.size, {"quad tree size: ${quadTree.size}, gameEles size: ${gameEles.size}"})
         collidableToEle.remove(ele.colPoly)
         if (!gameEles.remove(ele)) {
             throw Exception("failed to remove game element")

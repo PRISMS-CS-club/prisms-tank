@@ -20,7 +20,7 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
 
     var cols = ArrayList<Collidable>()
     var subTrees: Array<ColTreeSet>? = null
-
+    var size = 0
     // indexed by quadrant
     var topLeftSub: ColTreeSet?
         get() = subTrees?.get(1)
@@ -47,6 +47,8 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
             val res = ArrayList<Collidable>()
             subTrees?.forEach { res.addAll(it.allSubCols) }
             res.addAll(cols)
+            if (res.size != size)
+                assert(res.size == size, { "allSubCols=${res.size}, size=$size" })
             return res
         }
     val allSubPartitionLines: ArrayList<Line>
@@ -131,7 +133,9 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
             return false
         val belongTo = subTreeBelongTo(col.encAARect)
         if (belongTo != null) {
-            return belongTo.insert(col)
+            val ret = belongTo.insert(col)
+            if (ret) size++
+            return ret
         }
         cols.add(col)
         if (cols.size > MAX_OBJECT && dep < MAX_DEP) {
@@ -148,6 +152,7 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
                 cols.remove(c)
             }
         }
+        size++
         return true
     }
 
@@ -178,6 +183,7 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
         val belongTo = subTreeBelongTo(col.encAARect)
         if (belongTo != null) {
             belongTo.remove(col)
+            size--
             return
         }
 
@@ -185,6 +191,7 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
 
         if (!allSubCols.contains(col))
             throw Exception("ColTreeSet.remove: the collidable to be removed is not in the tree")
+        size--
         removeInEntireTree(col)
     }
 

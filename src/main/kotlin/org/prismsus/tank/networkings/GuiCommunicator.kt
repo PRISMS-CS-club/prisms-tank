@@ -12,6 +12,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.prismsus.tank.bot.HumanPlayerBot
+import org.prismsus.tank.utils.game
+import org.prismsus.tank.utils.gameMap
 import java.util.concurrent.CompletableFuture
 
 class GuiCommunicator(val clntCnt: Int) {
@@ -61,7 +63,6 @@ class GuiCommunicator(val clntCnt: Int) {
                 GlobalScope.launch() {
                     while (true) {
                         if (newBot.evtsToClnt.isEmpty()) {
-//                            Thread.sleep(20)
                             continue
                         }
                         val evt = newBot.evtsToClnt.poll()
@@ -71,6 +72,9 @@ class GuiCommunicator(val clntCnt: Int) {
                 }.start()
 
                 for (frame in incoming) {
+                    // ignore if the bot is killed in the game
+                    if (!game!!.bots.contains(newBot))
+                        continue
                     frame as Frame.Text
                     val msg = frame.readText()
 //                    println("Received: $msg")
