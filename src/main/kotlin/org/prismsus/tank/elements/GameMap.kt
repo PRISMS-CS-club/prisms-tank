@@ -161,8 +161,8 @@ class GameMap(val fileName: String) {
             ColTreeSet(0, ColAARect.byBottomLeft(blPt, DDim2(width.toDouble(), height.toDouble()) + (blPt.toVec() * 2.0).abs()))
         blocks = Array(width) { Array(height) { null } }
         var tmpArr: JsonArray = jsonEle.jsonObject["map"]!!.jsonArray
-        for (x in 0 until height) {
-            for (y in 0 until width) {
+        for (y in height - 1 downTo 0) {
+            for (x in 0 until width) {
                 // we want to store blocks array in x, y order
                 // but the json file is in i, j order
                 // meaning that with greater j index, y index is smaller
