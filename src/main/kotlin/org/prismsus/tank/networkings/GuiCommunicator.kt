@@ -60,7 +60,7 @@ class GuiCommunicator(val clntCnt: Int) {
                     humanPlayerBots.complete(m_humanPlayerBots)
                 }
 
-                GlobalScope.launch() {
+                GlobalScope.launch {
                     while (true) {
                         if (newBot.evtsToClnt.isEmpty()) {
                             continue
@@ -84,6 +84,6 @@ class GuiCommunicator(val clntCnt: Int) {
         }
     }
 
-    private val m_humanPlayerBots: ArrayList<HumanPlayerBot> = ArrayList<HumanPlayerBot>()
+    private val m_humanPlayerBots: ArrayList<HumanPlayerBot> = ArrayList()
     val humanPlayerBots: CompletableFuture<ArrayList<HumanPlayerBot>> = CompletableFuture<ArrayList<HumanPlayerBot>>()
 }

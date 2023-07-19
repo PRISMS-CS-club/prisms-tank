@@ -6,22 +6,22 @@ import org.prismsus.tank.utils.toModPosAngle
 class TankAimingBot : GameBot {
     lateinit var c : FutureController
 
-    fun turnLeftInPlace(){
+    private fun turnLeftInPlace(){
         c.setLeftTrackSpeed(-1.0)
         c.setRightTrackSpeed(1.0)
     }
 
-    fun turnRightInPlace(){
+    private fun turnRightInPlace(){
         c.setLeftTrackSpeed(1.0)
         c.setRightTrackSpeed(-1.0)
     }
 
-    fun halt(){
+    private fun halt(){
         c.setLeftTrackSpeed(0.0)
         c.setRightTrackSpeed(0.0)
     }
 
-    fun turnUntilThenFire(rad : Double){
+    private fun turnUntilThenFire(rad : Double){
         val ANG_EPS = .05
         val curRad = c.tankAngle.get().toModAngle()
 

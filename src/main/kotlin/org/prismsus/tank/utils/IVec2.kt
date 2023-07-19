@@ -12,6 +12,17 @@ data class IVec2(var x: Int, var y: Int) {
     constructor(vec: DVec2): this(vec.x.toInt(), vec.y.toInt())
 
     /**
+     * Get the negation of this vector.
+     */
+    operator fun unaryMinus(): IVec2 {
+        return IVec2(-x, -y)
+    }
+
+    operator fun unaryPlus(): IVec2 {
+        return this
+    }
+
+    /**
      * Add this int vector and another int vector. Returns a new object.
      * @param other The other int vector.
      * @return The sum vector.

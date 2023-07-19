@@ -59,7 +59,7 @@ data class DVec2(var x: Double, var y: Double) {
     }
 
     operator fun unaryPlus(): DVec2 {
-        return DVec2(x, y)
+        return this
     }
 
 

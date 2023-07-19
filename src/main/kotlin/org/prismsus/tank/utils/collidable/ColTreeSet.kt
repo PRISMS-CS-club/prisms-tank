@@ -90,8 +90,9 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
     }
 
     /**
-     * When one node exceeds the max object number, split it into four subtrees
-     * */
+     * When the objects list in this node exceed the max object number, split it into four subtrees and move objects that
+     * are bounded by a subtree into the subtrees.
+     */
     private fun split() {
         if(subTrees != null) {
             // only split when this node have not been split
@@ -108,8 +109,37 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
         val quad4 = ColTreeSet(dep + 1, ColAARect.byTopLeft(topLeft - (subDim.yVec - tlShift.yVec) + (subDim.xVec - tlShift.xVec), subDim + tlShift * 2.0))
         val quad3 = ColTreeSet(dep + 1, ColAARect.byTopLeft(topLeft - (subDim.yVec - tlShift.yVec), subDim + tlShift * 2.0 ))
         subTrees = arrayOf(quad1, quad2, quad3, quad4)
+        val toRemove = ArrayList<Collidable>()
+        for (c in cols) {
+            val belongTo = subTreeBelongTo(c.encAARect)
+            if (belongTo != null) {
+                assert(belongTo.insert(c))
+                toRemove.add(c)
+            }
+        }
+        for (c in toRemove) {
+            cols.remove(c)
+        }
     }
 
+    /**
+     * When the total number of objects in this node is less than max object number, merge the subtrees into one and move
+     * all objects in the subtree back to this node.
+     */
+    private fun merge() {
+        if(subTrees == null) {
+            return
+        }
+        subTrees!![0].merge()
+        subTrees!![1].merge()
+        subTrees!![2].merge()
+        subTrees!![3].merge()
+        cols.addAll(subTrees!![0].cols)
+        cols.addAll(subTrees!![1].cols)
+        cols.addAll(subTrees!![2].cols)
+        cols.addAll(subTrees!![3].cols)
+        subTrees = null
+    }
 
     /**
      *  calculate which subtree(quadrant) the AARect can be put in
@@ -144,17 +174,6 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
         size++
         if(this.subTrees == null && cols.size > MAX_OBJECT && dep < MAX_DEP) {
             split()
-            val toRemove = ArrayList<Collidable>()
-            for (c in cols) {
-                val belongTo = subTreeBelongTo(c.encAARect)
-                if (belongTo != null) {
-                    assert(belongTo.insert(c))
-                    toRemove.add(c)
-                }
-            }
-            for (c in toRemove) {
-                cols.remove(c)
-            }
         }
         return true
     }
@@ -180,11 +199,17 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
                 throw Exception()
             }
             size--
+            if(size <= MAX_OBJECT) {
+                merge()
+            }
             return true
         }
         if (cols.contains(col)) {
             cols.remove(col)
             size--
+            if(size <= MAX_OBJECT) {
+                merge()
+            }
             return true
         }
         return false
@@ -234,17 +259,17 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
     fun getCoordPanel(panelSiz : IDim2) : CoordPanel {
         var maxPos = DPos2(Double.MIN_VALUE / 2, Double.MIN_VALUE / 2)
         var minPos = DPos2(Double.MAX_VALUE / 2, Double.MAX_VALUE / 2)
-        for (col in allSubCols){
+        for (col in allSubCols) {
             maxPos = maxPos max col.encAARect.topRightPt
             minPos = minPos min col.encAARect.bottomLeftPt
         }
-        val xsz = max(abs(maxPos.x), abs(minPos.x)) * 2
-        val ysz = max(abs(maxPos.y), abs(minPos.y)) * 2
-        val pfactor = min(panelSiz.x / xsz, panelSiz.y / ysz)
-        // make sure that the actual interval between grids is at least 30pixel
+        val xsz = max(abs(maxPos.x), abs(minPos.x)) * 1.5
+        val ysz = max(abs(maxPos.y), abs(minPos.y)) * 1.5
+        val pFactor = min(panelSiz.x / xsz, panelSiz.y / ysz)
+        // make sure that the actual interval between grids is at least 30 pixel
         // actual interval = pinterv * pfactor
-        val pinterv = ceil(max(30.0 / pfactor, 1.0)).toInt()
-        val panel = CoordPanel(IDim2(pinterv, pinterv), IDim2(pfactor.toInt(), pfactor.toInt()), panelSiz)
+        val pInterv = ceil(max(30.0 / pFactor, 1.0)).toInt()
+        val panel = CoordPanel(IDim2(pInterv, pInterv), IDim2(pFactor.toInt(), pFactor.toInt()), panelSiz, -panelSiz / 3)
         for (col in allSubCols){
             panel.drawCollidable(col)
         }
