@@ -10,12 +10,14 @@ import org.prismsus.tank.elements.Tank
 import org.prismsus.tank.event.*
 import org.prismsus.tank.game.OtherRequests.*
 import org.prismsus.tank.game.TankWeaponInfo.*
+import org.prismsus.tank.markets.AuctionUserInterface
+import org.prismsus.tank.markets.MarketImpl
+import org.prismsus.tank.markets.UpgradeRecord
 import org.prismsus.tank.networkings.GuiCommunicator
 import org.prismsus.tank.utils.*
 import org.prismsus.tank.utils.nextUid
 import org.prismsus.tank.utils.collidable.ColMultiPart
 import org.prismsus.tank.utils.collidable.DPos2
-import java.awt.Dimension
 import java.io.File
 import java.nio.file.Paths
 import java.time.LocalDate
@@ -41,11 +43,12 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
     val debugTh: Thread?
     val gameInitMs = System.currentTimeMillis()
     val elapsedGameMs: Long
+        @Synchronized
         get() = System.currentTimeMillis() - gameInitMs
     var lastGameLoopMs = elapsedGameMs
-
+    var marketImpl : MarketImpl = defAuction
     init {
-        controllers = Array(bots.size) { i -> FutureController(i.toLong(), requestsQ) }
+        controllers = Array(bots.size) { i -> FutureController(i.toLong(), requestsQ, AuctionUserInterface(i.toLong())) }
         processNewEvent(MapCreateEvent(map, elapsedGameMs))
         for ((i, c) in controllers.withIndex()) {
             val tank = Tank.byInitPos(nextUid, DPos2.ORIGIN, bots[i].name)
@@ -59,6 +62,7 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
             cidToTank[c.cid] = tank
             tankToCid[tank] = c.cid
             game = this
+            marketImpl.addPlayer(c.cid, c)
         }
 
         if(debug) {
@@ -132,7 +136,7 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
             }
 
             TANK_COLBOX -> {
-                return tk.tankRectBox
+                return tk.tankRectBox.copy()
             }
 
             TANK_POS -> {
@@ -207,11 +211,12 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
         val tk = cidToTank[req.cid]!!
         when (req.requestType) {
             GET_VISIBLE_ELEMENTS -> {
+                // TODO(use quadtree to implement this)
                 req.returnTo!!.complete(
                     ArrayList(map.gameEles).filter {
                         val dis = it.colPoly.rotationCenter.dis(tk.colPoly.rotationCenter)
                         dis <= tk.visibleRange && it != tk
-                    }
+                    }.deepCopyByKyro()
                 )
             }
 
@@ -220,7 +225,7 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
                     ArrayList(map.tanks).filter {
                         val dis = it.colPoly.rotationCenter.dis(tk.colPoly.rotationCenter)
                         dis <= tk.visibleRange && it != tk
-                    }
+                    }.deepCopyByKyro()
                 )
             }
 
@@ -229,7 +234,7 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
                     ArrayList(map.bullets).filter {
                         val dis = it.colPoly.rotationCenter.dis(tk.colPoly.rotationCenter)
                         dis <= tk.visibleRange
-                    }
+                    }.deepCopyByKyro()
                 )
             }
 
@@ -240,7 +245,7 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
                     return
                 }
                 val ret = map.blocks[pos.x][pos.y]
-                req.returnTo!!.complete(ret)
+                req.returnTo!!.complete(ret.deepCopyByKyro())
             }
 
             CHECK_COLLIDING_GAME_ELES -> {
@@ -248,7 +253,7 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
                     val dis = it.colPoly.rotationCenter.dis(tk.colPoly.rotationCenter)
                     dis <= tk.visibleRange
                 }
-                req.returnTo!!.complete(ret)
+                req.returnTo!!.complete(ret.deepCopyByKyro())
             }
 
             GET_VISITED_ELEMENTS -> {
@@ -279,6 +284,10 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
                 cidToTank[req.cid]!!.rightTrackVelo = target
             }
         }
+    }
+
+    private fun handlePlayerUpgrade(req : UpgradeRecord<out Number>){
+
     }
 
     private fun processNewEvent(evt: GameEvent) {
@@ -363,7 +372,6 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
                     assert(map.quadTree.remove(updatable.colPoly))
                     updatable.colPoly.becomeNonCopy(colPolyAfterMove)
                     map.quadTree.insert(updatable.colPoly)
-//                        println("cur ang: ${updatable.colPoly.angleRotated}")
                     processNewEvent(
                         ElementUpdateEvent(
                             updatable,

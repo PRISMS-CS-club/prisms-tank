@@ -1,15 +1,14 @@
 package org.prismsus.tank.bot;
 
-import org.prismsus.tank.elements.Block;
 import org.prismsus.tank.elements.GameElement;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class Controller {
-    FutureController controller;
-    public Controller(FutureController controller) {
-        this.controller = controller;
+    public FutureController fController;
+    public Controller(FutureController fController) {
+        this.fController = fController;
     }
     /**
      * Get all bot's visible blocks excluding empty blocks. The function returns a list of `Block` objects.
@@ -17,7 +16,7 @@ public class Controller {
      * @return List of all visible blocks.
      */
     List<GameElement> getVisibleElements() throws ExecutionException, InterruptedException {
-        return controller.getVisibleElements().get();
+        return fController.getVisibleElements().get();
     }
 
     /**
@@ -28,6 +27,6 @@ public class Controller {
      * @return List of all visited blocks.
      */
     List<GameElement> getVisitedElements() throws ExecutionException, InterruptedException {
-        return controller.getVisitedElements().get();
+        return fController.getVisitedElements().get();
     }
 }

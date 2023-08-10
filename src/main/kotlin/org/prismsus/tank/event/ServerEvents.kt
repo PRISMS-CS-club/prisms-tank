@@ -6,6 +6,7 @@ import org.prismsus.tank.elements.GameMap
 import org.prismsus.tank.elements.Tank
 import org.prismsus.tank.utils.collidable.ColMultiPart
 import org.prismsus.tank.utils.collidable.ColPoly
+import org.prismsus.tank.utils.game
 import org.prismsus.tank.utils.toEvtFixed
 import org.prismsus.tank.utils.toFixed
 import java.lang.System.currentTimeMillis
@@ -15,7 +16,7 @@ import java.lang.System.currentTimeMillis
  * @property timeStamp Timestamp of the event. The timestamp is the number of milliseconds since the start
  *                     of the game.
  */
-abstract class GameEvent(val timeStamp: Long = currentTimeMillis()) : Comparable<GameEvent> {
+abstract class GameEvent(val timeStamp: Long = game!!.elapsedGameMs) : Comparable<GameEvent> {
     abstract val serializedBytes : ByteArray
     open val serializedStr : String
         get() = serializedBytes.toString(Charsets.UTF_8)
@@ -26,7 +27,7 @@ abstract class GameEvent(val timeStamp: Long = currentTimeMillis()) : Comparable
 }
 
 
-class MapCreateEvent (val map : GameMap, timeStamp : Long = currentTimeMillis()) : GameEvent(timeStamp){
+class MapCreateEvent (val map : GameMap, timeStamp : Long = game!!.elapsedGameMs) : GameEvent(timeStamp){
     override val serializedBytes: ByteArray
         get() = map.serialized
     override val serialName : String = "MapCrt"

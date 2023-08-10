@@ -50,3 +50,9 @@ const val DEF_DEBUG_TICK_RATE : Int = 24  // frame rate of the debug panel
 val DEF_DEBUG_MS_PER_LOOP: Long = round(1000.0 / DEF_TICK_RATE).toLong()
 
 const val EVT_NUM_DIGIT : Int = 3 // for any floating points transmitted by event, the number of digits after decimal point
+const val TIME_DIGIT : Int = 3
+
+// ------------ market  related ---------------
+const val DEF_AUC_DURATION_MS : Long = 10_000
+const val DEF_AUC_INTERV_MS : Long = 15_000
+const val DEF_AUC_BID_INTERV : Long = 5

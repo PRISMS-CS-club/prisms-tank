@@ -13,6 +13,10 @@ version '0.0.1'
 repositories {
     mavenCentral()
     mavenCentral()
+    mavenLocal()
+    maven{ url 'https://maven.aliyun.com/repository/google/'}
+    maven{ url 'https://maven.aliyun.com/repository/jcenter/'}
+    maven{ url 'https://oss.sonatype.org/content/repositories/snapshots'}
 }
 
 
@@ -41,6 +45,8 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:$logback_version")
     testImplementation("io.ktor:ktor-server-test-host:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+
+    implementation('com.esotericsoftware:kryo:5.5.0')
 }
 
 test {
