@@ -12,6 +12,7 @@ import org.prismsus.tank.game.OtherRequests.*
 import org.prismsus.tank.game.TankWeaponInfo.*
 import org.prismsus.tank.markets.AuctionUserInterface
 import org.prismsus.tank.markets.MarketImpl
+import org.prismsus.tank.markets.UpgradeEntry
 import org.prismsus.tank.markets.UpgradeRecord
 import org.prismsus.tank.networkings.GuiCommunicator
 import org.prismsus.tank.utils.*
@@ -41,7 +42,8 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
     val botThs: Array<Thread?> = Array(bots.size) { null }
     val replayTh: Thread?
     val debugTh: Thread?
-    val gameInitMs = System.currentTimeMillis()
+    @Volatile
+    var gameInitMs : Long = 0
     val elapsedGameMs: Long
         @Synchronized
         get() = System.currentTimeMillis() - gameInitMs
@@ -73,7 +75,7 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
                 var panel = map.quadTree.getCoordPanel(IDim2(frame.size.width, frame.size.height))
                 frame.contentPane.add(panel)
                 frame.isVisible = true
-                while(true) {
+                while(!Thread.interrupted()) {
                     frame.contentPane.remove(panel)
                     panel = map.quadTree.getCoordPanel(IDim2(frame.size.width, frame.size.height))
                     frame.contentPane.add(panel)
@@ -194,17 +196,13 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
 
     private fun replaySaver(file: File) {
         // read from eventHistory, save to file
-        try {
-            while (true) {
+            while (!Thread.interrupted()) {
                 Thread.sleep(100)
                 while (eventHistoryToSave.isNotEmpty()) {
                     val curEvent = eventHistoryToSave.poll()
                     file.appendBytes(curEvent.serializedBytes + ",\n".toByteArray(Charsets.UTF_8))
                 }
             }
-        } catch (e: InterruptedException) {
-            return
-        }
     }
 
     private fun handleOtherRequests(req: ControllerRequest<Any>) {
@@ -284,10 +282,6 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
                 cidToTank[req.cid]!!.rightTrackVelo = target
             }
         }
-    }
-
-    private fun handlePlayerUpgrade(req : UpgradeRecord<out Number>){
-
     }
 
     private fun processNewEvent(evt: GameEvent) {
@@ -395,7 +389,9 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
     }
 
     fun start() {
+        gameInitMs = System.currentTimeMillis()
         lastGameLoopMs = elapsedGameMs
+        marketImpl.start()
         while (true) {
             // first handle all the requests, then move all the elements
             val loopStartMs = elapsedGameMs
@@ -413,6 +409,13 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
                 }
                 processNewEvent(ElementRemoveEvent(rem.uid, elapsedGameMs))
             }
+
+            for (upg in marketImpl.toBeUpgrade){
+                val tk = cidToTank[upg.cid]!!
+                val evt = tk.processUpgrade(upg)
+                processNewEvent(evt)
+            }
+
             val loopEndMs = elapsedGameMs
             val loopLen = loopEndMs - loopStartMs
 //            println("cur loop len: $loopLen, slept for ${DEF_MS_PER_LOOP - loopLen}")

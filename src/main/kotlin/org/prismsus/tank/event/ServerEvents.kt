@@ -4,6 +4,8 @@ import kotlinx.serialization.json.*
 import org.prismsus.tank.elements.GameElement
 import org.prismsus.tank.elements.GameMap
 import org.prismsus.tank.elements.Tank
+import org.prismsus.tank.markets.UpgradeRecord
+import org.prismsus.tank.utils.CompNum
 import org.prismsus.tank.utils.collidable.ColMultiPart
 import org.prismsus.tank.utils.collidable.ColPoly
 import org.prismsus.tank.utils.game
@@ -40,7 +42,7 @@ fun selectBaseColPoly(ele : GameElement) : ColPoly{
         ele.colPoly
 }
 
-class ElementCreateEvent(val ele : GameElement, timeStamp : Long = currentTimeMillis()) : GameEvent(timeStamp){
+class ElementCreateEvent(val ele : GameElement, timeStamp : Long = game!!.elapsedGameMs) : GameEvent(timeStamp){
     override val serialName: String = "EleCrt"
     override val serializedBytes: ByteArray
         init{
@@ -73,7 +75,7 @@ data class UpdateEventMask(val hp : Boolean, val x : Boolean, val y : Boolean, v
     }
 }
 
-class ElementUpdateEvent(val ele : GameElement, val updateEventMask: UpdateEventMask, timeStamp: Long = currentTimeMillis()) : GameEvent(timeStamp){
+class ElementUpdateEvent(val ele : GameElement, val updateEventMask: UpdateEventMask, timeStamp: Long = game!!.elapsedGameMs) : GameEvent(timeStamp){
 
 
     override val serialName: String = "EleUpd"
@@ -101,7 +103,7 @@ class ElementUpdateEvent(val ele : GameElement, val updateEventMask: UpdateEvent
         }
 }
 
-class ElementRemoveEvent(val uid : Long, timeStamp: Long = currentTimeMillis()) : GameEvent(timeStamp){
+class ElementRemoveEvent(val uid : Long, timeStamp: Long = game!!.elapsedGameMs) : GameEvent(timeStamp){
     override val serialName: String = "EleRmv"
     override val serializedBytes: ByteArray
         init{
@@ -112,4 +114,20 @@ class ElementRemoveEvent(val uid : Long, timeStamp: Long = currentTimeMillis()) 
             }
             serializedBytes = json.toString().toByteArray()
         }
+}
+
+class PlayerUpdateEvent(val uid : Long, timeStamp: Long = game!!.elapsedGameMs, vararg recs : UpgradeRecord<out Number>) : GameEvent(timeStamp){
+    override val serialName: String = "PlrUpd"
+    override val serializedBytes: ByteArray
+    init{
+        val json = buildJsonObject {
+            put("type", serialName)
+            put("t", timeStamp)
+            put("uid", uid)
+            for (rec in recs){
+                put(rec.type.serialName, rec.value)
+            }
+        }
+        serializedBytes = json.toString().toByteArray()
+    }
 }

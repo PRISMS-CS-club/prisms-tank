@@ -12,6 +12,7 @@ const val DEF_BLOCK_HP: Int = 50
 const val INIT_TANK_HP: Int = 150
 const val INIT_TANK_TRACK_SPEED: Double = 3.0
 const val INIT_TANK_VIS_RANGE : Double = 4.0
+const val INIT_TANK_MONEY : Int = 100
 val INIT_TANK_COLBOX: ColRect
     get() = ColRect(DPos2(.0, .0), DDim2(.6, .6))
 val DEF_BLOCK_COLBOX: ColRect

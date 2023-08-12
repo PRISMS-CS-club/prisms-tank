@@ -7,11 +7,11 @@ import org.prismsus.tank.utils.collidable.Line
 
 // TODO: set the direction to launch bullet as one properties
 open class Weapon(
-    val damage : Int,
-    val minInterv : Int,     // the minimum interval between two fires, in ms
-    val maxCapacity : Int,   // the maximum capacity of bullet in the weapon
-    val reloadRate : Double, // the rate of refilling bullet to its max capacity, per second
-    val bulletProps : BulletProps,
+    var damage : Int,
+    var minInterv : Int,     // the minimum interval between two fires, in ms
+    var maxCapacity : Int,   // the maximum capacity of bullet in the weapon
+    var reloadRate : Double, // the rate of refilling bullet to its max capacity, per second
+    var bulletProps : BulletProps,
     override val colPoly: ColPoly,
     override var belongTo: GameElement,
     override var offsetFromParentCenter: DVec2,

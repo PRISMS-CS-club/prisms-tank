@@ -139,7 +139,7 @@ class AuctionProcessor(
     }
 
 
-    fun start() {
+    override fun start() {
         running = true;
         Thread {
             while (running) {
@@ -149,7 +149,7 @@ class AuctionProcessor(
         }.start()
     }
 
-    fun stop() {
+    override fun stop() {
         running = false
     }
 

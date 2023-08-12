@@ -204,6 +204,14 @@ fun Double.toComp() : CompDouble{
     return CompDouble(this)
 }
 
+fun Number.toComp() : CompNum{
+    return when(this){
+        is Int -> CompInt(this)
+        is Double -> CompDouble(this)
+        else -> error("toComp failed")
+    }
+}
+
 fun ClosedRange<CompInt>.genRand() : Int{
     val rand = Random.nextInt(start.num, endInclusive.num)
     return rand

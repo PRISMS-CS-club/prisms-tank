@@ -1,24 +1,28 @@
 package org.prismsus.tank.elements
 
+import org.prismsus.tank.event.PlayerUpdateEvent
+import org.prismsus.tank.markets.UpgradeEntry
+import org.prismsus.tank.markets.UpgradeEntry.*
+import org.prismsus.tank.markets.UpgradeRecord
 import org.prismsus.tank.utils.*
 import org.prismsus.tank.utils.collidable.*
 import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.sign
 
-
 class Tank(
     uid: Long,
     val playerName: String,
     val weaponProps: WeaponProps,
-    val trackMaxSpeed: Double = INIT_TANK_TRACK_SPEED,
+    var trackMaxSpeed: Double = INIT_TANK_TRACK_SPEED,
     hp: Int = INIT_TANK_HP,
     val tankRectBox: ColRect = INIT_TANK_COLBOX,
-    val visibleRange : Double = INIT_TANK_VIS_RANGE,
+    var visibleRange : Double = INIT_TANK_VIS_RANGE,
+    var money : Int = INIT_TANK_MONEY
 ) : MovableElement(
         uid, hp, ColMultiPart((tankRectBox), (weaponProps.colPoly))
     ) {
-
+    var maxHp = hp
     var weapon: Weapon = weaponProps.toWeapon(this)
 
     var leftTrackVelo: Double = .0
@@ -107,6 +111,66 @@ class Tank(
             assert(after != before)
         else assert(after == before)
         return after as ColMultiPart
+    }
+
+    override fun processCollision(other: GameElement): Boolean {
+        val ret = super.processCollision(other)
+        if (removeStat != RemoveStat.TO_REMOVE && hp > maxHp)
+            hp = maxHp
+        return ret
+    }
+
+    fun processUpgrade(upg : UpgradeRecord<out Number>) : PlayerUpdateEvent{
+        var finalVal : Number = 0
+        var origVal : Number = 0
+        when (upg.type){
+            UpgradeType.MONEY -> {
+                origVal = money
+            }
+            UpgradeType.MAX_HP -> {
+                origVal = maxHp
+            }
+            UpgradeType.VIS_RADIUS -> {
+                origVal =  visibleRange
+            }
+            UpgradeType.TANK_BODY_AREA -> {
+                TODO("impl")
+            }
+            UpgradeType.TANK_BODY_EDGE_CNT -> {
+                TODO("impl")
+            }
+            UpgradeType.TANK_SPEED -> {
+                origVal = trackMaxSpeed
+            }
+            UpgradeType.API_TOKEN_CNT -> {
+                TODO()
+            }
+            UpgradeType.WEAPON_DAMAGE -> {
+                origVal = weapon.damage
+            }
+            UpgradeType.WEAPON_LAUNCH_MIN_INTERV -> {
+                origVal = weapon.minInterv
+            }
+            UpgradeType.WEAPON_CAPACITY -> {
+                origVal = weapon.maxCapacity
+            }
+            UpgradeType.WEAPON_RELOAD_RATE -> {
+                origVal = weapon.reloadRate
+            }
+            UpgradeType.WEAPON_BULLET_SPEED -> {
+                origVal = weapon.bulletProps.speed
+            }
+            UpgradeType.WEAPON_BULLET_WIDTH -> {
+                TODO()
+            }
+        }
+        if (upg.type.isIntValue)
+            finalVal = upg.value.toInt() + if (upg.isInc) origVal.toInt() else 0
+        else
+            finalVal = upg.value.toDouble() + if (upg.isInc) origVal.toDouble() else 0.0
+        val newUpg =  UpgradeRecord(upg.type, upg.isInc, finalVal, upg.cid, upg.timeStamp)
+        // don't know why can't use upg.copy(value=finalVal)
+        return PlayerUpdateEvent(uid, game!!.elapsedGameMs, newUpg)
     }
 
     companion object {

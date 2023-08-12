@@ -15,5 +15,7 @@ interface MarketImpl : MarketUserInterface{
     val evtToBeSent : BlockingQueue<MarketEvents>
     val toBeUpgrade : BlockingQueue<UpgradeRecord<out Number>>
     val playerCids : HashSet<Long>
+    fun start()
+    fun stop()
     fun addPlayer(cid : Long, controller : FutureController)
 }
