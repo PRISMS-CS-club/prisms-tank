@@ -5,7 +5,10 @@ import org.prismsus.tank.event.MarketEvents
 import org.prismsus.tank.utils.CompNum
 import java.util.concurrent.BlockingQueue
 enum class MarketType {
-    AUCTION
+    AUCTION {
+        override val serialName = "auction"
+    };
+    abstract val serialName : String
 }
 interface MarketUserInterface{
     val type : MarketType
@@ -18,4 +21,5 @@ interface MarketImpl : MarketUserInterface{
     fun start()
     fun stop()
     fun addPlayer(cid : Long, controller : FutureController)
+    fun processGUIevts(cid : Long, type : String, params : Array<*>)
 }

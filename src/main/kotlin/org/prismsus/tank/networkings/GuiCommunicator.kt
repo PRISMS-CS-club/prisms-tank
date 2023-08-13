@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.prismsus.tank.bot.HumanPlayerBot
+import org.prismsus.tank.event.INIT_EVENT
 import org.prismsus.tank.utils.game
 import org.prismsus.tank.utils.gameMap
 import java.util.concurrent.CompletableFuture
@@ -42,7 +43,7 @@ class GuiCommunicator(val clntCnt: Int) {
         val logger = log
         routing {
             webSocket("/") {
-
+                send(INIT_EVENT.serializedStr)
                 val name = incoming.receive().data.toString(Charsets.UTF_8)
                 if (name == "") {
                     // TODO (add player in observer mode)

@@ -441,6 +441,7 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
         print("closing bot threads...")
         for (botTh in botThs) {
             botTh!!.interrupt()
+            botTh!!.stop()
         }
         println("done")
         // interrupt debug thread

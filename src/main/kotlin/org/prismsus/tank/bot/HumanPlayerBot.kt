@@ -5,6 +5,7 @@ import org.prismsus.tank.event.GUIrequestEvent
 import org.prismsus.tank.game.ControllerRequest
 import org.prismsus.tank.game.OtherRequests
 import org.prismsus.tank.networkings.WebSocketListener
+import org.prismsus.tank.utils.game
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 
@@ -39,6 +40,18 @@ class HumanPlayerBot(private val name : String, val webSockSession : DefaultWebS
                 }
                 "fire" -> {
                     controller.requestsQ.add(ControllerRequest(controller.cid, null, OtherRequests.FIRE, null, evt.timeStamp))
+                }
+                else -> {
+                    // find the prefix before .
+                    val dotIdx = evt.funName.indexOf('.')
+                    if (dotIdx == -1) throw Exception("invalid event name")
+                    val prefix = evt.funName.substring(0, dotIdx)
+                    val suffix = evt.funName.substring(dotIdx + 1)
+                    when (prefix) {
+                        "market" -> {
+                            game!!.marketImpl.processGUIevts(controller.cid, suffix, evt.params)
+                        }
+                    }
                 }
             }
         }

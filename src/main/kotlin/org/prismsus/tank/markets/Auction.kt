@@ -159,6 +159,17 @@ class AuctionProcessor(
         controllers[cid] = controller
     }
 
+    override fun processGUIevts(cid : Long, type: String, params: Array<*>) {
+        when (type) {
+            "bid" -> {
+                bid(cid, params[0] as Int)
+            }
+            else -> {
+                throw Exception("unknown event type")
+            }
+        }
+    }
+
     override val toBeUpgrade: BlockingQueue<UpgradeRecord<out Number>> = LinkedBlockingQueue()
     override val evtToBeSent: BlockingQueue<MarketEvents> = LinkedBlockingQueue()
     val nextAuctionTime: Long
