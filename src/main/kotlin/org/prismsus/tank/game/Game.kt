@@ -51,7 +51,7 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
     var marketImpl : MarketImpl = defAuction
     init {
         controllers = Array(bots.size) { i -> FutureController(i.toLong(), requestsQ, AuctionUserInterface(i.toLong())) }
-        processNewEvent(MapCreateEvent(map, elapsedGameMs))
+        processNewEvent(MapCreateEvent(map, 0))
         for ((i, c) in controllers.withIndex()) {
             val tank = Tank.byInitPos(nextUid, DPos2.ORIGIN, bots[i].name)
             val tankPos = map.getUnoccupiedRandPos(tank.colPoly)!!
@@ -60,7 +60,7 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
 //            tPanel.drawCollidable(tank.colPoly)
 //            tPanel.showFrame()
             map.addEle(tank)
-            processNewEvent(ElementCreateEvent(tank, elapsedGameMs))
+            processNewEvent(ElementCreateEvent(tank, 0))
             cidToTank[c.cid] = tank
             tankToCid[tank] = c.cid
             game = this
@@ -489,7 +489,7 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
             val auctBots = Array(1) {AuctTestBot()}
             val game = Game(
                 GameMap("15x15.json"), *aimingBots, *randBots, *players.toTypedArray(), *auctBots,
-                debug = true, replayFile = replayFile
+                debug = false, replayFile = null
             )
             game.start()
         }
