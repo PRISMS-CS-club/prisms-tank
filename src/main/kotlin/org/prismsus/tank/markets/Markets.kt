@@ -7,6 +7,10 @@ import java.util.concurrent.BlockingQueue
 enum class MarketType {
     AUCTION {
         override val serialName = "auction"
+    },
+
+    NONE {
+        override val serialName = "none"
     };
     abstract val serialName : String
 }

@@ -28,3 +28,7 @@ var defAuction = AuctionProcessor(
 )
 
 val thSafeKyro = ThreadLocal.withInitial({ Kryo() })
+    get(){
+        field.get().isRegistrationRequired = false
+        return field
+    }
