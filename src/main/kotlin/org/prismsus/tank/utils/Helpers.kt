@@ -140,10 +140,10 @@ fun Number.compareTo(other : Number) : Int {
     }
 }
 
-abstract class CompNum(open val num : Number) : Comparable<CompNum>, Number(){
+abstract  class CompNum(open val num : Number) : Comparable<CompNum>, Number(){
 }
 
-class CompInt(override val num : Int) : CompNum(num){
+data class CompInt(override val num : Int) : CompNum(num){
     override fun compareTo(other: CompNum) = num.compareTo(other)
     override fun toByte() = num.toByte()
     override fun toChar() = num.toChar()
@@ -169,7 +169,7 @@ class CompInt(override val num : Int) : CompNum(num){
     operator fun rem(other : CompDouble) = CompDouble(num % other.num)
 }
 
-class CompDouble(override val num : Double) : CompNum(num){
+data class CompDouble(override val num : Double) : CompNum(num){
     override fun compareTo(other: CompNum) = num.compareTo(other)
     override fun toByte() = num.toInt().toByte()
     override fun toChar() = num.toChar()

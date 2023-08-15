@@ -105,9 +105,9 @@ class AuctionProcessor(
         for ((cid, callback) in onAuctStartCallbacks) {
             controllers[cid]!!.createThread(callback)?.start()
         }
+        inAuction = true
         auctionEndTime = game!!.elapsedGameMs + aucDuration
         evtToBeSent.add(AuctionUpdateEventBegin(curAuctionItem!!, auctionEndTime))
-        inAuction = true
         Thread.sleep(aucDuration)
         inAuction = false
         lstAuctEndTime = game!!.elapsedGameMs
@@ -175,48 +175,26 @@ class AuctionProcessor(
     val nextAuctionTime: Long
         @Synchronized
         get() {
-            if (inAuction) return -1
             return lstAuctEndTime + aucInterval
         }
 
     @Volatile
-    var curAuctionItem: UpgradeRecord<out Number>? = null
-        get() {
-            if (!inAuction) return null
-            return field
-        }
+    lateinit var curAuctionItem: UpgradeRecord<out Number>
 
     @Volatile
-    var bidHistroy: ArrayList<BidRecord>? = null
-        get() {
-            if (!inAuction) return null
-            return field
-        }
+    var bidHistroy: ArrayList<BidRecord> = arrayListOf()
 
     @Volatile
-    var curWinningBid: BidRecord? = null
-        get() {
-            if (!inAuction) return null
-            return field
-        }
+    lateinit var curWinningBid: BidRecord
 
     @Volatile
     var inAuction: Boolean = false
-        @Synchronized
-        get() = field
 
     @Volatile
     var lstAuctEndTime: Long = -1
-        @Synchronized
-        get() = field
 
     @Volatile
     var auctionEndTime: Long = -1
-        @Synchronized
-        get() {
-            if (!inAuction) return -1
-            return field
-        }
 
     @Volatile
     private var running = false
@@ -236,17 +214,17 @@ class AuctionUserInterface(private val cid: Long) : MarketUserInterface by defAu
         get() = defAuction.upgradableItemsInfo.map {it.copy()}.toTypedArray()
 
     val nextAuctionTime: Long
-        get() = defAuction.nextAuctionTime
+        get() = if (inAuction) -1 else defAuction.nextAuctionTime
     val lstAuctionEndTime: Long
         get() = defAuction.lstAuctEndTime
     val auctionEndTime: Long
-        get() = defAuction.auctionEndTime
+        get() = if (!inAuction) -1 else defAuction.auctionEndTime
     val curAuctionItem: UpgradeRecord<out Number>?
-        get() = defAuction.curAuctionItem?.copy()
+        get() = if (!inAuction) null else defAuction.curAuctionItem.copy()
     val bidHistroy: Array<AuctionProcessor.BidRecord>?
-        get() =  defAuction.bidHistroy?.map { it.copy() }?.toTypedArray()
+        get() = if (!inAuction) null else defAuction.bidHistroy.map {it.copy()}.toTypedArray()
     val curWinningBid: AuctionProcessor.BidRecord?
-        get() = defAuction.curWinningBid?.copy()
+        get() = if (!inAuction) null else defAuction.curWinningBid.copy()
     val inAuction: Boolean
         get() = defAuction.inAuction
     val lstBidAttemptTime: Long

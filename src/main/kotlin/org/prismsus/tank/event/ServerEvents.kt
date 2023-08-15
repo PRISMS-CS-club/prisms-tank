@@ -6,12 +6,9 @@ import org.prismsus.tank.elements.GameMap
 import org.prismsus.tank.elements.Tank
 import org.prismsus.tank.markets.UpgradeEntry
 import org.prismsus.tank.markets.UpgradeRecord
-import org.prismsus.tank.utils.CompNum
+import org.prismsus.tank.utils.*
 import org.prismsus.tank.utils.collidable.ColMultiPart
 import org.prismsus.tank.utils.collidable.ColPoly
-import org.prismsus.tank.utils.game
-import org.prismsus.tank.utils.toEvtFixed
-import org.prismsus.tank.utils.toFixed
 import java.lang.System.currentTimeMillis
 
 /**
@@ -167,7 +164,11 @@ object INIT_EVENT : GameEvent(0) {
                         put(tp.serialName, tp.defaultValue)
                     }
                 })
+            put("pricingRule", defAuction.type.serialName)
+            // cannot use game!!.marketImpl here, because when sending this event
+            // game is not started yet.
         }
         serializedBytes = json.toString().toByteArray()
+        print("INIT_EVENT: ${json.toString()}")
     }
 }

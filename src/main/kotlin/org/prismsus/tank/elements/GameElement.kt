@@ -3,6 +3,7 @@ import org.prismsus.tank.utils.collidable.ColPoly
 import kotlin.collections.ArrayList
 
 abstract class GameElement(val uid : Long, var hp : Int = -1, open val colPoly : ColPoly) {
+    constructor() : this(-1, -1, ColPoly()) // used for serialization
     var noCollisionElementIds = ArrayList<Long>()  // game elements that will not collide with this game element
                                                    // e.g. bullet shot by one player will not collide with itself
     enum class RemoveStat {
