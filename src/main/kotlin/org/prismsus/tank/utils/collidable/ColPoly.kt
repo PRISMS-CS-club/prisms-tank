@@ -18,6 +18,7 @@ import kotlin.math.*
 
 
 open class ColPoly(override var pts: Array<DPos2>) : Collidable {
+    constructor() : this(arrayOf()) // used for serialization
     // here use the JvmField to restrict the auto generation of getter and setter
     // because we want to override the getter and setter
     protected var rCenter = (pts.reduce { acc, dPos2 -> (acc + dPos2).toPt() }.toVec() / pts.size.toDouble()).toPt()

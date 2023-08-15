@@ -7,7 +7,7 @@ import java.awt.Shape
 import java.awt.geom.Ellipse2D
 import java.awt.geom.Point2D
 import kotlin.math.*
-data class DPos2(var x: Double, var y: Double) : Collidable, Comparable<DPos2>, Cloneable {
+data class DPos2(var x: Double = .0, var y: Double = .0) : Collidable, Comparable<DPos2>, Cloneable {
     constructor(other : DPos2) : this(other.x, other.y)
     constructor(x : Int, y : Int) : this(x.toDouble(), y.toDouble())
     override operator fun plus(shift: DVec2): DPos2 {

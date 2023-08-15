@@ -19,7 +19,7 @@ class Line(override var pts : Array<DPos2>) : Collidable, Comparable<Line> {
             throw IllegalArgumentException("Line must be initialized with two points")
         }
     }
-
+    constructor() : this(arrayOf(DPos2(), DPos2())) // for serialization
     override var angleRotated = 0.0
 
     override var rotationCenter: DPos2

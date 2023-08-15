@@ -7,6 +7,7 @@ import org.prismsus.tank.utils.*
 * */
 class ColAARect(centerPos : DPos2, size : DDim2) : ColRect(centerPos, size) {
     constructor(rect: ColRect) : this(rect.rotationCenter, rect.size)
+    constructor() : this(DPos2(), DDim2())
     companion object{
         fun byTopLeft(topLeft : DPos2, size : DDim2) : ColAARect {
             return ColAARect(ColRect.byTopLeft(topLeft, size))

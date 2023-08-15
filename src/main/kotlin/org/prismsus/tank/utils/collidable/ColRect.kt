@@ -30,6 +30,7 @@ open class ColRect (centerPos : DPos2, val size : DDim2) : ColPoly(arrayOf(
         }
     }
 
+    constructor() : this(DPos2(), DDim2())
 
     var topLeftPt : DPos2
         get() = pts[0]

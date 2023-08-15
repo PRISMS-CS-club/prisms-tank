@@ -7,8 +7,7 @@ import org.prismsus.tank.utils.collidable.DPos2
  * @property x The x component.
  * @property y The y component.
  */
-data class IVec2(var x: Int, var y: Int) {
-    constructor(): this(0, 0)
+data class IVec2(var x: Int = 0, var y: Int = 0) {
     constructor(vec: DVec2): this(vec.x.toInt(), vec.y.toInt())
 
     /**
