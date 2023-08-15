@@ -489,7 +489,7 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
             val auctBots = Array(1) {AuctTestBot()}
             val game = Game(
                 GameMap("15x15.json"), *aimingBots, *randBots, *players.toTypedArray(), *auctBots,
-                debug = false, replayFile = null
+                debug = false, replayFile = replayFile
             )
             game.start()
         }

@@ -18,6 +18,7 @@ open class Weapon(
     val firingPosOffset : DVec2, // the relative position to fire the bullet, if y value is 1, it means that the bullet will be fired at the place with max y value
                            // and the x value of the rotation center of the weapon
 ) : SubGameElement, TimeUpdatable {
+constructor() : this(0, 0, 0, 0.0, BulletProps(), ColRect(), Tank(), .0.toYvec(), .0.toYvec())
     override val serialName: String
         get() = "Wep"
     var curCapacity : Int = maxCapacity
@@ -44,6 +45,8 @@ class RectWeapon(
     firingPos : DVec2 = 1.0.toYvec()
 ) : Weapon(damage, minInterv, maxCapacity, reloadRate,  bulletProps, colBox, belongTo, offsetFromParentCenter, firingPos)
 {
+
+    constructor() : this(0, 0, 0, 0.0, BulletProps(), ColRect(), Tank(), .0.toYvec(), .0.toYvec())
     override fun fire(bulletMovementAng : Double, bulletOrientationAng: Double): Bullet?
         {
             if (System.currentTimeMillis() - lastFireTime < minInterv) return null
@@ -71,6 +74,7 @@ open class WeaponProps(
     val offsetFromParentCenter: DVec2,
     val firingPosOffset : DVec2
 ) {
+    constructor() : this(0, 0, 0, 0.0, BulletProps(), ColRect(), .0.toYvec(), .0.toYvec())
     open fun toWeapon(belongTo: GameElement) : Weapon {
         return Weapon(damage, minInterv, maxCapacity, reloadRate, bulletProps, colPoly, belongTo, offsetFromParentCenter, firingPosOffset)
     }
@@ -87,6 +91,7 @@ class RectWeaponProps(
     firingPosOffset : DVec2 = 1.1.toYvec()
 ) : WeaponProps(damage, minInterv, maxCapacity, reloadRate, bulletProps, colPoly, offsetFromParentCenter, firingPosOffset)
 {
+    constructor() : this(0, 0, 0, 0.0, BulletProps(), ColRect(), .0.toYvec(), .0.toYvec())
     override fun toWeapon(belongTo: GameElement) : RectWeapon {
         colPoly.rotationCenter = belongTo.colPoly.rotationCenter + belongTo.colPoly.encAARectSize.yVec / 2.0 * offsetFromParentCenter.y + belongTo.colPoly.encAARectSize.xVec  / 2.0 * offsetFromParentCenter.x
         return RectWeapon(damage, minInterv, maxCapacity, reloadRate, bulletProps, colPoly, belongTo, offsetFromParentCenter, firingPosOffset)
