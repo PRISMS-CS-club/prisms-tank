@@ -9,7 +9,7 @@ import org.prismsus.tank.utils.game
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 
-class HumanPlayerBot(private val name : String, val webSockSession : DefaultWebSocketSession): GameBot {
+class HumanPlayerBot(private val name : String, val webSockSession : DefaultWebSocketSession, val isObserver : Boolean = false): GameBot {
     val evtsFromClnt : BlockingQueue<GUIrequestEvent> = LinkedBlockingQueue()
     val evtsToClnt : BlockingQueue<GameEvent> = LinkedBlockingQueue()
     val webSockListener : WebSocketListener

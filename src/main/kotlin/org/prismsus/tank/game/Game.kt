@@ -42,15 +42,18 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
     val botThs: Array<Thread?> = Array(bots.size) { null }
     val replayTh: Thread?
     val debugTh: Thread?
+
     @Volatile
-    var gameInitMs : Long = 0
+    var gameInitMs: Long = 0
     val elapsedGameMs: Long
         @Synchronized
         get() = System.currentTimeMillis() - gameInitMs
     var lastGameLoopMs = elapsedGameMs
-    var marketImpl : MarketImpl = defAuction
+    var marketImpl: MarketImpl = defAuction
+
     init {
-        controllers = Array(bots.size) { i -> FutureController(i.toLong(), requestsQ, AuctionUserInterface(i.toLong())) }
+        controllers =
+            Array(bots.size) { i -> FutureController(i.toLong(), requestsQ, AuctionUserInterface(i.toLong())) }
         processNewEvent(MapCreateEvent(map, 0))
         for ((i, c) in controllers.withIndex()) {
             val tank = Tank.byInitPos(nextUid, DPos2.ORIGIN, bots[i].name)
@@ -59,15 +62,17 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
 //            val tPanel = CoordPanel(IDim2(1, 1), IDim2(50, 50))
 //            tPanel.drawCollidable(tank.colPoly)
 //            tPanel.showFrame()
-            map.addEle(tank)
-            processNewEvent(ElementCreateEvent(tank, 0))
-            cidToTank[c.cid] = tank
-            tankToCid[tank] = c.cid
-            game = this
-            marketImpl.addPlayer(c.cid, c)
+            if (bots[i] is HumanPlayerBot && !(bots[i] as HumanPlayerBot).isObserver) {
+                map.addEle(tank)
+                processNewEvent(ElementCreateEvent(tank, 0))
+                cidToTank[c.cid] = tank
+                tankToCid[tank] = c.cid
+                game = this
+                marketImpl.addPlayer(c.cid, c)
+            }
         }
 
-        if(debug) {
+        if (debug) {
             debugTh = Thread {
                 val frame = JFrame("collision box")
                 frame.defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
@@ -75,7 +80,7 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
                 var panel = map.quadTree.getCoordPanel(IDim2(frame.size.width, frame.size.height))
                 frame.contentPane.add(panel)
                 frame.isVisible = true
-                while(!Thread.interrupted()) {
+                while (!Thread.interrupted()) {
                     frame.contentPane.remove(panel)
                     panel = map.quadTree.getCoordPanel(IDim2(frame.size.width, frame.size.height))
                     frame.contentPane.add(panel)
@@ -92,14 +97,18 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
         for ((i, bot) in bots.withIndex()) {
             botThs[i] =
                 Thread {
-                    if (bot.isFutureController)
-                        bot.loop(controllers[i])
-                    else
-                        bot.loop(Controller(controllers[i]))
+                    try {
+                        if (bot.isFutureController)
+                            bot.loop(controllers[i])
+                        else
+                            bot.loop(Controller(controllers[i]))
+                    } catch (e: InterruptedException) {
+                        println("Bot ${bot.name} interrupted")
+                    }
                 }
             botThs[i]!!.start()
         }
-        if(replayFile != null) {
+        if (replayFile != null) {
             replayFile.appendText("[\n")
             replayTh = Thread {
                 replaySaver(replayFile)
@@ -195,14 +204,18 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
     }
 
     private fun replaySaver(file: File) {
-        // read from eventHistory, save to file
+        // read from eventHistory, save to filec
+        try {
             while (!Thread.interrupted()) {
-                Thread.sleep(100)
+                Thread.sleep(50)
                 while (eventHistoryToSave.isNotEmpty()) {
                     val curEvent = eventHistoryToSave.poll()
                     file.appendBytes(curEvent.serializedBytes + ",\n".toByteArray(Charsets.UTF_8))
                 }
             }
+        } catch (e: InterruptedException) {
+            println("Replay saver interrupted while sleep")
+        }
     }
 
     private fun handleOtherRequests(req: ControllerRequest<Any>) {
@@ -410,7 +423,7 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
                 processNewEvent(ElementRemoveEvent(rem.uid, elapsedGameMs))
             }
 
-            for (upg in marketImpl.toBeUpgrade){
+            for (upg in marketImpl.toBeUpgrade) {
                 val tk = cidToTank[upg.cid]!!
                 val evt = tk.processUpgrade(upg)
                 processNewEvent(evt)
@@ -428,15 +441,15 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
 
     fun stop() {
         // close websocket connection
-       if(humanPlayerBots.isNotEmpty()) {
-           print("closing websockets...")
-           runBlocking {
-               for(bot in humanPlayerBots) {
-                   bot.webSockSession.close(reason = CloseReason(CloseReason.Codes.NORMAL, "Game ended"))
-               }
-           }
-           println("done")
-       }
+        if (humanPlayerBots.isNotEmpty()) {
+            print("closing websockets...")
+            runBlocking {
+                for (bot in humanPlayerBots) {
+                    bot.webSockSession.close(reason = CloseReason(CloseReason.Codes.NORMAL, "Game ended"))
+                }
+            }
+            println("done")
+        }
         // interrupt all the bots
         print("closing bot threads...")
         for (botTh in botThs) {
@@ -445,18 +458,18 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
         }
         println("done")
         // interrupt debug thread
-        if(debugTh != null) {
+        if (debugTh != null) {
             print("closing debug thread...")
             debugTh.interrupt()
             println("done")
         }
         // interrupt the replay saver
-        if(replayTh != null) {
+        if (replayTh != null) {
             print("closing replay saver thread...")
             replayTh.interrupt()
             println("done")
         }
-        if(replayFile != null) {
+        if (replayFile != null) {
             print("saving replay file...")
             // delete the trailing comma
             val fileContent = replayFile.readText().toMutableList()
@@ -486,7 +499,7 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
             val players = communicator.humanPlayerBots.get()
             val randBots = Array(1) { RandomMovingBot() }
             val aimingBots = Array(1) { TankAimingBot() }
-            val auctBots = Array(1) {AuctTestBot()}
+            val auctBots = Array(1) { AuctTestBot() }
             val game = Game(
                 GameMap("15x15.json"), *aimingBots, *randBots, *players.toTypedArray(), *auctBots,
                 debug = false, replayFile = replayFile

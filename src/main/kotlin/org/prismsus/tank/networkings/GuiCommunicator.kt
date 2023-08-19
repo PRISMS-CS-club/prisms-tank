@@ -44,18 +44,13 @@ class GuiCommunicator(val clntCnt: Int) {
         routing {
             webSocket("/") {
                 send(INIT_EVENT.serializedStr)
-                val name = incoming.receive().data.toString(Charsets.UTF_8)
-                if (name == "") {
-                    // TODO (add player in observer mode)
-                    close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Empty name"))
-                    return@webSocket
-                } else if (m_humanPlayerBots.size >= clntCnt) {
+                var name = incoming.receive().data.toString(Charsets.UTF_8)
+                if (m_humanPlayerBots.size >= clntCnt) {
                     close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Too many clients"))
                     return@webSocket
                 }
 
-
-                val newBot = HumanPlayerBot(name, this)
+                val newBot = HumanPlayerBot(if (name.isEmpty()) "observer${++obsCnt}" else name, this, name.isEmpty())
                 m_humanPlayerBots.add(newBot)
                 if (m_humanPlayerBots.size == clntCnt) {
                     humanPlayerBots.complete(m_humanPlayerBots)
@@ -74,7 +69,7 @@ class GuiCommunicator(val clntCnt: Int) {
 
                 for (frame in incoming) {
                     // ignore if the bot is killed in the game
-                    if (!game!!.bots.contains(newBot))
+                    if (!game!!.bots.contains(newBot) || newBot.isObserver)
                         continue
                     frame as Frame.Text
                     val msg = frame.readText()
@@ -87,4 +82,5 @@ class GuiCommunicator(val clntCnt: Int) {
 
     private val m_humanPlayerBots: ArrayList<HumanPlayerBot> = ArrayList()
     val humanPlayerBots: CompletableFuture<ArrayList<HumanPlayerBot>> = CompletableFuture<ArrayList<HumanPlayerBot>>()
+    var obsCnt = 0
 }
