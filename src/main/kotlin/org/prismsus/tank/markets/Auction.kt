@@ -107,11 +107,11 @@ class AuctionProcessor(
         }
         inAuction = true
         auctionEndTime = game!!.elapsedGameMs + aucDuration
-        evtToBeSent.add(AuctionUpdateEventBegin(curAuctionItem!!, auctionEndTime))
+        evtToBeSent.add(AuctionUpdateEventBegin(curAuctionItem, auctionEndTime))
         Thread.sleep(aucDuration)
         inAuction = false
         lstAuctEndTime = game!!.elapsedGameMs
-        evtToBeSent.add(AuctionUpdateEventEnd(curWinningBid!!, nextAuctionTime))
+        evtToBeSent.add(AuctionUpdateEventEnd(curWinningBid, nextAuctionTime))
     }
 
     fun bid(cid: Long, price: Int): Boolean {
@@ -121,10 +121,10 @@ class AuctionProcessor(
             lstUserBidAttemptTime.putIfAbsent(cid, game!!.elapsedGameMs)
         }
         if (game!!.elapsedGameMs - lstUserBidAttemptTime[cid]!! < bidInterval) return false
-        if (price <= curWinningBid!!.price) return false
+        if (price <= curWinningBid.price) return false
         curWinningBid = BidRecord(cid, price, game!!.elapsedGameMs)
-        bidHistroy!!.add(curWinningBid!!)
-        evtToBeSent.add(AuctionUpdateEventMid(curWinningBid!!))
+        bidHistroy.add(curWinningBid)
+        evtToBeSent.add(AuctionUpdateEventMid(curWinningBid))
         return true
     }
 

@@ -24,6 +24,7 @@ import java.nio.file.Paths
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.concurrent.PriorityBlockingQueue
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.JFrame
 import javax.swing.WindowConstants
 import kotlin.math.PI
@@ -42,6 +43,8 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
     val botThs: Array<Thread?> = Array(bots.size) { null }
     val replayTh: Thread?
     val debugTh: Thread?
+    @Volatile
+    var running : Boolean = false
 
     @Volatile
     var gameInitMs: Long = 0
@@ -62,7 +65,8 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
 //            val tPanel = CoordPanel(IDim2(1, 1), IDim2(50, 50))
 //            tPanel.drawCollidable(tank.colPoly)
 //            tPanel.showFrame()
-            if (bots[i] is HumanPlayerBot && !(bots[i] as HumanPlayerBot).isObserver) {
+            if ( bots[i] !is HumanPlayerBot
+                ||(bots[i] is HumanPlayerBot && !(bots[i] as HumanPlayerBot).isObserver)) {
                 map.addEle(tank)
                 processNewEvent(ElementCreateEvent(tank, 0))
                 cidToTank[c.cid] = tank
@@ -94,20 +98,6 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
             debugTh = null
         }
 
-        for ((i, bot) in bots.withIndex()) {
-            botThs[i] =
-                Thread {
-                    try {
-                        if (bot.isFutureController)
-                            bot.loop(controllers[i])
-                        else
-                            bot.loop(Controller(controllers[i]))
-                    } catch (e: InterruptedException) {
-                        println("Bot ${bot.name} interrupted")
-                    }
-                }
-            botThs[i]!!.start()
-        }
         if (replayFile != null) {
             replayFile.appendText("[\n")
             replayTh = Thread {
@@ -405,6 +395,24 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
         gameInitMs = System.currentTimeMillis()
         lastGameLoopMs = elapsedGameMs
         marketImpl.start()
+
+        for ((i, bot) in bots.withIndex()) {
+            botThs[i] =
+                Thread {
+                    try {
+                        if (bot.isFutureController)
+                            bot.loop(controllers[i])
+                        else
+                            bot.loop(Controller(controllers[i]))
+                    } catch (e: InterruptedException) {
+                        println("Bot ${bot.name} interrupted")
+                    }
+                }
+            botThs[i]!!.start()
+        }
+
+
+        running = true
         while (true) {
             // first handle all the requests, then move all the elements
             val loopStartMs = elapsedGameMs
