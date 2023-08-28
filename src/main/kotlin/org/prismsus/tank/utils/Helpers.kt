@@ -7,6 +7,7 @@ import kotlin.math.PI
 import kotlin.random.Random
 import com.esotericsoftware.kryo.*
 import com.esotericsoftware.kryo.io.*
+import io.ktor.server.netty.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 import kotlinx.serialization.serializer
@@ -254,3 +255,17 @@ fun Any?.toJsonElement(): JsonElement = when (this) {
 }
 
 fun Any?.toJsonString(): String = Json.encodeToString(this.toJsonElement())
+
+
+fun<T> lazyExtended(initializer : () -> T) = LazyExtended(initializer)
+class LazyExtended<T>(val initializer : () -> T) : Lazy<T>{
+    private var curLazy = lazy(initializer)
+    private var _value : T? = null
+    override val value = if (_value == null) curLazy.value else _value!!
+    override fun isInitialized() = curLazy.isInitialized() || (value != null)
+    override fun toString() = if (value == null) curLazy.toString() else _value.toString()
+     fun reset() = run { _value = null; curLazy = lazy(initializer) }
+    fun replace(newValue : T) {
+        _value = newValue
+    }
+}

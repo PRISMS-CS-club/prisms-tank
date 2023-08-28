@@ -19,17 +19,15 @@ import java.util.Collections.addAll
  *                     of the game.
  */
 abstract class GameEvent(val timeStamp: Long = game!!.elapsedGameMs) : Comparable<GameEvent> {
-    open val serializedBytes : ByteArray
-        get() = lazy{serializedStr.toByteArray()}.value
-    open val serializedStr: String
-        get() = lazy{mp.toJsonString()}.value
+    open val serializedBytes : ByteArray by lazy{serializedStr.toByteArray()}
+    open val serializedStr: String by lazy{mp.toJsonString()}
     abstract val serialName: String
-    val mp : MutableMap<String, Any> = mutableMapOf()
-        get() = lazy{
-            field.put("type", serialName)
-            field.put("t", timeStamp)
-            field
-        }.value
+    val mp : MutableMap<String, Any> by lazy{
+            val tmp = mutableMapOf<String, Any>()
+            tmp.put("type", serialName)
+            tmp.put("t", timeStamp)
+            tmp
+        }
     override fun compareTo(other: GameEvent): Int {
         return timeStamp.compareTo(other.timeStamp)
     }
@@ -156,7 +154,8 @@ class GameEndEvent(rankMap: Map<Long, Long>, timeStamp : Long = game!!.elapsedGa
     override val serialName : String = "End"
     init {
         val tmp = buildMap {
-            put("rank", rankMap.toJsonElement())
+            put("uids", rankMap.keys.toTypedArray().toJsonElement())
+            put("ranks", rankMap.values.toTypedArray().toJsonElement())
         }
         mp.putAll(tmp)
     }

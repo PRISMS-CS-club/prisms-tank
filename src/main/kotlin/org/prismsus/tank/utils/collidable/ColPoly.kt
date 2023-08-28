@@ -3,12 +3,15 @@ package org.prismsus.tank.utils.collidable
 
 import org.prismsus.tank.utils.DOUBLE_PRECISION
 import org.prismsus.tank.utils.DVec2
+import org.prismsus.tank.utils.lazyExtended
 import org.prismsus.tank.utils.treeDistinct
 import java.awt.Shape
 import java.awt.geom.Path2D
 import java.util.*
 import kotlin.collections.*
 import kotlin.math.*
+import kotlin.properties.Delegates
+import kotlin.properties.ObservableProperty
 
 /**
  * Defines a polygonal collision box of a game object.
@@ -30,7 +33,7 @@ open class ColPoly(override var pts: Array<DPos2>) : Collidable {
         set(value) {
             val diff = value - rCenter
             if (parentEle != null){
-                return parentEle!!.plusAssign(diff)
+                return parentEle!!.pl   usAssign(diff)
             }
             rCenter.plusAssign(diff)
             for (pt in pts) {
@@ -338,6 +341,36 @@ open class ColPoly(override var pts: Array<DPos2>) : Collidable {
         rCenter = other.rCenter
         super.becomeNonCopy(other)
     }
+
+    fun scale(factor : Double, center : DPos2 = rotationCenter){
+        assert(factor > 0.0)
+        for (i in pts.indices){
+            pts[i] = (pts[i] - center) * factor + center
+        }
+        val newArea = area * factor * factor
+        _area.replace(newArea)
+    }
+
+    fun scaleToArea(newArea : Double, center : DPos2 = rotationCenter){
+        val factor = sqrt(newArea / area)
+        scale(factor, center)
+    }
+
+    private val _area = lazyExtended{
+        if (pts.size < 3) 0.0
+        else {
+            var ret = 0.0
+            var lastPt = pts.first()
+            for (i in 1 until pts.size ) {
+                val curPt = pts[i]
+                ret += lastPt.toVec() cross curPt.toVec()
+                lastPt = curPt
+            }
+            abs(ret)
+        }
+    }
+
+    val area : Double by _area
 
     companion object {
 

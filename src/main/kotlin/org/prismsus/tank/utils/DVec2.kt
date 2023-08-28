@@ -159,7 +159,7 @@ data class DVec2(var x: Double = .0, var y: Double = .0) {
      * @param other The other vector.
      * @return The cross product.
      */
-    fun cross(other: DVec2): Double {
+    infix fun cross(other: DVec2): Double {
         return x * other.y - y * other.x
     }
 
