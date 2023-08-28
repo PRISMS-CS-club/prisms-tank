@@ -436,17 +436,20 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
                         rankMap.put(uid.toLong(), rk + 2)
                     }
                     processNewEvent(GameEndEvent(rankMap))
+                    stop()
                 }
             }
 
-            for (upg in marketImpl.toBeUpgrade) {
-                val tk = cidToTank[upg.cid]!!
-                val evt = tk.processUpgrade(upg)
+            marketImpl.toBeUpgrade.removeIf{
+                val tk = cidToTank[it.cid]!!
+                val evt = tk.processUpgrade(it)
                 processNewEvent(evt)
+                true
             }
 
-            for (evt in marketImpl.evtToBeSent){
-                processNewEvent(evt)
+            marketImpl.evtToBeSent.removeIf{
+                processNewEvent(it)
+                true
             }
 
             val loopEndMs = elapsedGameMs
