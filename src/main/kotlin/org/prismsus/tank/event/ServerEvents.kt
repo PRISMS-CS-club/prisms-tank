@@ -1,6 +1,7 @@
 package org.prismsus.tank.event
 
 import kotlinx.serialization.json.*
+import kotlinx.serialization.*
 import org.prismsus.tank.elements.GameElement
 import org.prismsus.tank.elements.GameMap
 import org.prismsus.tank.elements.Tank
@@ -10,6 +11,7 @@ import org.prismsus.tank.utils.*
 import org.prismsus.tank.utils.collidable.ColMultiPart
 import org.prismsus.tank.utils.collidable.ColPoly
 import java.lang.System.currentTimeMillis
+import java.util.Collections.addAll
 
 /**
  * Base class for all events.
@@ -17,20 +19,32 @@ import java.lang.System.currentTimeMillis
  *                     of the game.
  */
 abstract class GameEvent(val timeStamp: Long = game!!.elapsedGameMs) : Comparable<GameEvent> {
-    abstract val serializedBytes: ByteArray
+    open val serializedBytes : ByteArray
+        get() = lazy{serializedStr.toByteArray()}.value
     open val serializedStr: String
-        get() = serializedBytes.toString(Charsets.UTF_8)
+        get() = lazy{mp.toJsonString()}.value
     abstract val serialName: String
+    val mp : MutableMap<String, Any> = mutableMapOf()
+        get() = lazy{
+            field.put("type", serialName)
+            field.put("t", timeStamp)
+            field
+        }.value
     override fun compareTo(other: GameEvent): Int {
         return timeStamp.compareTo(other.timeStamp)
     }
+
 }
 
 
 class MapCreateEvent(val map: GameMap, timeStamp: Long = game!!.elapsedGameMs) : GameEvent(timeStamp) {
     override val serializedBytes: ByteArray
         get() = map.serialized
-    override val serialName: String = "MapCrt"
+    override val serializedStr: String
+        get() = map.serialized.decodeToString()
+//    override val mp = throw NotImplementedError("this event does not support converting to map<str, any>")
+    override val serialName: String = "MapCxrt"
+
 }
 
 fun selectBaseColPoly(ele: GameElement): ColPoly {
@@ -42,12 +56,9 @@ fun selectBaseColPoly(ele: GameElement): ColPoly {
 
 class ElementCreateEvent(val ele: GameElement, timeStamp: Long = game!!.elapsedGameMs) : GameEvent(timeStamp) {
     override val serialName: String = "EleCrt"
-    override val serializedBytes: ByteArray
 
     init {
-        val json = buildJsonObject {
-            put("type", serialName)
-            put("t", timeStamp)
+        val tmp = buildMap {
             put("uid", ele.uid)
             put("name", ele.serialName)
             if (ele is Tank)
@@ -58,7 +69,7 @@ class ElementCreateEvent(val ele: GameElement, timeStamp: Long = game!!.elapsedG
             put("width", selectBaseColPoly(ele).width.toEvtFixed())
             put("height", selectBaseColPoly(ele).height.toEvtFixed())
         }
-        serializedBytes = json.toString().toByteArray()
+        mp.putAll(tmp)
     }
 }
 
@@ -93,12 +104,9 @@ class ElementUpdateEvent(
 
 
     override val serialName: String = "EleUpd"
-    override val serializedBytes: ByteArray
 
     init {
-        val json = buildJsonObject {
-            put("type", serialName)
-            put("t", timeStamp)
+        val tmp = buildMap {
             put("uid", ele.uid)
             if (updateEventMask.hp) {
                 put("hp", ele.hp)
@@ -114,52 +122,54 @@ class ElementUpdateEvent(
             }
         }
 
-        serializedBytes = json.toString().toByteArray()
+        mp.putAll(tmp)
     }
 }
 
 class ElementRemoveEvent(val uid: Long, timeStamp: Long = game!!.elapsedGameMs) : GameEvent(timeStamp) {
     override val serialName: String = "EleRmv"
-    override val serializedBytes: ByteArray
 
     init {
-        val json = buildJsonObject {
-            put("type", serialName)
-            put("t", timeStamp)
+        val tmp = buildMap {
             put("uid", uid)
         }
-        serializedBytes = json.toString().toByteArray()
+        mp.putAll(tmp)
     }
 }
 
 class PlayerUpdateEvent(val uid: Long, timeStamp: Long = game!!.elapsedGameMs, vararg recs: UpgradeRecord<out Number>) :
     GameEvent(timeStamp) {
     override val serialName: String = "PlrUpd"
-    override val serializedBytes: ByteArray
-
     init {
-        val json = buildJsonObject {
-            put("type", serialName)
-            put("t", timeStamp)
+        val tmp = buildMap {
             put("uid", uid)
             for (rec in recs) {
                 put(rec.type.serialName, rec.value)
             }
         }
-        serializedBytes = json.toString().toByteArray()
+        mp.putAll(tmp)
     }
+}
+
+class GameEndEvent(rankMap: Map<Long, Long>, timeStamp : Long = game!!.elapsedGameMs) : GameEvent(timeStamp){
+    // rankMap is mapping from uid to ranking
+    override val serialName : String = "End"
+    init {
+        val tmp = buildMap {
+            put("rank", rankMap.toJsonElement())
+        }
+        mp.putAll(tmp)
+    }
+
 }
 
 object INIT_EVENT : GameEvent(0) {
     override val serialName: String = "Init"
-    override val serializedBytes: ByteArray
 
     init {
-        val json = buildJsonObject {
-            put("type", serialName)
-            put("t", timeStamp)
+        val tmp = buildMap{
             put("plr",
-                buildJsonObject {
+                buildMap {
                     for (tp in UpgradeEntry.UpgradeType.values()) {
                         put(tp.serialName, tp.defaultValue)
                     }
@@ -168,7 +178,6 @@ object INIT_EVENT : GameEvent(0) {
             // cannot use game!!.marketImpl here, because when sending this event
             // game is not started yet.
         }
-        serializedBytes = json.toString().toByteArray()
-        print("INIT_EVENT: ${json.toString()}")
+        mp.putAll(tmp)
     }
 }

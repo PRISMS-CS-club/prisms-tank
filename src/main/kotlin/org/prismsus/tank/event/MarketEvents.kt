@@ -19,12 +19,9 @@ class AuctionUpdateEventBegin(
     val minBid: Int = 1,
     timeStamp: Long = game!!.elapsedGameMs
 ) : MarketEvents(timeStamp) {
-    override val serializedBytes: ByteArray
 
     init {
-        val json = buildJsonObject {
-            put("type", serialName)
-            put("t", timeStamp)
+        val tmp = buildJsonObject {
             put("toSell", buildJsonArray {
                 add(toSell.type.serialName)
                 add(toSell.isInc)
@@ -34,7 +31,7 @@ class AuctionUpdateEventBegin(
             put("minBid", minBid)
             put("endT", endTime)
         }
-        serializedBytes = json.toString().toByteArray()
+        mp.putAll(tmp)
     }
 }
 
@@ -43,16 +40,13 @@ class AuctionUpdateEventMid(
     val bidRecord: AuctionProcessor.BidRecord,
     timeStamp: Long = game!!.elapsedGameMs
 ) : MarketEvents(timeStamp) {
-    override val serializedBytes: ByteArray
 
     init {
-        val json = buildJsonObject {
-            put("type", serialName)
-            put("t", timeStamp)
-            put("bidder", game!!.cidToTank[bidRecord.cid]!!.playerName)
+        val tmp = buildMap {
+            put("bidder", game!!.cidToTank[bidRecord.cid]!!.uid)
             put("price", bidRecord.price)
         }
-        serializedBytes = json.toString().toByteArray()
+        mp.putAll(tmp)
     }
 }
 
@@ -61,16 +55,12 @@ class AuctionUpdateEventEnd(
     val nextTime: Long,
     timeStamp: Long = game!!.elapsedGameMs
 ) : MarketEvents(timeStamp) {
-    override val serializedBytes: ByteArray
-
     init {
-        val json = buildJsonObject {
-            put("type", serialName)
-            put("t", timeStamp)
-            put("buyer", game!!.cidToTank[winningBidRecord.cid]!!.playerName)
+        val tmp = buildMap {
+            put("buyer", game!!.cidToTank[winningBidRecord.cid]!!.uid)
             put("price", winningBidRecord.price)
             put("nextT", nextTime)
         }
-        serializedBytes = json.toString().toByteArray()
+        mp.putAll(tmp)
     }
 }

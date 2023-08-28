@@ -12,8 +12,6 @@ import org.prismsus.tank.game.OtherRequests.*
 import org.prismsus.tank.game.TankWeaponInfo.*
 import org.prismsus.tank.markets.AuctionUserInterface
 import org.prismsus.tank.markets.MarketImpl
-import org.prismsus.tank.markets.UpgradeEntry
-import org.prismsus.tank.markets.UpgradeRecord
 import org.prismsus.tank.networkings.GuiCommunicator
 import org.prismsus.tank.utils.*
 import org.prismsus.tank.utils.nextUid
@@ -24,7 +22,6 @@ import java.nio.file.Paths
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.concurrent.PriorityBlockingQueue
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.JFrame
 import javax.swing.WindowConstants
 import kotlin.math.PI
@@ -41,8 +38,9 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
     val tankToCid = mutableMapOf<Tank, Long>()
     val lastCollidedEle = mutableMapOf<GameElement, ArrayList<GameElement>>()
     val botThs: Array<Thread?> = Array(bots.size) { null }
-    val replayTh: Thread?
-    val debugTh: Thread?
+    val tankKilledOrder : ArrayList<Long> = ArrayList()
+    private val replayTh: Thread?
+    private val debugTh: Thread?
     @Volatile
     var running : Boolean = false
 
@@ -427,13 +425,27 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
                     tankToCid.remove(rem)
                     if (bot !is HumanPlayerBot)
                         botThs[cid.toInt()]!!.interrupt()
+                    tankKilledOrder.add(rem.uid)
                 }
                 processNewEvent(ElementRemoveEvent(rem.uid, elapsedGameMs))
+                if (map.tanks.size == 1){
+                    // game end here
+                    val rankMap = mutableMapOf<Long, Long>()
+                    rankMap.put(map.tanks[0].uid, 1)
+                    for ((uid, rk) in tankKilledOrder.reversed().withIndex()){
+                        rankMap.put(uid.toLong(), rk + 2)
+                    }
+                    processNewEvent(GameEndEvent(rankMap))
+                }
             }
 
             for (upg in marketImpl.toBeUpgrade) {
                 val tk = cidToTank[upg.cid]!!
                 val evt = tk.processUpgrade(upg)
+                processNewEvent(evt)
+            }
+
+            for (evt in marketImpl.evtToBeSent){
                 processNewEvent(evt)
             }
 
