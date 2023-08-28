@@ -33,7 +33,7 @@ open class ColPoly(override var pts: Array<DPos2>) : Collidable {
         set(value) {
             val diff = value - rCenter
             if (parentEle != null){
-                return parentEle!!.pl   usAssign(diff)
+                return parentEle!!.plusAssign(diff)
             }
             rCenter.plusAssign(diff)
             for (pt in pts) {
