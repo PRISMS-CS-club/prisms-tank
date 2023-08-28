@@ -162,7 +162,7 @@ class AuctionProcessor(
     override fun processGUIevts(cid : Long, type: String, params: Array<*>) {
         when (type) {
             "bid" -> {
-                bid(cid, params[0] as Int)
+                bid(cid, (params[0] as Number).toInt())
             }
             else -> {
                 throw Exception("unknown event type")
