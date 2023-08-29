@@ -142,7 +142,7 @@ class PlayerUpdateEvent(val uid: Long, timeStamp: Long = game!!.elapsedGameMs, v
         val tmp = buildMap {
             put("uid", uid)
             for (rec in recs) {
-                put(rec.type.serialName, rec.value)
+                put(rec.type.serialName, rec.value.toEvtFixed())
             }
         }
         mp.putAll(tmp)

@@ -441,7 +441,7 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
             }
 
             marketImpl.toBeUpgrade.removeIf{
-                val tk = cidToTank[it.cid]!!
+                val tk = cidToTank[it.cid] ?: return@removeIf true
                 val evt = tk.processUpgrade(it)
                 processNewEvent(evt)
                 true

@@ -7,6 +7,7 @@ import kotlinx.serialization.json.*
 import org.prismsus.tank.markets.AuctionProcessor
 import org.prismsus.tank.markets.UpgradeRecord
 import org.prismsus.tank.utils.game
+import org.prismsus.tank.utils.toEvtFixed
 
 
 abstract class MarketEvents(timeStamp: Long = game!!.elapsedGameMs) : GameEvent(timeStamp) {
@@ -25,7 +26,7 @@ class AuctionUpdateEventBegin(
             put("toSell", buildJsonArray {
                 add(toSell.type.serialName)
                 add(toSell.isInc)
-                add(toSell.value)
+                add(toSell.value.toEvtFixed())
             }
             )
             put("minBid", minBid)
@@ -57,8 +58,10 @@ class AuctionUpdateEventEnd(
 ) : MarketEvents(timeStamp) {
     init {
         val tmp = buildMap {
-            put("buyer", game!!.cidToTank[winningBidRecord.cid]!!.uid)
-            put("price", winningBidRecord.price)
+            game!!.cidToTank[winningBidRecord.cid]?.let {
+                put("buyer", it.uid)
+                put("price", winningBidRecord.price)
+            }
             put("nextT", nextTime)
         }
         mp.putAll(tmp)

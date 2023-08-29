@@ -112,6 +112,10 @@ class AuctionProcessor(
         inAuction = false
         lstAuctEndTime = game!!.elapsedGameMs
         evtToBeSent.add(AuctionUpdateEventEnd(curWinningBid, nextAuctionTime))
+        val tmpUpgrade = curAuctionItem.copy(cid = curWinningBid.cid)
+        val tmpMoneyUpgrade = UpgradeRecord(UpgradeEntry.UpgradeType.MONEY, true, -curWinningBid.price, curWinningBid.cid)
+        toBeUpgrade.add(tmpUpgrade)
+        toBeUpgrade.add(tmpMoneyUpgrade)
     }
 
     fun bid(cid: Long, price: Int): Boolean {
@@ -125,10 +129,6 @@ class AuctionProcessor(
         curWinningBid = BidRecord(cid, price, game!!.elapsedGameMs)
         bidHistroy.add(curWinningBid)
         evtToBeSent.add(AuctionUpdateEventMid(curWinningBid))
-        val tmpUpgrade = curAuctionItem.copy(cid = curWinningBid.cid)
-        val tmpMoneyUpgrade = UpgradeRecord(UpgradeEntry.UpgradeType.MONEY, true, -curWinningBid.price, curWinningBid.cid)
-        toBeUpgrade.add(tmpUpgrade)
-        toBeUpgrade.add(tmpMoneyUpgrade)
         return true
     }
 

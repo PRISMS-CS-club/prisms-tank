@@ -60,6 +60,22 @@ fun Double.toTimeFixed() : FixedPoint {
     return FixedPoint(this, TIME_DIGIT)
 }
 
+fun Number.toEvtFixed() : Number {
+    return when(this) {
+        is Double -> this.toEvtFixed()
+        is Float -> this.toEvtFixed()
+        else -> this
+    }
+}
+
+fun Number.toTimeFixed() : Number {
+    return when(this) {
+        is Double -> this.toTimeFixed()
+        is Float -> this.toTimeFixed()
+        else -> this
+    }
+}
+
 infix fun Double.errEQ(other : Double) : Boolean {
     return Math.abs(this - other) < DOUBLE_PRECISION
 }
