@@ -254,7 +254,7 @@ fun ClosedRange<out CompNum>.genRand() : Number{
 }
 
 fun<T> T.deepCopyByKyro() : T{
-    return thSafeKyro.get().copy(this)
+    return thSafeKyro.copy(this)
 }
 
 // from https://github.com/Kotlin/kotlinx.serialization/issues/746
@@ -284,4 +284,14 @@ class LazyExtended<T>(val initializer : () -> T) : Lazy<T>{
     fun replace(newValue : T) {
         _value = newValue
     }
+}
+
+
+fun<T> lazyThreadLocal(initializer : () -> T) = LazyThreadLocal(lazy(initializer))
+fun<T> lazyExThreadLocal(initializer : () -> T) = LazyThreadLocal(lazyExtended(initializer))
+
+class LazyThreadLocal<T>(val wrap : Lazy<T>) : Lazy<T>{
+    val thLocal = ThreadLocal.withInitial { wrap }
+    override val value: T by thLocal.get()
+    override fun isInitialized() = thLocal.get().isInitialized()
 }

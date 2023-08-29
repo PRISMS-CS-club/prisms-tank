@@ -49,7 +49,7 @@ class RectWeapon(
     constructor() : this(0, 0, 0, 0.0, BulletProps(), ColRect(), Tank(), .0.toYvec(), .0.toYvec())
     override fun fire(bulletMovementAng : Double, bulletOrientationAng: Double): Bullet?
         {
-            if (System.currentTimeMillis() - lastFireTime < minInterv) return null
+            if (game!!.elapsedGameMs - lastFireTime < minInterv) return null
             val bullet = Bullet(nextUid, bulletProps.copy())
             bullet.colPoly.rotateAssignTo(bulletOrientationAng)
             val weaponYLine = Line((colPoly as ColRect).rotationCenter, (colPoly).topMidPt)
@@ -57,7 +57,7 @@ class RectWeapon(
             bullet.colPoly.bottomMidPt = colPoly.rotationCenter + weaponYLine.toVec() * firingPosOffset.y + weaponXLine.toVec() * firingPosOffset.x
             bullet.velocity = DVec2.byPolar(bulletProps.speed / 1000.0, bulletMovementAng)
             bullet.damage = damage
-            lastFireTime = System.currentTimeMillis()
+            lastFireTime = game!!.elapsedGameMs
             curCapacity--
             return bullet
         }

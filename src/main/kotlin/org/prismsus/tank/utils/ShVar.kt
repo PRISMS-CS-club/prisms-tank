@@ -29,9 +29,9 @@ var defAuction = AuctionProcessor(
     DEF_AUC_BID_INTERV
 )
 
-val thSafeKyro = ThreadLocal.withInitial({ Kryo() })
-    get(){
-        field.get().isRegistrationRequired = false
-        field.get().instantiatorStrategy = DefaultInstantiatorStrategy(StdInstantiatorStrategy())
-        return field
+val thSafeKyro by lazyThreadLocal {
+        val tmp = Kryo()
+        tmp.isRegistrationRequired = false
+        tmp.instantiatorStrategy = DefaultInstantiatorStrategy(StdInstantiatorStrategy())
+        tmp
     }
