@@ -125,6 +125,10 @@ class AuctionProcessor(
         curWinningBid = BidRecord(cid, price, game!!.elapsedGameMs)
         bidHistroy.add(curWinningBid)
         evtToBeSent.add(AuctionUpdateEventMid(curWinningBid))
+        val tmpUpgrade = curAuctionItem.copy(cid = curWinningBid.cid)
+        val tmpMoneyUpgrade = UpgradeRecord(UpgradeEntry.UpgradeType.MONEY, true, -curWinningBid.price, curWinningBid.cid)
+        toBeUpgrade.add(tmpUpgrade)
+        toBeUpgrade.add(tmpMoneyUpgrade)
         return true
     }
 
@@ -178,7 +182,7 @@ class AuctionProcessor(
             return lstAuctEndTime + aucInterval
         }
 
-    @Volatile
+    @`Volatile`
     lateinit var curAuctionItem: UpgradeRecord<out Number>
 
     @Volatile

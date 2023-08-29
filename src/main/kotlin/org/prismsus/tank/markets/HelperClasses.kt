@@ -86,6 +86,6 @@ data class UpgradeRecord<T>(
     val isInc: Boolean,
     val value: T,
     val cid: Long,
-    val timeStamp: Long
+    val timeStamp: Long = game!!.elapsedGameMs
 ) {
 }
