@@ -123,15 +123,19 @@ class Tank(
     fun processUpgrade(upg : UpgradeRecord<out Number>) : PlayerUpdateEvent{
         var finalVal : Number = 0
         var origVal : Number = 0
+        var propSetter : (Number) -> Unit = {}
         when (upg.type){
             UpgradeType.MONEY -> {
                 origVal = money
+                propSetter = {money = it.toInt()}
             }
             UpgradeType.MAX_HP -> {
                 origVal = maxHp
+                propSetter = {maxHp = it.toInt()}
             }
             UpgradeType.VIS_RADIUS -> {
-                origVal =  visibleRange
+                origVal = visibleRange
+                propSetter = {visibleRange = it.toDouble()}
             }
             UpgradeType.TANK_BODY_AREA -> {
                 TODO("impl")
@@ -141,24 +145,30 @@ class Tank(
             }
             UpgradeType.TANK_SPEED -> {
                 origVal = trackMaxSpeed
+                propSetter = {trackMaxSpeed = it.toDouble()}
             }
             UpgradeType.API_TOKEN_CNT -> {
                 TODO()
             }
             UpgradeType.WEAPON_DAMAGE -> {
                 origVal = weapon.damage
+                propSetter = {weapon.damage = it.toInt()}
             }
             UpgradeType.WEAPON_LAUNCH_MIN_INTERV -> {
                 origVal = weapon.minInterv
+                propSetter = {weapon.minInterv = it.toInt()}
             }
             UpgradeType.WEAPON_CAPACITY -> {
                 origVal = weapon.maxCapacity
+                propSetter = {weapon.maxCapacity = it.toInt()}
             }
             UpgradeType.WEAPON_RELOAD_RATE -> {
                 origVal = weapon.reloadRate
+                propSetter = {weapon.reloadRate = it.toDouble()}
             }
             UpgradeType.WEAPON_BULLET_SPEED -> {
                 origVal = weapon.bulletProps.speed
+                propSetter = {weapon.bulletProps.speed = it.toDouble()}
             }
             UpgradeType.WEAPON_BULLET_WIDTH -> {
                 TODO()
@@ -170,6 +180,7 @@ class Tank(
             finalVal = upg.value.toDouble() + if (upg.isInc) origVal.toDouble() else 0.0
         val newUpg =  UpgradeRecord(upg.type, upg.isInc, finalVal, upg.cid, upg.timeStamp)
         // don't know why can't use upg.copy(value=finalVal)
+        propSetter(finalVal)
         return PlayerUpdateEvent(uid, game!!.elapsedGameMs, newUpg)
     }
 

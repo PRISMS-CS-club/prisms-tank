@@ -274,13 +274,13 @@ fun Any?.toJsonString(): String = Json.encodeToString(this.toJsonElement())
 
 
 fun<T> lazyExtended(initializer : () -> T) = LazyExtended(initializer)
-class LazyExtended<T>(val initializer : (() -> T)? = null) : Lazy<T>{
-    private var curLazy = lazy(initializer?:{null})
+class LazyExtended<T>(val initializer : () -> T) : Lazy<T>{
+    private var curLazy = lazy(initializer)
     private var _value : T? = null
     override val value : T get() = if (_value == null) curLazy.value!! else _value!!
     override fun isInitialized() = curLazy.isInitialized() || (_value != null)
     override fun toString() = if (_value == null) curLazy.toString() else _value.toString()
-     fun reset() = run { _value = null; curLazy = lazy(initializer!!) }
+     fun reset() = run { _value = null; curLazy = lazy(initializer) }
     fun replace(newValue : T) {
         _value = newValue
     }

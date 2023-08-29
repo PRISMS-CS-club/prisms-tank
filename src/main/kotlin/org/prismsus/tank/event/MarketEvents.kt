@@ -22,7 +22,7 @@ class AuctionUpdateEventBegin(
 ) : MarketEvents(timeStamp) {
 
     init {
-        val tmp = buildJsonObject {
+        val tmp = buildMap {
             put("toSell", buildJsonArray {
                 add(toSell.type.serialName)
                 add(toSell.isInc)
