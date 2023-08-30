@@ -44,7 +44,7 @@ class GuiCommunicator(val clntCnt: Int) {
         routing {
             webSocket("/") {
                 send(INIT_EVENT.serializedStr)
-                var name = incoming.receive().data.toString(Charsets.UTF_8)
+                val name = incoming.receive().data.toString(Charsets.UTF_8)
                 if (m_humanPlayerBots.size >= clntCnt) {
                     close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Too many clients"))
                     return@webSocket

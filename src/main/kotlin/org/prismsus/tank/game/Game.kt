@@ -31,7 +31,6 @@ import kotlin.math.PI
  */
 class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, val replayFile: File?) {
     val humanPlayerBots: Array<HumanPlayerBot> = bots.filterIsInstance<HumanPlayerBot>().toTypedArray()
-    val eventHistoryToSave = PriorityBlockingQueue<GameEvent>()
     var controllers: Array<FutureController>
     val requestsQ = PriorityBlockingQueue<ControllerRequest<Any>>()
     val cidToTank = mutableMapOf<Long, Tank?>()
@@ -39,7 +38,7 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
     val lastCollidedEle = mutableMapOf<GameElement, ArrayList<GameElement>>()
     val botThs: Array<Thread?> = Array(bots.size) { null }
     val tankKilledOrder : ArrayList<Long> = ArrayList()
-    private val replayTh: Thread?
+    private val replaySaver: ReplaySaver?
     private val debugTh: Thread?
     @Volatile
     var running : Boolean = false
@@ -53,6 +52,12 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
     var marketImpl: MarketImpl = defAuction
 
     init {
+        if (replayFile != null) {
+            replaySaver = ReplaySaver(this, replayFile)
+            replaySaver.save(INIT_EVENT)   // save init event to replay if possible
+        } else {
+            replaySaver = null
+        }
         controllers =
             Array(bots.size) { i -> FutureController(i.toLong(), requestsQ, AuctionUserInterface(i.toLong())) }
         processNewEvent(MapCreateEvent(map, 0))
@@ -94,16 +99,6 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
             debugTh.start()
         } else {
             debugTh = null
-        }
-
-        if (replayFile != null) {
-            replayFile.appendText("[\n")
-            replayTh = Thread {
-                replaySaver(replayFile)
-            }
-            replayTh.start()
-        } else {
-            replayTh = null
         }
         Runtime.getRuntime().addShutdownHook(Thread {
             stop()
@@ -191,21 +186,6 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
         }
     }
 
-    private fun replaySaver(file: File) {
-        // read from eventHistory, save to filec
-        try {
-            while (!Thread.interrupted()) {
-                Thread.sleep(50)
-                while (eventHistoryToSave.isNotEmpty()) {
-                    val curEvent = eventHistoryToSave.poll()
-                    file.appendBytes(curEvent.serializedBytes + ",\n".toByteArray(Charsets.UTF_8))
-                }
-            }
-        } catch (e: InterruptedException) {
-            println("Replay saver interrupted while sleep")
-        }
-    }
-
     private fun handleOtherRequests(req: ControllerRequest<Any>) {
         val tk = cidToTank[req.cid]!!
         when (req.requestType) {
@@ -286,7 +266,9 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
     }
 
     private fun processNewEvent(evt: GameEvent) {
-        eventHistoryToSave.add(evt)
+        if(replayFile != null) {
+            replaySaver!!.save(evt)
+        }
         for (hbot in humanPlayerBots) {
             hbot.evtsToClnt.add(evt)
         }
@@ -431,9 +413,9 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
                 if (map.tanks.size == 1){
                     // game end here
                     val rankMap = mutableMapOf<Long, Long>()
-                    rankMap.put(map.tanks[0].uid, 1)
-                    for ((uid, rk) in tankKilledOrder.reversed().withIndex()){
-                        rankMap.put(uid.toLong(), rk + 2)
+                    rankMap[map.tanks[0].uid] = 1
+                    for ((rk, uid) in tankKilledOrder.reversed().withIndex()){
+                        rankMap[uid] = rk.toLong() + 2
                     }
                     processNewEvent(GameEndEvent(rankMap))
                     stop()
@@ -463,21 +445,25 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
 
 
     fun stop() {
+        if(!running) {
+            return
+        }
+        running = false
         // close websocket connection
-        if (humanPlayerBots.isNotEmpty()) {
-            print("closing websockets...")
-            runBlocking {
+        runBlocking {
+            if (humanPlayerBots.isNotEmpty()) {
+                print("closing websockets...")
                 for (bot in humanPlayerBots) {
                     bot.webSockSession.close(reason = CloseReason(CloseReason.Codes.NORMAL, "Game ended"))
                 }
+                println("done")
             }
-            println("done")
         }
         // interrupt all the bots
         print("closing bot threads...")
         for (botTh in botThs) {
             botTh!!.interrupt()
-            botTh!!.stop()
+            botTh.stop()
         }
         println("done")
         // interrupt debug thread
@@ -486,21 +472,10 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
             debugTh.interrupt()
             println("done")
         }
-        // interrupt the replay saver
-        if (replayTh != null) {
-            print("closing replay saver thread...")
-            replayTh.interrupt()
-            println("done")
-        }
-        if (replayFile != null) {
+        if (replaySaver != null) {
             print("saving replay file...")
-            // delete the trailing comma
-            val fileContent = replayFile.readText().toMutableList()
-            if (fileContent.lastIndex >= 1)
-                fileContent.removeAt(fileContent.lastIndex - 1)
-            replayFile.writeText(fileContent.joinToString(""))
-            // write the ending ] and close the replay file
-            replayFile.appendText("]")
+            replaySaver.stop()
+            replaySaver.postProcess()
             println("done")
         }
     }

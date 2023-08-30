@@ -22,12 +22,12 @@ abstract class GameEvent(val timeStamp: Long = game!!.elapsedGameMs) : Comparabl
     open val serializedBytes : ByteArray by lazy{serializedStr.toByteArray()}
     open val serializedStr: String by lazy{mp.toJsonString()}
     abstract val serialName: String
-    val mp : MutableMap<String, Any> by lazy{
-            val tmp = mutableMapOf<String, Any>()
-            tmp.put("type", serialName)
-            tmp.put("t", timeStamp)
-            tmp
-        }
+    val mp : MutableMap<String, Any> by lazy {
+        val tmp = mutableMapOf<String, Any>()
+        tmp["type"] = serialName
+        tmp["t"] = timeStamp
+        tmp
+    }
     override fun compareTo(other: GameEvent): Int {
         return timeStamp.compareTo(other.timeStamp)
     }

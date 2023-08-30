@@ -13,7 +13,7 @@ import kotlin.math.sign
 class Tank(
     uid: Long,
     val playerName: String,
-    val weaponProps: WeaponProps,
+    weaponProps: WeaponProps,
     var trackMaxSpeed: Double = INIT_TANK_TRACK_SPEED,
     hp: Int = INIT_TANK_HP,
     val tankRectBox: ColRect = INIT_TANK_COLBOX,
