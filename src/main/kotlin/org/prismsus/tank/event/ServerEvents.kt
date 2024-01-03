@@ -41,8 +41,7 @@ class MapCreateEvent(val map: GameMap, timeStamp: Long = game!!.elapsedGameMs) :
     override val serializedStr: String
         get() = map.serialized.decodeToString()
 //    override val mp = throw NotImplementedError("this event does not support converting to map<str, any>")
-    override val serialName: String = "MapCxrt"
-
+    override val serialName: String = "MapCrt"
 }
 
 fun selectBaseColPoly(ele: GameElement): ColPoly {
@@ -160,6 +159,34 @@ class GameEndEvent(rankMap: Map<Long, Long>, timeStamp : Long = game!!.elapsedGa
         mp.putAll(tmp)
     }
 
+}
+
+
+class DebugEvent(val msg: String, val debugType: DebugType, timeStamp: Long = game!!.elapsedGameMs) : GameEvent(timeStamp) {
+    override val serialName: String = "Dbg"
+    enum class DebugType(val serialName: String, val severity : Int) {
+        TRACE("TRACE", 0),
+        DEBUG("DEBUG", 1),
+        INFO("INFO", 2),
+        WARN("WARN", 3),
+        ERROR("ERROR", 4),
+        FATAL("FATAL", 5)
+    }
+    init {
+        val tmp = buildMap {
+            put("msg", msg)
+            put("level", DebugType.INFO.serialName)
+            put("severity", debugType.severity)
+        }
+        mp.putAll(tmp)
+        if (debugType.severity >= printIfAboveOrEqual.severity) {
+            println("DEBUG: $serializedStr")
+        }
+    }
+    companion object{
+        val printIfAboveOrEqual = DebugType.INFO
+        val storeIfAboveOrEqual = DebugType.WARN
+    }
 }
 
 object INIT_EVENT : GameEvent(0) {

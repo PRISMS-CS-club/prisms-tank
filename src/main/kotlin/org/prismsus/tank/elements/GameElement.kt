@@ -14,7 +14,7 @@ abstract class GameElement(val uid : Long, var hp : Int = -1, open val colPoly :
     /**
      * called when detect two objects intersect with each other
      * @param other the other game element
-     * @return whether the hp of the [GameElement] is changed
+     * @return whether the state of the [GameElement] is changed
      */
     open infix fun processCollision(other : GameElement) : Boolean {
         if (other.uid in noCollisionElementIds) return false

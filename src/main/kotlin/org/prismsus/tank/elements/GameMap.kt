@@ -15,6 +15,7 @@ import kotlin.reflect.full.*
  */
 class GameMap(val fileName: String) {
     val blocks: Array<Array<Block?>>
+    val upgBlocks : Array<Array<ArrayList<UpgradeBlock>>>
     val width: Int
     val height: Int
     val gameEles: ArrayList<GameElement> = ArrayList()
@@ -151,6 +152,22 @@ class GameMap(val fileName: String) {
         }
     }
 
+    fun<T> parseJson2Darray(jsonEle: JsonElement, parseFunc: (JsonElement) -> T): Array<Array<T>>{
+        val tempJsonArr: JsonArray = jsonEle.jsonObject["map"]!!.jsonArray
+        val arrWid = tempJsonArr.size
+        val arrHei = tempJsonArr[0].jsonArray.size
+        val ret = Array(arrWid) { Array<Any?>(arrHei) { null } }
+
+        for (i in 0 until width) {
+            for (j in 0 until height) {
+                val tmpBlk = tempJsonArr[i].jsonArray[j]
+                ret[i][j] = parseFunc(tmpBlk)
+            }
+        }
+        return TODO()
+//        return ret
+    }
+
     init {
         val fileText = GameMap::class.java.getResource(fileName).readText()
         val jsonEle: JsonElement = Json.parseToJsonElement(fileText)
@@ -160,14 +177,25 @@ class GameMap(val fileName: String) {
         quadTree =
             ColTreeSet(0, ColAARect.byBottomLeft(blPt, DDim2(width.toDouble(), height.toDouble()) + (blPt.toVec() * 2.0).abs()))
         blocks = Array(width) { Array(height) { null } }
-        var tmpArr: JsonArray = jsonEle.jsonObject["map"]!!.jsonArray
+        upgBlocks = Array(width) { Array(height) { ArrayList() } }
+        var tmpBlkArr: JsonArray = jsonEle.jsonObject["map"]!!.jsonArray
+        /*
+        *    "IncMap" : {
+             "hp"    : [[1.114, 1.514],
+                       [1.191, 1.981]],
+             "money" : [[1.114, 1.514],
+                      [1.191, 1.981]]
+             }
+        * */
+//        val incMap = jsonEle.jsonObject["IncMap"]!!.jsonObject.toMap()
+
         for (y in height - 1 downTo 0) {
             for (x in 0 until width) {
                 // we want to store blocks array in x, y order
                 // but the json file is in i, j order
                 // meaning that with greater j index, y index is smaller
                 val j = height - 1 - y
-                val serialName = tmpArr[j * height + x].jsonPrimitive.content
+                val serialName = tmpBlkArr[j * height + x].jsonPrimitive.content
                 if (serialName.isEmpty())
                     continue
                 val eleType = ELE_SERIAL_NAME_TO_CLASS[serialName]!!

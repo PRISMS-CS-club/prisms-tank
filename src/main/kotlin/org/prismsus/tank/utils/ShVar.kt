@@ -1,4 +1,4 @@
-package org.prismsus.tank.utils
+package org.prismsus.tank.utils 
 
 import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryo.util.DefaultInstantiatorStrategy

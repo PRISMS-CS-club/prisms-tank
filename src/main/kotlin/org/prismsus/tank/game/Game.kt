@@ -3,10 +3,7 @@ package org.prismsus.tank.game
 import io.ktor.websocket.*
 import kotlinx.coroutines.runBlocking
 import org.prismsus.tank.bot.*
-import org.prismsus.tank.elements.GameElement
-import org.prismsus.tank.elements.GameMap
-import org.prismsus.tank.elements.MovableElement
-import org.prismsus.tank.elements.Tank
+import org.prismsus.tank.elements.*
 import org.prismsus.tank.event.*
 import org.prismsus.tank.game.OtherRequests.*
 import org.prismsus.tank.game.TankWeaponInfo.*
@@ -29,7 +26,7 @@ import kotlin.math.PI
 /**
  * @property replayFile The file to write game replay. If null, the game will not save game replay.
  */
-class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, val replayFile: File?) {
+class Game(val map: GameMap, vararg val bots: GameBot, val debug: Boolean = false, val replayFile: File?) {
     val humanPlayerBots: Array<HumanPlayerBot> = bots.filterIsInstance<HumanPlayerBot>().toTypedArray()
     var controllers: Array<FutureController>
     val requestsQ = PriorityBlockingQueue<ControllerRequest<Any>>()
@@ -266,6 +263,8 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
     }
 
     private fun processNewEvent(evt: GameEvent) {
+        if (evt is DebugEvent && evt.debugType.severity > DebugEvent.storeIfAboveOrEqual.severity)
+            return
         if(replayFile != null) {
             replaySaver!!.save(evt)
         }
@@ -332,6 +331,14 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
                 }
 
                 if (updatable.removeStat == GameElement.RemoveStat.TO_REMOVE) {
+                    if (debug && updatable is Tank) {
+                        val bulletColBox = collideds[0]
+                        val bullet = map.collidableToEle[bulletColBox]!! as Bullet
+                        val tkid = updatable.uid
+                        val bid = bullet.belongTo.uid
+                        processNewEvent(DebugEvent("Tank $tkid removed by bullet shot by $bid", DebugEvent.DebugType.ERROR))
+                    }
+                    processNewEvent(DebugEvent("testing debug event removed ${updatable.uid}", DebugEvent.DebugType.WARN))
                     toRemove.add(updatable)
                 }
 
@@ -475,7 +482,6 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
         if (replaySaver != null) {
             print("saving replay file...")
             replaySaver.stop()
-            replaySaver.postProcess()
             println("done")
         }
     }
@@ -500,7 +506,7 @@ class Game(val map: GameMap, vararg val bots: GameBot, debug: Boolean = false, v
             val auctBots = Array(1) { AuctTestBot() }
             val game = Game(
                 GameMap("15x15.json"), *aimingBots, *randBots, *players.toTypedArray(), *auctBots,
-                debug = false, replayFile = replayFile
+                debug = true, replayFile = replayFile
             )
             game.start()
         }

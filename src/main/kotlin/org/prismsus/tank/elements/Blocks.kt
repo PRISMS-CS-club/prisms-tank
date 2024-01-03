@@ -1,7 +1,7 @@
 package org.prismsus.tank.elements
 
+import org.prismsus.tank.markets.UpgradeEntry
 import org.prismsus.tank.utils.*
-import org.prismsus.tank.utils.collidable.ColPoly
 import org.prismsus.tank.utils.collidable.ColRect
 
 /**
@@ -56,4 +56,16 @@ class BreakableBlock(uid : Long, pos : IVec2) : Block(uid, pos, DEF_BLOCK_HP){
 class SolidBlock(uid : Long, pos : IVec2) : Block(uid, pos){
     override val serialName: String
         get() = "SldBlk"
+}
+
+
+
+class UpgradeBlock(uid : Long, pos : IVec2, val upgType : UpgradeEntry.UpgradeType, val perSecIncRate : Double) : Block(uid, pos)
+{
+    init {
+        if (upgType.isIntValue) throw IllegalArgumentException("upgType must be double value, as the rate is per second increment")
+    }
+
+    override val serialName: String
+        get() = "UpgBlk" + ":" + upgType.serialName
 }

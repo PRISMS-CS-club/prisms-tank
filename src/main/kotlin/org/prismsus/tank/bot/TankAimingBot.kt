@@ -55,7 +55,7 @@ class TankAimingBot : GameBot {
                     val ang = vec.angle()
                     mnAng = Math.min(mnAng, ang)
                 }
-                turnUntilThenFire(mnAng)
+                          turnUntilThenFire(mnAng)
             }
         } catch(e: InterruptedException){
             return

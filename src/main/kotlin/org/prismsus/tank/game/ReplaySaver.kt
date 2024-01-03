@@ -16,7 +16,7 @@ class ReplaySaver(game: Game, private val file: File) {
     init {
         fileStream.write("[\n".toByteArray())
         replayThread = Thread {
-            while(game.running) {
+            while(game.running && !Thread.interrupted()) {
                 if(!eventHistory.isEmpty()) {
                     writeEvent(eventHistory.poll())
                 }
@@ -38,6 +38,7 @@ class ReplaySaver(game: Game, private val file: File) {
         while(!eventHistory.isEmpty()) {
             writeEvent(eventHistory.poll())
         }
+        postProcess()
     }
 
     fun postProcess() {
