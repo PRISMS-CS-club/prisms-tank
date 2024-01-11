@@ -1,5 +1,6 @@
 package org.prismsus.tank.elements
 
+import org.prismsus.tank.event.UpdateEventMask
 import org.prismsus.tank.utils.INIT_BULLET_COLBOX
 import org.prismsus.tank.utils.INIT_BULLET_SPEED
 import org.prismsus.tank.utils.collidable.ColRect
@@ -26,7 +27,7 @@ class Bullet(uid: Long, val belongTo : Tank, var speed: Double = INIT_BULLET_SPE
         return ret
     }
 
-    override infix fun processCollision(other: GameElement): Boolean {
+    override infix fun processCollision(other: GameElement): UpdateEventMask {
         removeStat = RemoveStat.TO_REMOVE
         return super.processCollision(other)
     }

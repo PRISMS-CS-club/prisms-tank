@@ -72,6 +72,20 @@ class ElementCreateEvent(val ele: GameElement, timeStamp: Long = game!!.elapsedG
 
 
 data class UpdateEventMask(val hp: Boolean, val x: Boolean, val y: Boolean, val rad: Boolean) {
+
+    fun any(): Boolean {
+        return hp || x || y || rad
+    }
+    fun all(): Boolean {
+        return hp && x && y && rad
+    }
+    fun trueCnt() : Int {
+        return if (hp) 1 else 0 + if (x) 1 else 0 + if (y) 1 else 0 + if (rad) 1 else 0
+    }
+
+    fun falseCnt() : Int{
+        return if (!hp) 1 else 0 + if (!x) 1 else 0 + if (!y) 1 else 0 + if (!rad) 1 else 0
+    }
     companion object {
         fun defaultTrue(
             hp: Boolean = true,

@@ -303,110 +303,71 @@ class Game(val map: GameMap, vararg val bots: GameBot, val debug: Boolean = fals
     private fun handleUpdatableElements(): ArrayList<GameElement> {
         val dt = elapsedGameMs - lastGameLoopMs
         val toRemove = ArrayList<GameElement>()
-        val colsAfterMove = mutableSetOf<ColPoly>()
-        val afterMoveToBeforeMove = mutableMapOf<ColPoly, ColPoly>()
-
+        val movablesToOrigColPoly = mutableMapOf<MovableElement, ColPoly>()
+        val invalidMovementEles = mutableSetOf<MovableElement>()
         for (updatable in map.timeUpdatables) {
-            if (updatable is MovableElement && updatable.willMove(dt)) {
-                if (!map.quadTree.allSubCols.contains(updatable.colPoly))
-                    dbgMessage("colpoly not in quadtree")
+            if (updatable is MovableElement) {
+                movablesToOrigColPoly[updatable] = updatable.colPoly.copy() as ColPoly
                 map.quadTree.remove(updatable.colPoly)
             }
-            else {
-                updatable.updateByTime(dt)
+            updatable.updateByTime(dt)
+            if (updatable is MovableElement)
+                map.quadTree.insert(updatable.colPoly)
+        }
+
+        fun processCollision(ge1 : GameElement, ge2 : GameElement){
+            var stateChange = ge1.processCollision(ge2)
+            if (stateChange.any()){
+                processNewEvent(ElementUpdateEvent(ge1, stateChange, elapsedGameMs))
+            }
+            if (ge1.removeStat == GameElement.RemoveStat.TO_REMOVE){
+                toRemove.add(ge1)
+            }
+            stateChange = ge2.processCollision(ge1)
+            if (stateChange.any()){
+                processNewEvent(ElementUpdateEvent(ge2, stateChange, elapsedGameMs))
+            }
+            if (ge2.removeStat == GameElement.RemoveStat.TO_REMOVE){
+                toRemove.add(ge2)
             }
         }
 
-        for (ele in map.movables){
-            if (!ele.willMove(dt)) continue
-            val colAfterMove = ele.colPolyAfterMove(dt)
-            colsAfterMove.add(colAfterMove)
-            afterMoveToBeforeMove[colAfterMove] = ele.colPoly
-            map.quadTree.insert(colAfterMove)
-        }
+        for (me in map.movables){
+            val cols = map.quadTree.collidedObjs(me.colPoly)
+            cols.remove(me.colPoly)
 
-
-        for (movedColPoly in colsAfterMove){
-            val collideds = map.quadTree.collidedObjs(movedColPoly)
-            collideds.remove(movedColPoly)
-            val colBeforeMove1 = afterMoveToBeforeMove[movedColPoly]!!
-            val colGe1 = map.collidableToEle[colBeforeMove1]!! as MovableElement
-            for (col in collideds){
-                // here all collideds are colpoly after movement
-                var colGe2 = map.collidableToEle[col]
-                if (col in colsAfterMove){
-                    val colBeforeMove2 = afterMoveToBeforeMove[col]!!
-                    colGe2 = map.collidableToEle[colBeforeMove2]!! as MovableElement
+            for (col in cols){
+                val colGe = map.collidableToEle[col] ?: continue
+                processCollision(me, colGe)
+                if (me is Tank){
+                    lastCollidedEleWithTanks.getOrPut(me){ArrayList()}.add(colGe)
                 }
-                var hpChanged =  colGe1.processCollision(colGe2!!)
-                if (hpChanged){
-                    processNewEvent(
-                        ElementUpdateEvent(
-                            colGe1,
-                            UpdateEventMask.defaultFalse(
-                                hp = true
-                            ),
-                        )
-                    )
-                }
-                hpChanged = colGe2.processCollision(colGe1)
-                if (hpChanged){
-                    processNewEvent(
-                        ElementUpdateEvent(
-                            colGe2,
-                            UpdateEventMask.defaultFalse(
-                                hp = true
-                            ),
-                        )
-                    )
-                }
-
-                if (colGe1.removeStat == GameElement.RemoveStat.TO_REMOVE){
-                    toRemove.add(colGe1)
-                }
-                if (colGe2.removeStat == GameElement.RemoveStat.TO_REMOVE){
-                    toRemove.add(colGe2)
-                }
-                // TODO: maintain lastCollidedEle
-//                (lastCollidedEle[colGe1] ?: lastCollidedEle.put(colGe1, ArrayList())!!).add(colGe2)
-                if (colGe1 is Tank)
-                    lastCollidedEleWithTanks.getOrPut(colGe1, {ArrayList()}).add(colGe2!!)
             }
-
-            if (collideds.isEmpty()){
-                // the movement is valid
-                val prevAng = colGe1.colPoly.angleRotated
-                val prevPos = colGe1.colPoly.rotationCenter.copy()
-                colGe1.updateByTime(dt)
-                val curAng = colGe1.colPoly.angleRotated
-                val curPos = colGe1.colPoly.rotationCenter.copy()
+            if (cols.isEmpty()){
+                if (me is Tank) lastCollidedEleWithTanks[me] = ArrayList()
+                val origColPoly = movablesToOrigColPoly[me]!!
+                val curColPoly = me.colPoly
                 processNewEvent(
                     ElementUpdateEvent(
-                        colGe1,
+                        me,
                         UpdateEventMask.defaultFalse(
-                            x = curPos.x != prevPos.x,
-                            y = curPos.y != prevPos.y,
-                            rad = curAng != prevAng
-                        ),
-                        elapsedGameMs
+                            x = origColPoly.rotationCenter.x != curColPoly.rotationCenter.x,
+                            y = origColPoly.rotationCenter.y != curColPoly.rotationCenter.y,
+                            rad = origColPoly.angleRotated != curColPoly.angleRotated
+                        )
                     )
                 )
-
-                // remove elements in lastCollidedEle
-                if(colGe1 is Tank)
-                    lastCollidedEleWithTanks[colGe1] = ArrayList()
+            } else {
+                invalidMovementEles.add(me)
             }
-
         }
 
-        for (movedColPoly in colsAfterMove){
-            map.quadTree.remove(movedColPoly)
-            map.quadTree.insert(afterMoveToBeforeMove[movedColPoly]!!)
+        for (invalidMe in invalidMovementEles){
+            map.quadTree.remove(invalidMe.colPoly)
+            invalidMe.colPoly.becomeCopy(movablesToOrigColPoly[invalidMe]!!)
+            map.quadTree.insert(invalidMe.colPoly)
         }
 
-        for (entry in lastCollidedEleWithTanks) {
-            lastCollidedEleWithTanks[entry.key] = ArrayList(entry.value.distinct())
-        }
         return ArrayList(toRemove.distinct())
     }
 

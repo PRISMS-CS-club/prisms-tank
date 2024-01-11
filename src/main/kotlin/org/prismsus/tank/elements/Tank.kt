@@ -1,6 +1,7 @@
 package org.prismsus.tank.elements
 
 import org.prismsus.tank.event.PlayerUpdateEvent
+import org.prismsus.tank.event.UpdateEventMask
 import org.prismsus.tank.markets.UpgradeEntry
 import org.prismsus.tank.markets.UpgradeEntry.*
 import org.prismsus.tank.markets.UpgradeRecord
@@ -113,7 +114,7 @@ class Tank(
         return after as ColMultiPart
     }
 
-    override fun processCollision(other: GameElement): Boolean {
+    override fun processCollision(other: GameElement): UpdateEventMask {
         val ret = super.processCollision(other)
         if (removeStat != RemoveStat.TO_REMOVE && hp > maxHp)
             hp = maxHp

@@ -1,4 +1,5 @@
 package org.prismsus.tank.elements;
+import org.prismsus.tank.event.UpdateEventMask
 import org.prismsus.tank.utils.collidable.ColPoly
 import kotlin.collections.ArrayList
 
@@ -14,16 +15,16 @@ abstract class GameElement(val uid : Long, var hp : Int = -1, open val colPoly :
     /**
      * called when detect two objects intersect with each other
      * @param other the other game element
-     * @return whether the state of the [GameElement] is changed
+     * @return whether the state change of [GameElement]
      */
-    open infix fun processCollision(other : GameElement) : Boolean {
-        if (other.uid in noCollisionElementIds) return false
-        if (hp == -1 || other !is Bullet) return false
+    open infix fun processCollision(other : GameElement) : UpdateEventMask {
+        if (other.uid in noCollisionElementIds) return UpdateEventMask.defaultFalse()
+        if (hp == -1 || other !is Bullet) return UpdateEventMask.defaultFalse()
         hp -= other.damage
         if (hp <= 0) {
             removeStat = RemoveStat.TO_REMOVE
         }
-        return other.damage > 0
+        return UpdateEventMask.defaultFalse(hp=true)
     }
 
     override fun hashCode(): Int {
