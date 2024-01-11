@@ -33,7 +33,7 @@ class Game(val map: GameMap, vararg val bots: GameBot, val debug: Boolean = fals
     val requestsQ = PriorityBlockingQueue<ControllerRequest<Any>>()
     val cidToTank = mutableMapOf<Long, Tank?>()
     val tankToCid = mutableMapOf<Tank, Long>()
-    val lastCollidedEle = mutableMapOf<GameElement, ArrayList<GameElement>>()
+    val lastCollidedEleWithTanks = mutableMapOf<Tank, ArrayList<GameElement>>()
     val botThs: Array<Thread?> = Array(bots.size) { null }
     val tankKilledOrder : ArrayList<Long> = ArrayList()
     private val replaySaver: ReplaySaver?
@@ -226,7 +226,7 @@ class Game(val map: GameMap, vararg val bots: GameBot, val debug: Boolean = fals
             }
 
             CHECK_COLLIDING_GAME_ELES -> {
-                val ret = lastCollidedEle[tk]?.filter {
+                val ret = lastCollidedEleWithTanks[tk]?.filter {
                     val dis = it.colPoly.rotationCenter.dis(tk.colPoly.rotationCenter)
                     dis <= tk.visibleRange
                 }
@@ -305,7 +305,6 @@ class Game(val map: GameMap, vararg val bots: GameBot, val debug: Boolean = fals
         val toRemove = ArrayList<GameElement>()
         val colsAfterMove = mutableSetOf<ColPoly>()
         val afterMoveToBeforeMove = mutableMapOf<ColPoly, ColPoly>()
-        val invalidlyMovedColPolys = ArrayList<ColPoly>() // after movement, some colpoly will collide with others
 
         for (updatable in map.timeUpdatables) {
             if (updatable is MovableElement && updatable.willMove(dt)) {
@@ -370,6 +369,8 @@ class Game(val map: GameMap, vararg val bots: GameBot, val debug: Boolean = fals
                 }
                 // TODO: maintain lastCollidedEle
 //                (lastCollidedEle[colGe1] ?: lastCollidedEle.put(colGe1, ArrayList())!!).add(colGe2)
+                if (colGe1 is Tank)
+                    lastCollidedEleWithTanks.getOrPut(colGe1, {ArrayList()}).add(colGe2!!)
             }
 
             if (collideds.isEmpty()){
@@ -390,6 +391,10 @@ class Game(val map: GameMap, vararg val bots: GameBot, val debug: Boolean = fals
                         elapsedGameMs
                     )
                 )
+
+                // remove elements in lastCollidedEle
+                if(colGe1 is Tank)
+                    lastCollidedEleWithTanks[colGe1] = ArrayList()
             }
 
         }
@@ -399,8 +404,8 @@ class Game(val map: GameMap, vararg val bots: GameBot, val debug: Boolean = fals
             map.quadTree.insert(afterMoveToBeforeMove[movedColPoly]!!)
         }
 
-        for (entry in lastCollidedEle) {
-            lastCollidedEle[entry.key] = ArrayList(entry.value.distinct())
+        for (entry in lastCollidedEleWithTanks) {
+            lastCollidedEleWithTanks[entry.key] = ArrayList(entry.value.distinct())
         }
         return ArrayList(toRemove.distinct())
     }
