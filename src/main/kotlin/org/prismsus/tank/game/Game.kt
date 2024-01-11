@@ -11,13 +11,14 @@ import org.prismsus.tank.markets.AuctionUserInterface
 import org.prismsus.tank.markets.MarketImpl
 import org.prismsus.tank.networkings.GuiCommunicator
 import org.prismsus.tank.utils.*
-import org.prismsus.tank.utils.nextUid
 import org.prismsus.tank.utils.collidable.ColMultiPart
+import org.prismsus.tank.utils.collidable.ColPoly
 import org.prismsus.tank.utils.collidable.DPos2
 import java.io.File
 import java.nio.file.Paths
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.*
 import java.util.concurrent.PriorityBlockingQueue
 import javax.swing.JFrame
 import javax.swing.WindowConstants
@@ -273,6 +274,10 @@ class Game(val map: GameMap, vararg val bots: GameBot, val debug: Boolean = fals
         }
     }
 
+    fun dbgMessage(msg: String, severity : DebugEvent.DebugType = DebugEvent.printIfAboveOrEqual) {
+        processNewEvent(DebugEvent(msg, severity))
+    }
+
     private fun handleRequests() {
         while (!requestsQ.isEmpty()) {
             val curReq = requestsQ.poll()
@@ -298,80 +303,102 @@ class Game(val map: GameMap, vararg val bots: GameBot, val debug: Boolean = fals
     private fun handleUpdatableElements(): ArrayList<GameElement> {
         val dt = elapsedGameMs - lastGameLoopMs
         val toRemove = ArrayList<GameElement>()
+        val colsAfterMove = mutableSetOf<ColPoly>()
+        val afterMoveToBeforeMove = mutableMapOf<ColPoly, ColPoly>()
+        val invalidlyMovedColPolys = ArrayList<ColPoly>() // after movement, some colpoly will collide with others
+
         for (updatable in map.timeUpdatables) {
             if (updatable is MovableElement && updatable.willMove(dt)) {
-                if (updatable.colPoly is ColMultiPart)
-                    (updatable.colPoly as ColMultiPart).checks()
-                val colPolyAfterMove = updatable.colPolyAfterMove(dt)
-                val collideds = map.quadTree.collidedObjs(colPolyAfterMove)
-                collideds.remove(updatable.colPoly)
-                val prevHp = updatable.hp
-                var curHp = updatable.hp
-                for (collided in collideds) {
-                    val otherGe = map.collidableToEle[collided]!!
-                    updatable.processCollision(otherGe)
-                    lastCollidedEle.getOrPut(updatable) { ArrayList() }.add(otherGe)
-                    lastCollidedEle.getOrPut(otherGe) { ArrayList() }.add(updatable)
-                    curHp = updatable.hp
-                    val hpChanged = otherGe.processCollision(updatable)
-                    if (hpChanged) {
-                        processNewEvent(
-                            ElementUpdateEvent(
-                                otherGe,
-                                UpdateEventMask.defaultFalse(
-                                    hp = true
-                                ),
-                                elapsedGameMs
-                            )
-                        )
-                        if (otherGe.removeStat == GameElement.RemoveStat.TO_REMOVE) {
-                            toRemove.add(otherGe)
-                        }
-                    }
-                }
-
-                if (updatable.removeStat == GameElement.RemoveStat.TO_REMOVE) {
-                    if (debug && updatable is Tank) {
-                        val bulletColBox = collideds[0]
-                        val bullet = map.collidableToEle[bulletColBox]!! as Bullet
-                        val tkid = updatable.uid
-                        val bid = bullet.belongTo.uid
-                        processNewEvent(DebugEvent("Tank $tkid removed by bullet shot by $bid", DebugEvent.DebugType.ERROR))
-                    }
-                    processNewEvent(DebugEvent("testing debug event removed ${updatable.uid}", DebugEvent.DebugType.WARN))
-                    toRemove.add(updatable)
-                }
-
-                if (collideds.isNotEmpty()) {
-                    continue
-                }
-
-                val prevPos =
-                    if (updatable.colPoly is ColMultiPart) (updatable.colPoly as ColMultiPart).baseColPoly.rotationCenter else updatable.colPoly.rotationCenter
-                val prevAng = updatable.colPoly.angleRotated
-                val curPos =
-                    if (colPolyAfterMove is ColMultiPart) (colPolyAfterMove).baseColPoly.rotationCenter else colPolyAfterMove.rotationCenter
-                val curAng = colPolyAfterMove.angleRotated
-                if (collideds.isEmpty() && (prevPos != curPos || prevAng != curAng)) {
-                    assert(map.quadTree.remove(updatable.colPoly))
-                    updatable.colPoly.becomeNonCopy(colPolyAfterMove)
-                    map.quadTree.insert(updatable.colPoly)
-                    processNewEvent(
-                        ElementUpdateEvent(
-                            updatable,
-                            UpdateEventMask.defaultFalse(
-                                x = (prevPos.x errNE curPos.x),
-                                y = (prevPos.y errNE curPos.y),
-                                rad = (prevAng errNE curAng),
-                                hp = (prevHp != curHp)
-                            ), elapsedGameMs
-                        )
-                    )
-                }
-            } else {
+                if (!map.quadTree.allSubCols.contains(updatable.colPoly))
+                    dbgMessage("colpoly not in quadtree")
+                map.quadTree.remove(updatable.colPoly)
+            }
+            else {
                 updatable.updateByTime(dt)
             }
         }
+
+        for (ele in map.movables){
+            if (!ele.willMove(dt)) continue
+            val colAfterMove = ele.colPolyAfterMove(dt)
+            colsAfterMove.add(colAfterMove)
+            afterMoveToBeforeMove[colAfterMove] = ele.colPoly
+            map.quadTree.insert(colAfterMove)
+        }
+
+
+        for (movedColPoly in colsAfterMove){
+            val collideds = map.quadTree.collidedObjs(movedColPoly)
+            collideds.remove(movedColPoly)
+            val colBeforeMove1 = afterMoveToBeforeMove[movedColPoly]!!
+            val colGe1 = map.collidableToEle[colBeforeMove1]!! as MovableElement
+            for (col in collideds){
+                // here all collideds are colpoly after movement
+                var colGe2 = map.collidableToEle[col]
+                if (col in colsAfterMove){
+                    val colBeforeMove2 = afterMoveToBeforeMove[col]!!
+                    colGe2 = map.collidableToEle[colBeforeMove2]!! as MovableElement
+                }
+                var hpChanged =  colGe1.processCollision(colGe2!!)
+                if (hpChanged){
+                    processNewEvent(
+                        ElementUpdateEvent(
+                            colGe1,
+                            UpdateEventMask.defaultFalse(
+                                hp = true
+                            ),
+                        )
+                    )
+                }
+                hpChanged = colGe2.processCollision(colGe1)
+                if (hpChanged){
+                    processNewEvent(
+                        ElementUpdateEvent(
+                            colGe2,
+                            UpdateEventMask.defaultFalse(
+                                hp = true
+                            ),
+                        )
+                    )
+                }
+
+                if (colGe1.removeStat == GameElement.RemoveStat.TO_REMOVE){
+                    toRemove.add(colGe1)
+                }
+                if (colGe2.removeStat == GameElement.RemoveStat.TO_REMOVE){
+                    toRemove.add(colGe2)
+                }
+                // TODO: maintain lastCollidedEle
+//                (lastCollidedEle[colGe1] ?: lastCollidedEle.put(colGe1, ArrayList())!!).add(colGe2)
+            }
+
+            if (collideds.isEmpty()){
+                // the movement is valid
+                val prevAng = colGe1.colPoly.angleRotated
+                val prevPos = colGe1.colPoly.rotationCenter.copy()
+                colGe1.updateByTime(dt)
+                val curAng = colGe1.colPoly.angleRotated
+                val curPos = colGe1.colPoly.rotationCenter.copy()
+                processNewEvent(
+                    ElementUpdateEvent(
+                        colGe1,
+                        UpdateEventMask.defaultFalse(
+                            x = curPos.x != prevPos.x,
+                            y = curPos.y != prevPos.y,
+                            rad = curAng != prevAng
+                        ),
+                        elapsedGameMs
+                    )
+                )
+            }
+
+        }
+
+        for (movedColPoly in colsAfterMove){
+            map.quadTree.remove(movedColPoly)
+            map.quadTree.insert(afterMoveToBeforeMove[movedColPoly]!!)
+        }
+
         for (entry in lastCollidedEle) {
             lastCollidedEle[entry.key] = ArrayList(entry.value.distinct())
         }
