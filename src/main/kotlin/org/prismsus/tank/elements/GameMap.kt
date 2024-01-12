@@ -145,13 +145,6 @@ class GameMap(val fileName: String) {
         return ele
     }
 
-    fun scanAndRemEle(){
-        val toRemove = gameEles.filter { it.removeStat == GameElement.RemoveStat.TO_REMOVE }
-        for (ele in toRemove){
-            remEle(ele)
-        }
-    }
-
     fun<T> parseJson2Darray(jsonEle: JsonElement, parseFunc: (JsonElement) -> T): Array<Array<T>>{
         val tempJsonArr: JsonArray = jsonEle.jsonObject["map"]!!.jsonArray
         val arrWid = tempJsonArr.size

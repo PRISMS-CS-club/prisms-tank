@@ -22,6 +22,7 @@ import java.util.*
 import java.util.concurrent.PriorityBlockingQueue
 import javax.swing.JFrame
 import javax.swing.WindowConstants
+import kotlin.concurrent.thread
 import kotlin.math.PI
 
 /**
@@ -78,7 +79,7 @@ class Game(val map: GameMap, vararg val bots: GameBot, val debug: Boolean = fals
         }
 
         if (debug) {
-            debugTh = Thread {
+            debugTh = thread(name="debug thread") {
                 val frame = JFrame("collision box")
                 frame.defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
                 frame.setSize(1000, 800)
@@ -94,7 +95,6 @@ class Game(val map: GameMap, vararg val bots: GameBot, val debug: Boolean = fals
                     Thread.sleep(DEF_DEBUG_MS_PER_LOOP)
                 }
             }
-            debugTh.start()
         } else {
             debugTh = null
         }
@@ -377,18 +377,16 @@ class Game(val map: GameMap, vararg val bots: GameBot, val debug: Boolean = fals
         marketImpl.start()
 
         for ((i, bot) in bots.withIndex()) {
-            botThs[i] =
-                Thread {
-                    try {
-                        if (bot.isFutureController)
-                            bot.loop(controllers[i])
-                        else
-                            bot.loop(Controller(controllers[i]))
-                    } catch (e: InterruptedException) {
-                        println("Bot ${bot.name} interrupted")
-                    }
+            botThs[i] = thread(name="bot \'${bot.name}\' thread") {
+                try {
+                    if (bot.isFutureController)
+                        bot.loop(controllers[i])
+                    else
+                        bot.loop(Controller(controllers[i]))
+                } catch (e: InterruptedException) {
+                    println("Bot ${bot.name} interrupted")
                 }
-            botThs[i]!!.start()
+            }
         }
 
 
@@ -498,7 +496,7 @@ class Game(val map: GameMap, vararg val bots: GameBot, val debug: Boolean = fals
             val aimingBots = Array(1) { TankAimingBot() }
             val auctBots = Array(1) { AuctTestBot() }
             val game = Game(
-                GameMap("15x15.json"), *aimingBots, *randBots, *players.toTypedArray(), *auctBots,
+                GameMap("default.json"), *aimingBots, *randBots, *players.toTypedArray(), *auctBots,
                 debug = true, replayFile = replayFile
             )
             game.start()

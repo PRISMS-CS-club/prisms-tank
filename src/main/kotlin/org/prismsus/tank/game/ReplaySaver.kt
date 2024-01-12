@@ -7,6 +7,7 @@ import org.prismsus.tank.utils.toJsonElement
 import java.io.File
 import java.io.FileOutputStream
 import java.util.concurrent.PriorityBlockingQueue
+import kotlin.concurrent.thread
 
 class ReplaySaver(game: Game, private val file: File) {
     private val fileStream = file.outputStream()
@@ -15,7 +16,7 @@ class ReplaySaver(game: Game, private val file: File) {
 
     init {
         fileStream.write("[\n".toByteArray())
-        replayThread = Thread {
+        replayThread = thread(name="replay saver") {
             while(game.running && !Thread.interrupted()) {
                 if(!eventHistory.isEmpty()) {
                     writeEvent(eventHistory.poll())
