@@ -13,9 +13,8 @@ import org.prismsus.tank.utils.treeDistinct
  * [allPts] contains all the points in [baseColPoly], [subColPolys] and [pts]
  * For the point of same value in [baseColPoly], [subColPolys] and [pts], only one copy is kept in [allPts]
 * */
-class ColMultiPart(baseColPoly : ColPoly, vararg subColPolys : ColPoly) : ColPoly((baseColPoly.unionMultiple(*subColPolys))!!.pts){
-    constructor() : this(ColPoly(), ColPoly()) // for serialization
-    val baseColPoly = baseColPoly
+class ColMultiPart(val baseColPoly : ColPoly, vararg subColPolys : ColPoly, val enableChecks : Boolean = true) : ColPoly((baseColPoly.unionMultiple(*subColPolys))!!.pts){
+    constructor() : this(ColPoly(), ColPoly(), enableChecks=false) // for serialization
 
     val allPts : Array<DPos2>
 
@@ -37,6 +36,7 @@ class ColMultiPart(baseColPoly : ColPoly, vararg subColPolys : ColPoly) : ColPol
     }
 
     fun checks() {
+        if (!enableChecks) return
         var found = false
         for (pt in allPts) {
             if (pt === rCenter) {
@@ -128,6 +128,11 @@ class ColMultiPart(baseColPoly : ColPoly, vararg subColPolys : ColPoly) : ColPol
         checks()
     }
 
+    override fun becomeCopy(other: Collidable) {
+        checks()
+        becomeNonCopy(other.copy())
+        checks()
+    }
     override fun copy(): ColMultiPart{
         checks()
          val newBase = baseColPoly.copy() as ColPoly
