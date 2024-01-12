@@ -19,13 +19,14 @@ class Tank(
     hp: Int = INIT_TANK_HP,
     val tankRectBox: ColRect = INIT_TANK_COLBOX,
     var visibleRange : Double = INIT_TANK_VIS_RANGE,
-    var money : Int = INIT_TANK_MONEY
+    var money : Int = INIT_TANK_MONEY,
+    val enableColMultiPartChecks : Boolean = true
 ) : MovableElement(
-        uid, hp, ColMultiPart((tankRectBox), (weaponProps.colPoly))
+        uid, hp, ColMultiPart((tankRectBox), (weaponProps.colPoly), enableChecks = enableColMultiPartChecks)
     ) {
     var maxHp = hp
     var weapon: Weapon = weaponProps.toWeapon(this)
-    constructor() : this(0, "", INIT_RECT_WEAPON_RPOPS) // for serialization
+    constructor() : this(0, "", INIT_RECT_WEAPON_RPOPS, enableColMultiPartChecks = false) // for serialization
     var leftTrackVelo: Double = .0
         set(value) {
             field = sign(value) * min(abs(value), trackMaxSpeed)
