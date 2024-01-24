@@ -46,7 +46,7 @@ class GameMapTest{
                 }
             }
             Cpanel.showFrame()
-            val quadPanel = gameMap.quadTree.getCoordPanel(IDim2(1000, 1000))
+            val quadPanel = gameMap.quadTree.getCoordinatePanel(IDim2(1000, 1000))
             quadPanel.showFrame()
             while(true){}
         }

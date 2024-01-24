@@ -13,7 +13,7 @@ class AuctTestBot : GameBot{
 //                println("cur item: ${m.curAuctionItem}")
                 if (m.curWinningBid!!.price < MAX_BID) {
                     m.bid(m.curWinningBid!!.price + 1)
-                    println("test bot is bidding ${m.curWinningBid!!.price + 1}")
+//                    println("test bot is bidding ${m.curWinningBid!!.price + 1}")
                 }
             }
             Thread.sleep(50)

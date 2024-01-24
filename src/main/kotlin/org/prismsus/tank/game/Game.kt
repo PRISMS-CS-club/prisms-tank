@@ -83,12 +83,12 @@ class Game(val map: GameMap, vararg val bots: GameBot, val debug: Boolean = fals
                 val frame = JFrame("collision box")
                 frame.defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
                 frame.setSize(1000, 800)
-                var panel = map.quadTree.getCoordPanel(IDim2(frame.size.width, frame.size.height))
+                var panel = map.quadTree.getCoordinatePanel(IDim2(frame.size.width, frame.size.height))
                 frame.contentPane.add(panel)
                 frame.isVisible = true
                 while (!Thread.interrupted()) {
                     frame.contentPane.remove(panel)
-                    panel = map.quadTree.getCoordPanel(IDim2(frame.size.width, frame.size.height))
+                    panel = map.quadTree.getCoordinatePanel(IDim2(frame.size.width, frame.size.height))
                     frame.contentPane.add(panel)
                     frame.revalidate()
                     frame.repaint()
@@ -308,11 +308,15 @@ class Game(val map: GameMap, vararg val bots: GameBot, val debug: Boolean = fals
         for (updatable in map.timeUpdatables) {
             if (updatable is MovableElement) {
                 movablesToOrigColPoly[updatable] = updatable.colPoly.copy() as ColPoly
-                map.quadTree.remove(updatable.colPoly)
+                synchronized(map.quadTree) {
+                    map.quadTree.remove(updatable.colPoly)
+                }
             }
             updatable.updateByTime(dt)
             if (updatable is MovableElement)
-                map.quadTree.insert(updatable.colPoly)
+                synchronized(map.quadTree) {
+                    map.quadTree.insert(updatable.colPoly)
+                }
         }
 
         fun processCollision(ge1 : GameElement, ge2 : GameElement){
@@ -363,9 +367,13 @@ class Game(val map: GameMap, vararg val bots: GameBot, val debug: Boolean = fals
         }
 
         for (invalidMe in invalidMovementEles){
-            map.quadTree.remove(invalidMe.colPoly)
+            synchronized(map.quadTree) {
+                map.quadTree.remove(invalidMe.colPoly)
+            }
             invalidMe.colPoly.becomeCopy(movablesToOrigColPoly[invalidMe]!!)
-            map.quadTree.insert(invalidMe.colPoly)
+            synchronized(map.quadTree) {
+                map.quadTree.insert(invalidMe.colPoly)
+            }
         }
 
         return ArrayList(toRemove.distinct())
@@ -496,8 +504,8 @@ class Game(val map: GameMap, vararg val bots: GameBot, val debug: Boolean = fals
             val aimingBots = Array(1) { TankAimingBot() }
             val auctBots = Array(1) { AuctTestBot() }
             val game = Game(
-                GameMap("default.json"), *aimingBots, *randBots, *players.toTypedArray(), *auctBots,
-                debug = true, replayFile = replayFile
+                GameMap("15x15.json"), *aimingBots, *randBots, *players.toTypedArray(), *auctBots,
+                debug = false, replayFile = replayFile
             )
             game.start()
         }

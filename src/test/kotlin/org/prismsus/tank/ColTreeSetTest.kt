@@ -46,7 +46,7 @@ class ColTreeSetTest {
         for (pt in randPts) {
             quadTree.insert(pt.toPt())
         }
-        val panel = quadTree.getCoordPanel(IDim2(1000, 1000))
+        val panel = quadTree.getCoordinatePanel(IDim2(1000, 1000))
         panel.showFrame()
         while(true){}
     }

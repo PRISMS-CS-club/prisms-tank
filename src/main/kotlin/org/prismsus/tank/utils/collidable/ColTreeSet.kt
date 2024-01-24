@@ -46,7 +46,8 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
         get() {
             val res: ArrayList<Collidable> = cols.clone() as ArrayList<Collidable>
             subTrees?.forEach { res.addAll(it.allSubCols) }
-            assert(res.size == size) { "allSubCols=${res.size}, size=$size" }
+            if(res.size != size)
+                assert(res.size == size) { "allSubCols=${res.size}, size=$size" }
             return res
         }
     val allSubPartitionLines: ArrayList<Line>
@@ -256,10 +257,18 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
     }
 
 
-    fun getCoordPanel(panelSiz : IDim2) : CoordPanel {
+    fun getCoordinatePanel(panelSiz : IDim2) : CoordPanel {
+        // first load all the collidable elements once, to avoid busy computations later
+        val allCollidableElements: ArrayList<Collidable>
+        val allPartitionLines: ArrayList<Line>
+        synchronized(this) {
+            allCollidableElements = allSubCols
+            allPartitionLines = allSubPartitionLines
+        }
+        // find the max and min position of all collidable elements, to determine the size of the panel
         var maxPos = DPos2(Double.MIN_VALUE / 2, Double.MIN_VALUE / 2)
         var minPos = DPos2(Double.MAX_VALUE / 2, Double.MAX_VALUE / 2)
-        for (col in allSubCols) {
+        for (col in allCollidableElements) {
             maxPos = maxPos max col.encAARect.topRightPt
             minPos = minPos min col.encAARect.bottomLeftPt
         }
@@ -270,10 +279,10 @@ class ColTreeSet(val dep: Int, val bound: ColAARect) {
         // actual interval = pinterv * pfactor
         val pInterv = ceil(max(30.0 / pFactor, 1.0)).toInt()
         val panel = CoordPanel(IDim2(pInterv, pInterv), IDim2(pFactor.toInt(), pFactor.toInt()), panelSiz, -panelSiz / 3)
-        for (col in allSubCols){
+        for (col in allCollidableElements){
             panel.drawCollidable(col)
         }
-        for (line in allSubPartitionLines){
+        for (line in allPartitionLines){
             panel.graphicsModifier = {
                 g -> g.color = Color.RED
             }
