@@ -6,6 +6,7 @@ import org.prismsus.tank.game.ControllerRequest
 import org.prismsus.tank.game.OtherRequests
 import org.prismsus.tank.networkings.WebSocketListener
 import org.prismsus.tank.utils.game
+import org.prismsus.tank.utils.gameMap
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 
@@ -31,6 +32,8 @@ class HumanPlayerBot(private val name : String, val webSockSession : DefaultWebS
         while(true){
             if (evtsFromClnt.isEmpty()) continue
             val evt = evtsFromClnt.poll()
+            val incRate = controller.hpMoneyIncRate.get()
+            controller.setDebugString("inc rate: hp ${incRate.first}, money ${incRate.second}")
             when(evt.funName){
                 "lTrack" -> {
                     controller.requestsQ.add(ControllerRequest(controller.cid, null, OtherRequests.SET_LTRACK_SPEED, arrayOf((evt.params[0] as Number).toDouble()), evt.timeStamp))

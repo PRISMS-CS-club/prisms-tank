@@ -1,5 +1,6 @@
 package org.prismsus.tank.bot;
 
+import kotlin.Pair;
 import org.prismsus.tank.elements.Block;
 import org.prismsus.tank.elements.Bullet;
 import org.prismsus.tank.elements.GameElement;
@@ -208,6 +209,16 @@ public class FutureController {
         CompletableFuture<Object> ret = new CompletableFuture<>();
         requestsQ.add(new ControllerRequest<>(cid, ret, TankWeaponInfo.TANK_VIS_RANGE));
         return ret.thenApply((Object it) -> (Double) it);
+    }
+
+    public void setDebugString(String str) {
+        requestsQ.add(new ControllerRequest<>(cid, null, OtherRequests.SET_DEBUG_STRING, new String[]{str}));
+    }
+
+    public Future<Pair<Double, Double>> getHpMoneyIncRate() {
+        CompletableFuture<Object> ret = new CompletableFuture<>();
+        requestsQ.add(new ControllerRequest<>(cid, ret, OtherRequests.GET_HP_MONEY_INC_RATE));
+        return ret.thenApply((Object it) -> (Pair<Double, Double>) it);
     }
 
 

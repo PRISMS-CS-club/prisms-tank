@@ -25,6 +25,8 @@ class GameMap(val fileName: String) {
     val bullets: ArrayList<Bullet> = ArrayList()
     val quadTree: ColTreeSet
     val collidableToEle = mutableMapOf<Collidable, GameElement>()
+    private val hpMap : Array<Array<Double>>
+    private val moneyMap : Array<Array<Double>>
     val lastUid: Long
         get() {
             if (gameEles.size == 0)
@@ -145,20 +147,30 @@ class GameMap(val fileName: String) {
         return ele
     }
 
-    fun<T> parseJson2Darray(jsonEle: JsonElement, parseFunc: (JsonElement) -> T): Array<Array<T>>{
-        val tempJsonArr: JsonArray = jsonEle.jsonObject["map"]!!.jsonArray
-        val arrWid = tempJsonArr.size
-        val arrHei = tempJsonArr[0].jsonArray.size
-        val ret = Array(arrWid) { Array<Any?>(arrHei) { null } }
+    fun getHpMoneyIncRate(tk : Tank) : Pair<Double, Double>{
+        // return (hpIncRate, moneyIncRate
+        val centPt = tk.colPoly.rotationCenter
+        val x = centPt.x.toInt()
+        val y = centPt.y.toInt()
+        val hpIncRate = hpMap[x][y]
+        val moneyIncRate = moneyMap[x][y]
+        return Pair(hpIncRate, moneyIncRate)
+    }
 
-        for (i in 0 until width) {
-            for (j in 0 until height) {
-                val tmpBlk = tempJsonArr[i].jsonArray[j]
-                ret[i][j] = parseFunc(tmpBlk)
+    inline fun<reified T> parse1dArrToXY2dArr(arr : Array<T>, h : Int = height, w : Int = width) : Array<Array<T>>{
+        assert(arr.size == h * w, {"array size: ${arr.size}, h: $h, w: $w"})
+        val ret = Array(w) { Array(h) { arr[0] } }
+        for (y in h - 1 downTo  0){
+            for (x in 0 until w){
+                // we want to store blocks array in x, y order
+                // but the json file is in i, j order
+                // meaning that with greater j index, y index is smaller
+                val j = h - 1 - y
+                val i = x
+                ret[x][y] = arr[j * h + i]
             }
         }
-        return TODO()
-//        return ret
+        return ret
     }
 
     init {
@@ -171,7 +183,6 @@ class GameMap(val fileName: String) {
             ColTreeSet(0, ColAARect.byBottomLeft(blPt, DDim2(width.toDouble(), height.toDouble()) + (blPt.toVec() * 2.0).abs()))
         blocks = Array(width) { Array(height) { null } }
         upgBlocks = Array(width) { Array(height) { ArrayList() } }
-        var tmpBlkArr: JsonArray = jsonEle.jsonObject["map"]!!.jsonArray
         /*
         *    "IncMap" : {
              "hp"    : [[1.114, 1.514],
@@ -180,15 +191,13 @@ class GameMap(val fileName: String) {
                       [1.191, 1.981]]
              }
         * */
-//        val incMap = jsonEle.jsonObject["IncMap"]!!.jsonObject.toMap()
-
+        val incMap = jsonEle.jsonObject["IncMap"]!!.jsonObject.toMap()
+        hpMap = parse1dArrToXY2dArr(incMap["hp"]!!.jsonArray.toTypedArray()).map{it.map{it.jsonPrimitive.double}.toTypedArray()}.toTypedArray()
+        moneyMap = parse1dArrToXY2dArr(incMap["money"]!!.jsonArray.toTypedArray()).map{it.map{it.jsonPrimitive.double}.toTypedArray()}.toTypedArray()
+        val blkArr = parse1dArrToXY2dArr(jsonEle.jsonObject["map"]!!.jsonArray.toTypedArray())
         for (y in height - 1 downTo 0) {
             for (x in 0 until width) {
-                // we want to store blocks array in x, y order
-                // but the json file is in i, j order
-                // meaning that with greater j index, y index is smaller
-                val j = height - 1 - y
-                val serialName = tmpBlkArr[j * height + x].jsonPrimitive.content
+                val serialName = blkArr[x][y].jsonPrimitive.content
                 if (serialName.isEmpty())
                     continue
                 val eleType = ELE_SERIAL_NAME_TO_CLASS[serialName]!!
@@ -198,7 +207,7 @@ class GameMap(val fileName: String) {
                 if (eleType.isSubclassOf(Block::class)) {
                     ele = eleType.constructors.first().call(nextUid, pos)
                 }
-                
+//
                 ele?.run {
                     addEle(ele)
                 }

@@ -148,7 +148,7 @@ class ElementRemoveEvent(val uid: Long, timeStamp: Long = game!!.elapsedGameMs) 
     }
 }
 
-class PlayerUpdateEvent(val uid: Long, timeStamp: Long = game!!.elapsedGameMs, vararg recs: UpgradeRecord<out Number>) :
+class PlayerUpdateEvent(val uid: Long, timeStamp: Long = game!!.elapsedGameMs, vararg recs: UpgradeRecord<out Number>, dbgStr : String? = null ) :
     GameEvent(timeStamp) {
     override val serialName: String = "PlrUpd"
     init {
@@ -156,6 +156,9 @@ class PlayerUpdateEvent(val uid: Long, timeStamp: Long = game!!.elapsedGameMs, v
             put("uid", uid)
             for (rec in recs) {
                 put(rec.type.serialName, rec.value.toEvtFixed())
+            }
+            if (dbgStr != null){
+                put("dbgStr", dbgStr)
             }
         }
         mp.putAll(tmp)

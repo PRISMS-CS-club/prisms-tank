@@ -9,6 +9,8 @@ import org.prismsus.tank.game.OtherRequests.*
 import org.prismsus.tank.game.TankWeaponInfo.*
 import org.prismsus.tank.markets.AuctionUserInterface
 import org.prismsus.tank.markets.MarketImpl
+import org.prismsus.tank.markets.UpgradeEntry
+import org.prismsus.tank.markets.UpgradeRecord
 import org.prismsus.tank.networkings.GuiCommunicator
 import org.prismsus.tank.utils.*
 import org.prismsus.tank.utils.collidable.ColMultiPart
@@ -37,6 +39,7 @@ class Game(val map: GameMap, vararg val bots: GameBot, val debug: Boolean = fals
     val lastCollidedEleWithTanks = mutableMapOf<Tank, ArrayList<GameElement>>()
     val botThs: Array<Thread?> = Array(bots.size) { null }
     val tankKilledOrder : ArrayList<Long> = ArrayList()
+    val tankAccumulatedHpMoney = mutableMapOf<Tank, Pair<Double, Double>>()
     private val replaySaver: ReplaySaver?
     private val debugTh: Thread?
     @Volatile
@@ -238,6 +241,10 @@ class Game(val map: GameMap, vararg val bots: GameBot, val debug: Boolean = fals
                 req.returnTo!!.complete(ArrayList<GameElement>())
             }
 
+            GET_HP_MONEY_INC_RATE -> {
+                req.returnTo!!.complete(map.getHpMoneyIncRate(tk))
+            }
+
             FIRE -> {
 
                 val tankWeaponDirAng = tk.colPoly.angleRotated + PI / 2
@@ -249,6 +256,11 @@ class Game(val map: GameMap, vararg val bots: GameBot, val debug: Boolean = fals
                     map.addEle(bullet)
                     processNewEvent(ElementCreateEvent(bullet, elapsedGameMs))
                 }
+            }
+
+            SET_DEBUG_STRING -> {
+                val dbgStr = req.params!!.first() as String
+                processNewEvent(PlayerUpdateEvent(tk.uid, dbgStr = dbgStr))
             }
 
             SET_LTRACK_SPEED -> {
@@ -379,6 +391,41 @@ class Game(val map: GameMap, vararg val bots: GameBot, val debug: Boolean = fals
         return ArrayList(toRemove.distinct())
     }
 
+    private fun handleTankHpMoneyInc(){
+        val dt = elapsedGameMs - lastGameLoopMs
+        for (tk in map.tanks){
+            val incRate = map.getHpMoneyIncRate(tk)
+            if (tankAccumulatedHpMoney[tk] == null){
+                tankAccumulatedHpMoney[tk] = Pair(0.0, 0.0)
+            }
+            tankAccumulatedHpMoney[tk] = Pair(
+                tankAccumulatedHpMoney[tk]!!.first + incRate.first * dt / 1000,
+                tankAccumulatedHpMoney[tk]!!.second + incRate.second * dt / 1000
+            )
+            var hpInt = tankAccumulatedHpMoney[tk]!!.first.toInt()
+            if (tk.hp == tk.maxHp) hpInt = 0
+            val moneyInt = tankAccumulatedHpMoney[tk]!!.second.toInt()
+            val hpDeci = tankAccumulatedHpMoney[tk]!!.first % 1
+            val moneyDeci = tankAccumulatedHpMoney[tk]!!.second % 1
+
+            val hpChanged = hpInt != 0
+            tk.hp += hpInt
+            val moneyChanged = moneyInt != 0
+            tk.money += moneyInt
+            tankAccumulatedHpMoney[tk] = Pair(hpDeci, moneyDeci)
+            processNewEvent(ElementUpdateEvent(tk, UpdateEventMask.defaultFalse(hp = hpChanged)))
+            val moneyChangedRecord = UpgradeRecord(
+                type = UpgradeEntry.UpgradeType.MONEY,
+                isInc = false,
+                value = tk.money,
+                cid = tankToCid[tk]!!
+            )
+            val moneyUpgEvt = tk.processUpgrade(moneyChangedRecord)
+            if (moneyChanged)
+                processNewEvent(moneyUpgEvt)
+        }
+    }
+
     fun start() {
         gameInitMs = System.currentTimeMillis()
         lastGameLoopMs = elapsedGameMs
@@ -427,7 +474,7 @@ class Game(val map: GameMap, vararg val bots: GameBot, val debug: Boolean = fals
                     stop()
                 }
             }
-
+            handleTankHpMoneyInc()
             marketImpl.toBeUpgrade.removeIf{
                 val tk = cidToTank[it.cid] ?: return@removeIf true
                 val evt = tk.processUpgrade(it)
@@ -504,7 +551,7 @@ class Game(val map: GameMap, vararg val bots: GameBot, val debug: Boolean = fals
             val aimingBots = Array(1) { TankAimingBot() }
             val auctBots = Array(1) { AuctTestBot() }
             val game = Game(
-                GameMap("15x15.json"), *aimingBots, *randBots, *players.toTypedArray(), *auctBots,
+                GameMap("default.json"), *aimingBots, *randBots, *players.toTypedArray(), *auctBots,
                 debug = false, replayFile = replayFile
             )
             game.start()

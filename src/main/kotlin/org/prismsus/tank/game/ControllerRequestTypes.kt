@@ -38,6 +38,8 @@ enum class OtherRequests : ControllerRequestTypes{
     GET_VISITED_ELEMENTS,
     CHECK_BLOCK_AT,
     CHECK_COLLIDING_GAME_ELES,
+    SET_DEBUG_STRING,
+    GET_HP_MONEY_INC_RATE,
     FIRE{
         override val serialName: String = "fire" },
     SET_LTRACK_SPEED{
