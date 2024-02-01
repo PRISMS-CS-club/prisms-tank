@@ -191,7 +191,7 @@ class GameMap(val fileName: String) {
                       [1.191, 1.981]]
              }
         * */
-        val incMap = jsonEle.jsonObject["IncMap"]!!.jsonObject.toMap()
+        val incMap = jsonEle.jsonObject["incMap"]!!.jsonObject.toMap()
         hpMap = parse1dArrToXY2dArr(incMap["hp"]!!.jsonArray.toTypedArray()).map{it.map{it.jsonPrimitive.double}.toTypedArray()}.toTypedArray()
         moneyMap = parse1dArrToXY2dArr(incMap["money"]!!.jsonArray.toTypedArray()).map{it.map{it.jsonPrimitive.double}.toTypedArray()}.toTypedArray()
         val blkArr = parse1dArrToXY2dArr(jsonEle.jsonObject["map"]!!.jsonArray.toTypedArray())
