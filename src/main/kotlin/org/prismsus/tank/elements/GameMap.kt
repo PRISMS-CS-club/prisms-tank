@@ -174,7 +174,7 @@ class GameMap(val fileName: String) {
     }
 
     init {
-        val fileText = GameMap::class.java.getResource(fileName).readText()
+        val fileText = GameMap::class.java.getResource(fileName)!!.readText()
         val jsonEle: JsonElement = Json.parseToJsonElement(fileText)
         width = jsonEle.jsonObject["x"]!!.jsonPrimitive.int
         height = jsonEle.jsonObject["y"]!!.jsonPrimitive.int

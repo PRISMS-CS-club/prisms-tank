@@ -1,5 +1,6 @@
 package org.prismsus.tank.game
 
+import com.esotericsoftware.kryo.io.Output
 import io.ktor.websocket.*
 import kotlinx.coroutines.runBlocking
 import org.prismsus.tank.bot.*
@@ -363,16 +364,17 @@ class Game(val map: GameMap, vararg val bots: GameBot, val debug: Boolean = fals
                 if (me is Tank) lastCollidedEleWithTanks[me] = ArrayList()
                 val origColPoly = movablesToOrigColPoly[me]!!
                 val curColPoly = me.colPoly
-                processNewEvent(
-                    ElementUpdateEvent(
-                        me,
-                        UpdateEventMask.defaultFalse(
-                            x = origColPoly.rotationCenter.x != curColPoly.rotationCenter.x,
-                            y = origColPoly.rotationCenter.y != curColPoly.rotationCenter.y,
-                            rad = origColPoly.angleRotated != curColPoly.angleRotated
+                val xMask = (origColPoly.rotationCenter.x != curColPoly.rotationCenter.x)
+                val yMask = (origColPoly.rotationCenter.y != curColPoly.rotationCenter.y)
+                val radMask = (origColPoly.angleRotated != curColPoly.angleRotated)
+                if (xMask || yMask || radMask) {
+                    processNewEvent(
+                        ElementUpdateEvent(
+                            me,
+                            UpdateEventMask.defaultFalse(x = xMask, y = yMask, rad = radMask),
                         )
                     )
-                )
+                }
             } else {
                 invalidMovementEles.add(me)
             }
@@ -413,7 +415,9 @@ class Game(val map: GameMap, vararg val bots: GameBot, val debug: Boolean = fals
             val moneyChanged = moneyInt != 0
             tk.money += moneyInt
             tankAccumulatedHpMoney[tk] = Pair(hpDeci, moneyDeci)
-            processNewEvent(ElementUpdateEvent(tk, UpdateEventMask.defaultFalse(hp = hpChanged)))
+            if(hpChanged) {
+                processNewEvent(ElementUpdateEvent(tk, UpdateEventMask.defaultFalse(hp = true)))
+            }
             val moneyChangedRecord = UpgradeRecord(
                 type = UpgradeEntry.UpgradeType.MONEY,
                 isInc = false,
@@ -551,7 +555,7 @@ class Game(val map: GameMap, vararg val bots: GameBot, val debug: Boolean = fals
             val aimingBots = Array(1) { TankAimingBot() }
             val auctBots = Array(1) { AuctTestBot() }
             val game = Game(
-                GameMap("default.json"), *aimingBots, *randBots, *players.toTypedArray(), *auctBots,
+                GameMap("map.json"), *aimingBots, *randBots, *players.toTypedArray(), *auctBots,
                 debug = false, replayFile = replayFile
             )
             game.start()

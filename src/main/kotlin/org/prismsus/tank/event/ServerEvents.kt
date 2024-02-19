@@ -132,7 +132,9 @@ class ElementUpdateEvent(
                 put("rad", selectBaseColPoly(ele).angleRotated.toEvtFixed())
             }
         }
-
+        if(!(updateEventMask.hp || updateEventMask.x || updateEventMask.y || updateEventMask.rad)) {
+            println("DEBUG: $serializedStr")
+        }
         mp.putAll(tmp)
     }
 }
