@@ -36,6 +36,10 @@ abstract class GameEvent(val timeStamp: Long = game!!.elapsedGameMs) : Comparabl
         return timeStamp.compareTo(other.timeStamp)
     }
 
+    companion object{
+
+    }
+
 }
 
 
@@ -255,7 +259,6 @@ class ServerResponseEvent(
     // TODO: implement deserialization
 
     init {
-        print("ServerResponseEvent init")
         jsonFieldNameToClassFieldName.putAll(
             mapOf(
                 "rid" to "requestId",
@@ -266,13 +269,13 @@ class ServerResponseEvent(
 
         jsonValueToClassFieldValueFuncs.putAll(
             mapOf(
-                "returnValue" to { Base64.decode(it.jsonPrimitive.content).deserializeByKyro() }
+                "returnValue" to { it.binDeserializationFromJson() }
             )
         )
 
         classFieldValueToJsonValueFuncs.putAll(
             mapOf(
-                "returnValue" to { it.serializeByKyro().let { Base64.encode(it) }.toJsonElement() }
+                "returnValue" to { it.binSerializationToSendThroughJson() }
             )
         )
 

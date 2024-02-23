@@ -1,14 +1,12 @@
 package org.prismsus.tank
 
 import org.junit.jupiter.api.Test
+import org.prismsus.tank.event.BotInitEvent
+import org.prismsus.tank.event.BotRequestEvent
 import org.prismsus.tank.event.ServerResponseEvent
+import org.prismsus.tank.utils.*
 import org.prismsus.tank.utils.collidable.ColPoly
 import org.prismsus.tank.utils.collidable.DPos2
-import org.prismsus.tank.utils.deepCopyByKyro
-import org.prismsus.tank.utils.deserializeByKyro
-import org.prismsus.tank.utils.serializeByKyro
-import java.util.zip.Deflater
-import java.util.zip.Deflater.BEST_SPEED
 
 class DeserializableEventTest {
 
@@ -31,24 +29,51 @@ class DeserializableEventTest {
     }
 
     @Test
-    fun testServerResponseEvent(){
+    fun testBinSerializationForJson(){
         val colPoly = genRandomColPoly(5)
-        val evt = ServerResponseEvent(colPoly, 1145, 1919810, -1)
+        val serialized = colPoly.binSerializationToSendThroughJson()
+        val colPoly2 = serialized.binDeserializationFromJson() as ColPoly
+        assert(colPoly == colPoly2)
+    }
+
+    @Test
+    fun testServerResponseEvent(){
+        val REP_TIMES = 1000
+        val curTime = System.currentTimeMillis()
+        for (i in 0 until REP_TIMES) {
+            val colPoly = genRandomColPoly(10)
+            val evt = ServerResponseEvent(colPoly, 1145, 1919810, -1)
+            val serializedStr = evt.serializedStr
+            val evt2 = evt.deserialize(serializedStr) as ServerResponseEvent
+            assert(evt2.timeStamp == evt.timeStamp)
+            assert(evt2.serialName == evt.serialName)
+            assert(evt2.returnValue == evt.returnValue)
+        }
+        val elapsed = System.currentTimeMillis() - curTime
+        val aveTime = elapsed.toFloat() / REP_TIMES
+        println("average time for $REP_TIMES times of serialization and deserialization: $aveTime ms")
+    }
+
+    @Test
+    fun testBotInitEvent(){
+        val evt = BotInitEvent("testBot", 114514)
         val serializedStr = evt.serializedStr
-        println(serializedStr)
-        // print the size of the serialized string
-        println(serializedStr.length)
-        // check the deflated size
-        val defalter = Deflater(BEST_SPEED)
-        defalter.setInput(serializedStr.toByteArray())
-        defalter.finish()
-        val deflatedBytes = ByteArray(1024)
-        val deflatedSize = defalter.deflate(deflatedBytes)
-        println(deflatedSize)
-        val serializedBytes = evt.serializedBytes
-        val evt2 = evt.deserialize(serializedStr) as ServerResponseEvent
+        val evt2 = evt.deserialize(serializedStr) as BotInitEvent
+        assert(evt2.name == evt.name)
+        println(evt2.teamId); println(evt.teamId)
+        println(evt2.name); println(evt.name)
+        assert(evt2.teamId == evt.teamId)
+    }
+
+    @Test
+    fun testBotRequestEvent(){
+        val colPoly = genRandomColPoly(10)
+        val evt = BotRequestEvent("testReq", 1919, 810, arrayOf(1, colPoly, 3))
+        val serializedStr = evt.serializedStr
+        val evt2 = evt.deserialize(serializedStr) as BotRequestEvent
+        assert(evt2.requestType == evt.requestType)
+        assert(evt2.requestId == evt.requestId)
         assert(evt2.timeStamp == evt.timeStamp)
-        assert(evt2.serialName == evt.serialName)
-        assert(evt2.returnValue == evt.returnValue)
+        assert(evt2.params.contentDeepEquals(evt.params))
     }
 }

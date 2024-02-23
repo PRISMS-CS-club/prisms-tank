@@ -30,11 +30,6 @@ abstract class DeserializableEvent(timeStamp : Long) : GameEvent(timeStamp) {
         }
 
 
-    init{
-        print("DeserializableEvent init")
-
-    }
-
     open fun deserialize(serializedStr: String) : GameEvent
     {
         return deserializeGameEvent(

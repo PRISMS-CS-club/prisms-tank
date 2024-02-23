@@ -6,6 +6,7 @@ import org.objenesis.strategy.StdInstantiatorStrategy
 import org.prismsus.tank.elements.GameMap
 import org.prismsus.tank.game.Game
 import org.prismsus.tank.markets.AuctionProcessor
+import java.util.zip.Deflater
 
 /*
 * shared variables

@@ -1,9 +1,8 @@
 package org.prismsus.tank.event
-import org.prismsus.tank.utils.serializeByKyro
+import org.prismsus.tank.utils.binDeserializationFromJson
+import org.prismsus.tank.utils.binSerializationToSendThroughJson
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 
 fun parseTimeStamp(str : String) : Long {
     val scan = Scanner(str)
@@ -33,30 +32,43 @@ class GUIrequestEvent(override val serializedStr : String) : GameEvent(parseTime
 }
 
 
-class BotInitEvent(val name : String, val teamId : Long) : GameEvent(-1){
+class BotInitEvent(val name : String, val teamId : Long) : DeserializableEvent(){
     override val serialName : String = "bInit"
     init{
-        val tmp = buildMap {
-            put("name", name)
-            put("teamId", teamId)
-        }
-        mp.putAll(tmp)
+        jsonFieldNameToClassFieldName.putAll(
+            mapOf(
+                "name" to "name",
+                "teamId" to "teamId"
+            )
+        )
+
     }
 }
 
-@OptIn(ExperimentalEncodingApi::class)
-class BotRequestEvent(val reqType : String, rid : Long, timeStamp : Long, val params : Array<*>) : GameEvent(timeStamp){
+class BotRequestEvent(val requestType : String, val requestId : Long, timeStamp : Long, val params : Array<*>) : DeserializableEvent(timeStamp){
     override val serialName : String = "bReq"
     init{
-        val tmp = buildMap {
-            put("type", reqType)
-            put("rid", rid)
-            if (params.isNotEmpty()) {
-                val bytes = params.serializeByKyro()
-                val base64 = Base64.encode(bytes)
-                put("params", base64)
-            }
-        }
-        mp.putAll(tmp)
+
+        jsonFieldNameToClassFieldName.putAll(
+            mapOf(
+                "reqType" to "requestType",
+                "rid" to "requestId",
+                "params" to "params"
+            )
+        )
+
+        jsonValueToClassFieldValueFuncs.putAll(
+            mapOf(
+                "params" to {it.binDeserializationFromJson()}
+            )
+        )
+
+        classFieldValueToJsonValueFuncs.putAll(
+            mapOf(
+                "params" to {it.binSerializationToSendThroughJson()}
+            )
+        )
+
+
     }
 }
