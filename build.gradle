@@ -5,6 +5,14 @@ plugins {
 
     id 'org.jetbrains.kotlin.plugin.serialization' version '1.8.21'
 
+    id "org.jetbrains.kotlin.plugin.noarg" version "1.9.22"
+
+    id "org.jetbrains.kotlin.plugin.jpa" version "1.9.22"
+}
+
+noArg {
+    annotation("org.prismsus.tank.utils.SyntheticNoArgConstruct")
+    invokeInitializers = true
 }
 
 group 'org.prisms.tank'
@@ -48,6 +56,7 @@ dependencies {
 
     implementation('com.esotericsoftware:kryo:5.5.0')
 }
+
 
 test {
     useJUnitPlatform()

@@ -31,6 +31,7 @@ var defAuction = AuctionProcessor(
 
 val thSafeKyro by lazyThreadLocal {
         val tmp = Kryo()
+        tmp.references = true
         tmp.isRegistrationRequired = false
         tmp.instantiatorStrategy = DefaultInstantiatorStrategy(StdInstantiatorStrategy())
         tmp

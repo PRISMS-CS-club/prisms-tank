@@ -1,7 +1,6 @@
 package org.prismsus.tank.event
 
 import kotlinx.serialization.json.*
-import kotlinx.serialization.*
 import org.prismsus.tank.elements.GameElement
 import org.prismsus.tank.elements.GameMap
 import org.prismsus.tank.elements.Tank
@@ -10,24 +9,29 @@ import org.prismsus.tank.markets.UpgradeRecord
 import org.prismsus.tank.utils.*
 import org.prismsus.tank.utils.collidable.ColMultiPart
 import org.prismsus.tank.utils.collidable.ColPoly
-import java.lang.System.currentTimeMillis
-import java.util.Collections.addAll
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 /**
- * Base class for all events.
+ * Base class for all events.n
  * @property timeStamp Timestamp of the event. The timestamp is the number of milliseconds since the start
  *                     of the game.
  */
 abstract class GameEvent(val timeStamp: Long = game!!.elapsedGameMs) : Comparable<GameEvent> {
-    open val serializedBytes : ByteArray by lazy{serializedStr.toByteArray()}
-    open val serializedStr: String by lazy{mp.toJsonString()}
+    constructor() : this(-1)
+
+    open val serializedBytes: ByteArray by lazy { serializedStr.toByteArray() }
+    open val serializedStr: String by lazy { mp.toJsonString() }
     abstract val serialName: String
-    val mp : MutableMap<String, Any> by lazy {
+    open val mpDelegate = lazyExtended {
         val tmp = mutableMapOf<String, Any>()
         tmp["type"] = serialName
         tmp["t"] = timeStamp
         tmp
     }
+    open val mp: MutableMap<String, Any> by mpDelegate
+
+
     override fun compareTo(other: GameEvent): Int {
         return timeStamp.compareTo(other.timeStamp)
     }
@@ -40,7 +44,8 @@ class MapCreateEvent(val map: GameMap, timeStamp: Long = game!!.elapsedGameMs) :
         get() = map.serialized
     override val serializedStr: String
         get() = map.serialized.decodeToString()
-//    override val mp = throw NotImplementedError("this event does not support converting to map<str, any>")
+
+    //    override val mp = throw NotImplementedError("this event does not support converting to map<str, any>")
     override val serialName: String = "MapCrt"
 }
 
@@ -76,16 +81,19 @@ data class UpdateEventMask(val hp: Boolean, val x: Boolean, val y: Boolean, val 
     fun any(): Boolean {
         return hp || x || y || rad
     }
+
     fun all(): Boolean {
         return hp && x && y && rad
     }
-    fun trueCnt() : Int {
+
+    fun trueCnt(): Int {
         return if (hp) 1 else 0 + if (x) 1 else 0 + if (y) 1 else 0 + if (rad) 1 else 0
     }
 
-    fun falseCnt() : Int{
+    fun falseCnt(): Int {
         return if (!hp) 1 else 0 + if (!x) 1 else 0 + if (!y) 1 else 0 + if (!rad) 1 else 0
     }
+
     companion object {
         fun defaultTrue(
             hp: Boolean = true,
@@ -148,16 +156,22 @@ class ElementRemoveEvent(val uid: Long, timeStamp: Long = game!!.elapsedGameMs) 
     }
 }
 
-class PlayerUpdateEvent(val uid: Long, timeStamp: Long = game!!.elapsedGameMs, vararg recs: UpgradeRecord<out Number>, dbgStr : String? = null ) :
+class PlayerUpdateEvent(
+    val uid: Long,
+    timeStamp: Long = game!!.elapsedGameMs,
+    vararg recs: UpgradeRecord<out Number>,
+    dbgStr: String? = null
+) :
     GameEvent(timeStamp) {
     override val serialName: String = "PlrUpd"
+
     init {
         val tmp = buildMap {
             put("uid", uid)
             for (rec in recs) {
                 put(rec.type.serialName, rec.value.toEvtFixed())
             }
-            if (dbgStr != null){
+            if (dbgStr != null) {
                 put("dbgStr", dbgStr)
             }
         }
@@ -165,9 +179,10 @@ class PlayerUpdateEvent(val uid: Long, timeStamp: Long = game!!.elapsedGameMs, v
     }
 }
 
-class GameEndEvent(rankMap: Map<Long, Long>, timeStamp : Long = game!!.elapsedGameMs) : GameEvent(timeStamp){
+class GameEndEvent(rankMap: Map<Long, Long>, timeStamp: Long = game!!.elapsedGameMs) : GameEvent(timeStamp) {
     // rankMap is mapping from uid to ranking
-    override val serialName : String = "End"
+    override val serialName: String = "End"
+
     init {
         val tmp = buildMap {
             put("uids", rankMap.keys.toTypedArray().toJsonElement())
@@ -179,9 +194,11 @@ class GameEndEvent(rankMap: Map<Long, Long>, timeStamp : Long = game!!.elapsedGa
 }
 
 
-class DebugEvent(val msg: String, val debugType: DebugType, timeStamp: Long = game!!.elapsedGameMs) : GameEvent(timeStamp) {
+class DebugEvent(val msg: String, val debugType: DebugType, timeStamp: Long = game!!.elapsedGameMs) :
+    GameEvent(timeStamp) {
     override val serialName: String = "Dbg"
-    enum class DebugType(val serialName: String, val severity : Int) {
+
+    enum class DebugType(val serialName: String, val severity: Int) {
         TRACE("TRACE", 0),
         DEBUG("DEBUG", 1),
         INFO("INFO", 2),
@@ -189,6 +206,7 @@ class DebugEvent(val msg: String, val debugType: DebugType, timeStamp: Long = ga
         ERROR("ERROR", 4),
         FATAL("FATAL", 5)
     }
+
     init {
         val tmp = buildMap {
             put("msg", msg)
@@ -200,7 +218,8 @@ class DebugEvent(val msg: String, val debugType: DebugType, timeStamp: Long = ga
             println("DEBUG: $serializedStr")
         }
     }
-    companion object{
+
+    companion object {
         val printIfAboveOrEqual = DebugType.INFO
         val storeIfAboveOrEqual = DebugType.WARN
     }
@@ -210,7 +229,7 @@ object INIT_EVENT : GameEvent(0) {
     override val serialName: String = "Init"
 
     init {
-        val tmp = buildMap{
+        val tmp = buildMap {
             put("plr",
                 buildMap {
                     for (tp in UpgradeEntry.UpgradeType.values()) {
@@ -222,5 +241,41 @@ object INIT_EVENT : GameEvent(0) {
             // game is not started yet.
         }
         mp.putAll(tmp)
+    }
+}
+
+@OptIn(ExperimentalEncodingApi::class)
+class ServerResponseEvent(
+    val returnValue: Any?,
+    val requestSentTime: Long,
+    val requestId: Long,
+    timeStamp: Long = game!!.elapsedGameMs
+) : DeserializableEvent(timeStamp) {
+    override val serialName: String = "sRes"
+    // TODO: implement deserialization
+
+    init {
+        print("ServerResponseEvent init")
+        jsonFieldNameToClassFieldName.putAll(
+            mapOf(
+                "rid" to "requestId",
+                "sentT" to "requestSentTime",
+                "retVal" to "returnValue"
+            )
+        )
+
+        jsonValueToClassFieldValueFuncs.putAll(
+            mapOf(
+                "returnValue" to { Base64.decode(it.jsonPrimitive.content).deserializeByKyro() }
+            )
+        )
+
+        classFieldValueToJsonValueFuncs.putAll(
+            mapOf(
+                "returnValue" to { it.serializeByKyro().let { Base64.encode(it) }.toJsonElement() }
+            )
+        )
+
+
     }
 }
