@@ -1,36 +1,9 @@
 package org.prismsus.tank.event
+
 import org.prismsus.tank.utils.binDeserializationFromJson
 import org.prismsus.tank.utils.binSerializationToSendThroughJson
-import java.util.*
-import kotlin.collections.ArrayList
-
-fun parseTimeStamp(str : String) : Long {
-    val scan = Scanner(str)
-    return scan.nextFloat().toLong()
-}
-
-class GUIrequestEvent(override val serializedStr : String) : GameEvent(parseTimeStamp(serializedStr)){
-    val funName : String
-    val params : Array<*>
-    init{
-        val scan = Scanner(serializedStr)
-        scan.next() // skip timestamp
-        funName = scan.next()
-        val tmpParam = ArrayList<Any>()
-        while(scan.hasNext()){
-            if (scan.hasNextLong())
-                tmpParam.add(scan.nextLong())
-            else if (scan.hasNextDouble())
-                tmpParam.add(scan.nextDouble())
-            else
-                tmpParam.add(scan.next())
-        }
-        params = tmpParam.toTypedArray()
-    }
-    override val serialName: String = "GUIreq"
-    override val serializedBytes: ByteArray = serializedStr.toByteArray()
-}
-
+import org.prismsus.tank.utils.companionClass
+import kotlin.reflect.KClass
 
 class BotInitEvent(val name : String, val teamId : Long) : DeserializableEvent(){
     override val serialName : String = "bInit"
@@ -41,7 +14,9 @@ class BotInitEvent(val name : String, val teamId : Long) : DeserializableEvent()
                 "teamId" to "teamId"
             )
         )
-
+    }
+    companion object{
+        operator fun invoke(serializedStr : String) : GameEvent = deserialize(serializedStr, DeserializableEvent::class)
     }
 }
 
@@ -68,7 +43,8 @@ class BotRequestEvent(val requestType : String, val requestId : Long, timeStamp 
                 "params" to {it.binSerializationToSendThroughJson()}
             )
         )
-
-
+    }
+    companion object{
+        operator fun invoke(serializedStr : String) : GameEvent = deserialize(serializedStr, BotRequestEvent::class)
     }
 }

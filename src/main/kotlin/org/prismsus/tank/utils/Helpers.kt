@@ -3,9 +3,6 @@ package org.prismsus.tank.utils
 import java.util.TreeSet
 import kotlin.math.PI
 import kotlin.random.Random
-import kotlin.reflect.KProperty1
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.jvm.javaField
 
 fun Double.toDeg() : Double {
     // turn radians into degrees
@@ -273,21 +270,3 @@ class LazyThreadLocal<T>(val wrap : Lazy<T>) : Lazy<T>{
     override fun isInitialized() = thLocal.get().isInitialized()
 }
 
-inline fun <reified T : Any> Any.getMemberByName(propertyName: String): T {
-    // https://stackoverflow.com/a/35525706/20080946
-    val getterName = "get" + propertyName.replaceFirstChar { it.uppercase()  }
-    return javaClass.getMethod(getterName).invoke(this) as T
-}
-
-fun Any.setPropertyByName(propertyName : String, value : Any){
-    // this works even for private and val properties
-    val declaredField = getPropertyByName(propertyName).javaField!!
-    val origAccessibility = declaredField.isAccessible
-    declaredField.isAccessible = true
-    declaredField.set(this, value)
-    declaredField.isAccessible = origAccessibility
-}
-
-inline fun <reified T : Any> T.getPropertyByName(propertyName : String) : KProperty1<out T, *> {
-    return this::class.memberProperties.find { it.name == propertyName }!!
-}

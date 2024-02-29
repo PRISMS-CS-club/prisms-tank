@@ -1,5 +1,7 @@
 package org.prismsus.tank.networkings
 
+import org.prismsus.tank.event.DeserializableEvent
+import org.prismsus.tank.event.GameEvent
 import org.prismsus.tank.utils.*
 import java.net.Socket
 
@@ -24,6 +26,18 @@ class TcpPackerClient(val ipAddr : String, val port : Int) {
         private set
     var isListeningOutgoing = false
         private set
+    val peakNextIncoming : ByteArray
+        get() = incomingMessageQueue[0]
+    inline fun<reified T: DeserializableEvent> peakNextIncomingAsEvent(){
+        val msg = peakNextIncoming
+        val event = T::class.java.getDeclaredConstructor(ByteArray::class.java).newInstance(msg)
+    }
+    val peakNextOutgoing : ByteArray
+        get() = outgoingMessageQueue[0]
+    val peakAndPopNextIncoming : ByteArray
+        get() = incomingMessageQueue.removeAt(0)
+    val peakAndPopNextOutgoing : ByteArray
+        get() = outgoingMessageQueue.removeAt(0)
 
     fun startListenIncoming(){
         isListeningIncoming = true

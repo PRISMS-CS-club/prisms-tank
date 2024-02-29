@@ -4,9 +4,13 @@ import org.junit.jupiter.api.Test
 import org.prismsus.tank.event.BotInitEvent
 import org.prismsus.tank.event.BotRequestEvent
 import org.prismsus.tank.event.ServerResponseEvent
-import org.prismsus.tank.utils.*
+import org.prismsus.tank.event.ServerSyncronizeEvent
+import org.prismsus.tank.utils.binDeserializationFromJson
+import org.prismsus.tank.utils.binSerializationToSendThroughJson
 import org.prismsus.tank.utils.collidable.ColPoly
 import org.prismsus.tank.utils.collidable.DPos2
+import org.prismsus.tank.utils.deserializeByKyro
+import org.prismsus.tank.utils.serializeByKyro
 
 class DeserializableEventTest {
 
@@ -44,7 +48,7 @@ class DeserializableEventTest {
             val colPoly = genRandomColPoly(10)
             val evt = ServerResponseEvent(colPoly, 1145, 1919810, -1)
             val serializedStr = evt.serializedStr
-            val evt2 = evt.deserialize(serializedStr) as ServerResponseEvent
+            val evt2 = ServerResponseEvent(serializedStr) as ServerResponseEvent
             assert(evt2.timeStamp == evt.timeStamp)
             assert(evt2.serialName == evt.serialName)
             assert(evt2.returnValue == evt.returnValue)
@@ -58,7 +62,7 @@ class DeserializableEventTest {
     fun testBotInitEvent(){
         val evt = BotInitEvent("testBot", 114514)
         val serializedStr = evt.serializedStr
-        val evt2 = evt.deserialize(serializedStr) as BotInitEvent
+        val evt2 = BotInitEvent(serializedStr) as BotInitEvent
         assert(evt2.name == evt.name)
         println(evt2.teamId); println(evt.teamId)
         println(evt2.name); println(evt.name)
@@ -70,7 +74,7 @@ class DeserializableEventTest {
         val colPoly = genRandomColPoly(10)
         val evt = BotRequestEvent("testReq", 1919, 810, arrayOf(1, colPoly, 3))
         val serializedStr = evt.serializedStr
-        val evt2 = evt.deserialize(serializedStr) as BotRequestEvent
+        val evt2 = BotRequestEvent(serializedStr) as BotRequestEvent
         assert(evt2.requestType == evt.requestType)
         assert(evt2.requestId == evt.requestId)
         assert(evt2.timeStamp == evt.timeStamp)

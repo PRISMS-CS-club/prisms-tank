@@ -1,6 +1,5 @@
 package org.prismsus.tank.event
 
-import kotlinx.serialization.json.*
 import org.prismsus.tank.elements.GameElement
 import org.prismsus.tank.elements.GameMap
 import org.prismsus.tank.elements.Tank
@@ -9,8 +8,6 @@ import org.prismsus.tank.markets.UpgradeRecord
 import org.prismsus.tank.utils.*
 import org.prismsus.tank.utils.collidable.ColMultiPart
 import org.prismsus.tank.utils.collidable.ColPoly
-import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 
 /**
  * Base class for all events.n
@@ -229,7 +226,8 @@ class DebugEvent(val msg: String, val debugType: DebugType, timeStamp: Long = ga
     }
 }
 
-object INIT_EVENT : GameEvent(0) {
+
+class InitEvent : GameEvent(0) {
     override val serialName: String = "Init"
 
     init {
@@ -248,37 +246,5 @@ object INIT_EVENT : GameEvent(0) {
     }
 }
 
-@OptIn(ExperimentalEncodingApi::class)
-class ServerResponseEvent(
-    val returnValue: Any?,
-    val requestSentTime: Long,
-    val requestId: Long,
-    timeStamp: Long = game!!.elapsedGameMs
-) : DeserializableEvent(timeStamp) {
-    override val serialName: String = "sRes"
-    // TODO: implement deserialization
+val INIT_EVENT = InitEvent()
 
-    init {
-        jsonFieldNameToClassFieldName.putAll(
-            mapOf(
-                "rid" to "requestId",
-                "sentT" to "requestSentTime",
-                "retVal" to "returnValue"
-            )
-        )
-
-        jsonValueToClassFieldValueFuncs.putAll(
-            mapOf(
-                "returnValue" to { it.binDeserializationFromJson() }
-            )
-        )
-
-        classFieldValueToJsonValueFuncs.putAll(
-            mapOf(
-                "returnValue" to { it.binSerializationToSendThroughJson() }
-            )
-        )
-
-
-    }
-}
