@@ -14,7 +14,7 @@ class ColTreeSetTest {
 
     @Test
     fun Shapes() {
-        // first randomly generate DPos2
+        // first randomly generagte DPos2
         val randPts = Array(200) { DVec2.randUnitVec() * Random.nextDouble(-5.0, 5.0) }
         println(randPts.contentToString())
         val quadTree = ColTreeSet(0, ColAARect(DPos2(0, 0), DDim2(10, 10)))

@@ -544,7 +544,7 @@ class Game(val map: GameMap, vararg val bots: GameBot, val debug: Boolean = fals
 
             println(Paths.get(replayFile.path.toString()).toAbsolutePath())
             replayFile.createNewFile()
-            val communicator = GuiCommunicator(1)
+            val communicator = GuiCommunicator(2)
             communicator.start()
             val players = communicator.humanPlayerBots.get()
             val randBots = Array(1) { RandomMovingBot() }

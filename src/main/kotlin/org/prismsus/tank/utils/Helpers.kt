@@ -252,27 +252,6 @@ fun ClosedRange<out CompNum>.genRand() : Number{
     }
     error("genRand failed")
 }
-
-fun<T> T.deepCopyByKyro() : T{
-    return thSafeKyro.copy(this)
-}
-
-// from https://github.com/Kotlin/kotlinx.serialization/issues/746
-fun Any?.toJsonElement(): JsonElement = when (this) {
-    null -> JsonNull
-    is JsonElement -> this
-    is Number -> JsonPrimitive(this)
-    is Boolean -> JsonPrimitive(this)
-    is String -> JsonPrimitive(this)
-    is Array<*> -> JsonArray(map { it.toJsonElement() })
-    is List<*> -> JsonArray(map { it.toJsonElement() })
-    is Map<*, *> -> JsonObject(map { it.key.toString() to it.value.toJsonElement() }.toMap())
-    else -> Json.encodeToJsonElement(serializer(this::class.createType()), this)
-}
-
-fun Any?.toJsonString(): String = Json.encodeToString(this.toJsonElement())
-
-
 fun<T> lazyExtended(initializer : () -> T) = LazyExtended(initializer)
 class LazyExtended<T>(val initializer : () -> T) : Lazy<T>{
     private var curLazy = lazy(initializer)
