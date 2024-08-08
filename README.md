@@ -2,6 +2,9 @@
 
 The goal of this project is to feature a graphical and game-based software for users in different levels to learn computer science topics.
 
+This repo is the backend of the project, controlling the game logics and processing bot requests. 
+The frontend of the project, which controls displays, can be found [here](https://github.com/prisms-cs-club/pristank-frontend).
+
 This project is [submitted](https://njrsf.org/cgi-bin/DisplayAbstract.pl?Entry=entry2024.171) to the TNJSF (Terra North Jersey STEM Fair) 2024 and earned a second place award and an Associate for Computing Machinery Award.
 Since we wrote a lot of descriptive document to submit to the fair, we temporarily use them as the documentation for this project. 
 Hopefully we will have time to add more detailed and technical documentation in the future.
