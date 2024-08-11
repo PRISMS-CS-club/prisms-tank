@@ -12,7 +12,9 @@ Hopefully we will have time to add more detailed and technical documentation in 
 All the documentations are included in the `./docs` folder. 
 
 ## Poster
-![](./docs/science-fair-poster-Page-1.drawio.png)
+![](docs%2Fscience-fair-poster-Page-1_compressed.drawio.png)
+
+Note: this poster is compressed, to download the original poster, please click [here](docs%2Fscience-fair-poster-Page-1.drawio.png).
 
 ## Docs
 - [Science Fair: Project Summary](./docs/sf_notion/Science%20Fair%20Project%20Summary%204169dd2ba25c4495a5ff18fcf4376235.md)
